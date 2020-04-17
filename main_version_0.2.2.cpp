@@ -6,7 +6,8 @@
  *
  * version report: 
  *        - bug fix: Lambda for HCW: remove infected + detectable HCW from ratio of patient contact
- *        - inclusion of frialty measures in population at risk
+ *
+ *
  * fitting procedure: ABS-SMC
  * model to fit: spread, SEIIsHRD
  * number of herd: single
