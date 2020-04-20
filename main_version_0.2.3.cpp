@@ -7,6 +7,7 @@
  * version report: 
  *		  - bug found when seeding infections: mulinomial not working using gsl (freeze for no reasons). replaced by random flat to pick which age group will receive the seed. 
  *        - inclusion of frailty measures for access to hospital and death in community
+ *        - bug solved when computing population at risk
  *  
  * fitting procedure: ABS-SMC
  * model to fit: spread, SEIIsHRD
@@ -250,7 +251,7 @@ int main(int argc, char **argv) {
 	//define age structure and number of hcw of the population at risk
 	//compute the number of hcw in the shb
 	int N_scot = 0;
-	for (unsigned int nn = 0; nn < data_tmp.size(); ++nn) {
+	for (unsigned int nn = 0; nn < data_tmp.size()-1; ++nn) {
 		N_scot += data_tmp[nn][0];  //compute number of scots in scotland
 	}
 	double prop_scot = (double)Npop / (double)N_scot;  //proportion of Scots in each shb
