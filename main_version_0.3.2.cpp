@@ -1072,10 +1072,11 @@ void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& de
 	double rrdc = parameter_set[6];
 	double rrh = parameter_set[7];	
 	
-	double A_val = (pf_val * rrdh + (1 - pf_val ) ) * p_d;
-	double B_val = pf_val * (1 - rrdh * p_d) + (1 - pf_val ) * (1 - p_d);
+	
 	double C_val = pf_val  * rrh * p_h ;
 	double D_val = (1 - pf_val) * p_h;
+	double A_val = ( ( C_val * rrdh + D_val ) / ( C_val + D_val ) ) * p_d;
+	double B_val = ( (C_val * ( 1 -  rrdh * p_d ) + D_val * ( 1 - p_d ) ) / (C_val+D_val) );
 	double E_val = (( pf_val - C_val ) * rrdc + ((1 - pf_val ) - D_val ) ) * cfr;
 	double F_val = ( pf_val - C_val ) * (1 - rrdc * cfr ) + ((1 - pf_val ) - D_val ) * ( 1 - cfr ) ;
 	
