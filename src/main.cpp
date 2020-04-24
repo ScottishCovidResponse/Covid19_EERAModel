@@ -2,12 +2,11 @@
  * Authors: Thibaud Porphyre
  *
  *
- *version 0.2.3
+ *version 0.3.2
  *
  * version report: 
- *		  - bug found when seeding infections: mulinomial not working using gsl (freeze for no reasons). replaced by random flat to pick which age group will receive the seed. 
- *        - inclusion of frailty measures for access to hospital and death in community
- *		  - bug solved when computing population at risk
+ *		  - fix the transmission flow between Is,H, D and R relative to %frail
+ * 
  *  
  * fitting procedure: ABS-SMC
  * model to fit: spread, SEIIsHRD
@@ -72,7 +71,6 @@ struct params {
 	double T_rec;
 	double T_sym;
 	double T_hos;
-	double p_df;
 };
 
 //create structure for seed settings.
@@ -99,7 +97,8 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_lambda_shape1, double& prior_lambda_shape2);
+		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
+		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2);
 		
 double mean_calc_double( vector<double> v);
 void cumsum_calc(vector<double> v,vector<double>& r_val);
@@ -147,8 +146,8 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 				double tau, gsl_rng * r, vector<int> &sim_status,vector<vector<int>> &ends,
 				vector<int> &death_status,vector<int> &deathH_status);
 
-void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, params parameter_set, 
-				vector<double> cfr_tab, double pf_val, double lambda);
+void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, 
+				params fixed_parameters, vector<double> parameter_set, vector<double> cfr_tab, double pf_val, double lambda);
 
 void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<double>> waifw_norm,
 				vector<vector<double>> waifw_sdist,vector<vector<double>> waifw_home, 
@@ -178,7 +177,9 @@ int main(int argc, char **argv) {
 	seed seedlist;
 	double prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2;
 	double prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2;
-	double prior_lambda_shape1,prior_lambda_shape2;
+	
+	double prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2;
+	double prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2;
 	int nPar=0, day_shut=0, totN_hcw=0;
 	
 	//read settings information for fitting procedure
@@ -186,7 +187,8 @@ int main(int argc, char **argv) {
 			paramlist,seedlist,day_shut, totN_hcw,
 			nPar,prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2,
 			prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2,
-			prior_lambda_shape1,prior_lambda_shape2);
+			prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2,
+			prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2);
 
     cout << "[Settings]:\n";
 	cout<< "number of parameters tested: "<<nPar<<endl;
@@ -206,32 +208,32 @@ int main(int argc, char **argv) {
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	vector<vector<int> > data_tmp;
-	read_csv_int(data_tmp,"./DATA/scot_data.csv",',');
+	read_csv_int(data_tmp,"./data/scot_data.csv",',');
 	
 	//Uploading observed death data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	vector<vector<int> > death_tmp;
-	read_csv_int(death_tmp,"./DATA/scot_deaths.csv",',');
+	read_csv_int(death_tmp,"./data/scot_deaths.csv",',');
 	
 	//Uploading population per age group
 	//columns are for each individual Health Borad
 	//last column is for Scotland
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	vector<vector<double> > age_pop;
-	read_csv_double(age_pop,"./DATA/scot_age.csv",',');	
+	read_csv_double(age_pop,"./data/scot_age.csv",',');	
 	//Uploading contact matrices
 	vector<vector<double> > waifw_norm, waifw_home, waifw_sdist;
 
 	//mean number of daily contacts per age group (overall)	
-	read_csv_double(waifw_norm,"./DATA/waifw_norm.csv",',');
+	read_csv_double(waifw_norm,"./data/waifw_norm.csv",',');
 
 	//mean number of daily contacts per age group (home only)		
-	read_csv_double(waifw_home,"./DATA/waifw_home.csv",',');
+	read_csv_double(waifw_home,"./data/waifw_home.csv",',');
 	
 	//mean number of daily contacts per age group (not school, not work)			
-	read_csv_double(waifw_sdist,"./DATA/waifw_sdist.csv",',');	
+	read_csv_double(waifw_sdist,"./data/waifw_sdist.csv",',');	
 	
 	
 	//Upload cfr by age group
@@ -240,14 +242,14 @@ int main(int argc, char **argv) {
 	//col2: p_d: probability of death, given hospitalisation
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	vector<vector<double> > cfr_byage;
-	read_csv_double(cfr_byage,"./DATA/cfr_byage.csv",',');	
+	read_csv_double(cfr_byage,"./data/cfr_byage.csv",',');	
 		
 	//Upload frailty probability p_f by age group
 	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	//rows are for each individual Health Borad
 	//last row is for Scotland
 	vector<vector<double> > pf_pop;
-	read_csv_double(pf_pop,"./DATA/scot_frail.csv",',');	
+	read_csv_double(pf_pop,"./data/scot_frail.csv",',');	
 
 	//keep information for the health board if interest
 	vector<double> pf_byage = pf_pop[herd_id-1];//define frailty structure of the shb of interest.
@@ -320,7 +322,7 @@ int main(int argc, char **argv) {
 	stringstream namefile, namefile_simu, namefile_ends;
 
 	//initialise the gsl random number generator with a seed depending of time of the run
-	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937); //“Mersenne Twister” random number generator
+	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937); //ï¿½Mersenne Twisterï¿½ random number generator
 	gsl_rng_set(r, time(NULL));
 
 	//initialise the random number generator for importance sampling
@@ -330,8 +332,10 @@ int main(int argc, char **argv) {
 	//declare vectors for priors
 	vector<double> flag1, flag2;
 	
-	flag1 = {prior_pinf_shape1, prior_phcw_shape1, prior_chcw_mean, prior_d_shape1, prior_q_shape1, prior_lambda_shape1};	
-	flag2 = { prior_pinf_shape2, prior_phcw_shape2, prior_chcw_mean, prior_d_shape2, prior_q_shape2,prior_lambda_shape2};			
+	flag1 = {prior_pinf_shape1, prior_phcw_shape1, prior_chcw_mean, prior_d_shape1, prior_q_shape1, 
+		prior_rrdh_shape1,prior_rrdc_shape1,prior_rrh_shape1,prior_lambda_shape1};	
+	flag2 = { prior_pinf_shape2, prior_phcw_shape2, prior_chcw_mean, prior_d_shape2, prior_q_shape2,
+		prior_rrdh_shape2,prior_rrdc_shape2,prior_rrh_shape2,prior_lambda_shape2};			
 
 	//declare vectors of outputs/inputs for ABC process
 	vector<particle > particleList,particleList1;
@@ -364,7 +368,7 @@ int main(int argc, char **argv) {
 		ofstream output_simu (namefile_simu.str().c_str());
 		ofstream output_ends (namefile_ends.str().c_str());
 		//add the column names for each output list of particles
-		output_step << "iterID" << "," << "nsse_cases" << "," << "nsse_deaths" << "," << "p_inf" << "," << "p_hcw" << "," << "c_hcw" << "," << "d" << "," << "q"  << "," << "intro" << "," << "weight\n";
+		output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,rrdh,rrdc,rrh,intro,weight\n";
 
 		//add the column names for each output list of chosen simulations
 		output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
@@ -449,9 +453,9 @@ int main(int argc, char **argv) {
 					if (counter < nParticLimit) ++nsim_count;
 					}
 				//if the particle agrees with the different criteria defined for each ABC-smc step
-				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
+				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
-				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] && outs_vec.nsse_deaths <= toleranceLimit[smc]){
+				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5){
 					
 					//#pragma omp critical
 					{
@@ -647,7 +651,7 @@ double sse_calc_int(vector<int> simval, vector<int> obsval){
 	double sum_sq=0.0;
 	for (unsigned int xx = 0; xx < obsval.size(); ++xx) {
 		double error = 0.0;
-		error = (double)obsval[xx] - (double)simval[xx] ;
+		error = (double)( obsval[xx] - simval[xx] ) ;
 		sum_sq += pow(error,2);
 	}
 
@@ -737,10 +741,10 @@ void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vect
 	vector<int> death_status;
 	vector<int> deathH_status;
 	vector<vector<int>> ends;
-
+	
 	//main loop
 	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist, waifw_home,
-					duration, seedlist, day_shut, Npop,agenums, tau, r, sim_status,ends,
+					duration, seedlist, day_shut, Npop,agenums, tau, r, sim_status, ends,
 					death_status,deathH_status);
 
 	//---------------------------------------
@@ -750,7 +754,7 @@ void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vect
 	vector<int> obs_case = obsHosp;
 	vector<int> obs_death = obsDeaths;
 	sum_sq_cases= sse_calc_int(sim_status,obs_case);
-	
+		
 	sum_sq_deaths= sse_calc_int(deathH_status,obs_death);
 	//---------------------------------------
 	// compute the deviation of the fit expressed as % total number of cases
@@ -761,7 +765,7 @@ void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vect
 	
 	nsse_cases = sqrt(sum_sq_cases)/ (double)sum_obs_cases;
 	nsse_deaths = sqrt(sum_sq_deaths)/ (double)sum_obs_deaths;
-	
+ 	
 	//cout << "nsse_cases: " << nsse_cases << " , nsse_deaths: " << nsse_deaths <<'\n';
 
 	//---------------------------------------
@@ -773,7 +777,6 @@ void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vect
 	for (unsigned int ii = 0; ii < sim_status.size(); ++ii) {
 		outvec.simu_outs.push_back(sim_status[ii]);
 		outvec.death_outs.push_back(deathH_status[ii]);
-//		outvec.deathH_outs.push_back(deathH_status[ii]);
 	}
 	for (unsigned int ii = 0; ii < ends.size(); ++ii) {
 		outvec.end_comps.push_back(ends[ii]);
@@ -789,6 +792,8 @@ void parameter_select_first_step(vector<double> &selected_param, vector<double> 
 			tmpval = (double)gsl_ran_poisson(r, flag1[xx]);
 		} else if( xx == (nPar-1)){
 			tmpval = gsl_ran_flat(r, flag1[xx], flag2[xx]);
+		} else if(xx > 4 && xx < (nPar-1) ){
+			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
 		} else {
 			tmpval = gsl_ran_beta(r, flag1[xx], flag2[xx]);
 		}
@@ -1047,44 +1052,56 @@ void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<d
 
 
 void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, 
-	params parameter_set, vector<double> cfr_tab, double pf_val, double lambda){
+	params fixed_parameters, vector<double> parameter_set, vector<double> cfr_tab, double pf_val, double lambda){
 		
     unsigned int S=pop[0], E=pop[1], E_t=pop[2], I=pop[3], I_t=pop[4], I_s=pop[5], H=pop[6], R=pop[7], D=pop[8] ;
 	
-	double T_lat= parameter_set.T_lat;
-	double p_s= parameter_set.p_s;
-	double T_inf= parameter_set.T_inf;
-	double T_rec= parameter_set.T_rec;
-	double T_sym= parameter_set.T_sym;
-	double T_hos= parameter_set.T_hos;
-	double p_df= parameter_set.p_df; 
+	double T_lat= fixed_parameters.T_lat;
+	double p_s= fixed_parameters.p_s;
+	double T_inf= fixed_parameters.T_inf;
+	double T_rec= fixed_parameters.T_rec;
+	double T_sym= fixed_parameters.T_sym;
+	double T_hos= fixed_parameters.T_hos;
 	
 	double p_h= cfr_tab[0];
+	double cfr= cfr_tab[1];	
 	double p_d= cfr_tab[2];	
-	double p_dc= cfr_tab[3];
+	//double p_dc= cfr_tab[3];
 		
+	double rrdh = parameter_set[5];
+	double rrdc = parameter_set[6];
+	double rrh = parameter_set[7];	
+	
+	
+	double C_val = pf_val  * rrh * p_h ;
+	double D_val = (1 - pf_val) * p_h;
+	double A_val = ( ( C_val * rrdh + D_val ) / ( C_val + D_val ) ) * p_d;
+	double B_val = ( (C_val * ( 1 -  rrdh * p_d ) + D_val * ( 1 - p_d ) ) / (C_val+D_val) );
+	double E_val = (( pf_val - C_val ) * rrdc + ((1 - pf_val ) - D_val ) ) * cfr;
+	double F_val = ( pf_val - C_val ) * (1 - rrdc * cfr ) + ((1 - pf_val ) - D_val ) * ( 1 - cfr ) ;
+	
     // hospitalized
-    unsigned int newdeathsH = gsl_ran_poisson(r, p_d * (1 / T_hos) * (double)H);
+    unsigned int newdeathsH = gsl_ran_poisson(r, A_val * (1 / T_hos) * (double)H);
 	newdeathsH = min(H,newdeathsH);
     D += newdeathsH;
 	H -= newdeathsH;
-    unsigned int recoverH = gsl_ran_poisson(r, (1 - p_d) * (1 / T_hos) * (double)H);//hospitalized recover
+    unsigned int recoverH = gsl_ran_poisson(r,  B_val * (1 / T_hos) * (double)H);//hospitalized recover
 	recoverH=min(H,recoverH) ;
     R += recoverH;
 	H -= recoverH;
 	
     // symptomatic
-    unsigned int hospitalize = gsl_ran_poisson(r, (1 - pf_val) * p_h * (1 / T_sym) * (double)I_s); //symptomatic become hospitalized
+    unsigned int hospitalize = gsl_ran_poisson(r, (C_val + D_val) * (1 / T_sym) * (double)I_s); //symptomatic become hospitalized
     hospitalize = min(I_s, hospitalize);
 	H += hospitalize;
 	I_s -= hospitalize;
 	
-    unsigned int newdeathsC = gsl_ran_poisson(r, ( pf_val * p_df + (1 - pf_val) * ( 1 - p_h ) * p_dc ) * ( 2 / T_hos) * (double)I_s); //symptomatic die at home / in communities	
+    unsigned int newdeathsC = gsl_ran_poisson(r, E_val * ( 2 / T_hos) * (double)I_s); //symptomatic die at home / in communities	
     newdeathsC = min(I_s, newdeathsC);
     D += newdeathsC;
 	I_s -= newdeathsC;
 	
-    unsigned int recoverI_s = gsl_ran_poisson(r, (  pf_val * (1 - p_df) + (1 - pf_val) * ( 1 - p_h ) * (1 - p_dc) ) * ( 1 / T_rec) * (double)I_s); //symptomatic recover at home / in communities	
+    unsigned int recoverI_s = gsl_ran_poisson(r, F_val * ( 1 / T_rec) * (double)I_s); //symptomatic recover at home / in communities	
     recoverI_s = min(I_s, recoverI_s);
     R += recoverI_s;
 	I_s -= recoverI_s;
@@ -1143,6 +1160,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 	int inLockdown = 0;
 	double seed_pop[6];
 	
+
 	//sets up an array for the population at each timestep in each age and disease category	
 	//also set up the age distribution of old ages as target for disease introduction
 	vector<vector<int>> poparray(n_agegroup, vector<int>(9));	  
@@ -1159,6 +1177,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 		}
 	}
 
+
 	//introduce disease at t=0. if seedmethod != "background"
 	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
 	if(seedlist.seedmethod != "background"){
@@ -1173,6 +1192,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 			poparray[age][3] +=  startdist[age-1];//put diseased in I	
 		}	
 	}
+
 
   	//initialize saving of the detection for t=0
 	sim_status.push_back(0); 
@@ -1214,14 +1234,17 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 			}
 	    }
 
+
 		//compute the forces of infection
 		vector<double> lambda(n_agegroup);
-		Lambda(lambda, parameter_set,waifw_norm, waifw_sdist,waifw_home, poparray, inLockdown);			
+		Lambda(lambda, parameter_set,waifw_norm, waifw_sdist,waifw_home, poparray, inLockdown);	
+	
 		//step each agegroup through infections
 		for ( int age = 0; age < (n_agegroup); ++age) {	
-			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],cfr_byage[age], 
-			pf_byage[age],lambda[age]);
+			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_set,
+				cfr_byage[age],pf_byage[age],lambda[age]);
 		}
+
 		//cout << tt << " , " <<  detected << " , " << obsHosp[tt]<< " , "<< deaths << '\n';
 
 		sim_status.push_back(detected); 
@@ -1241,8 +1264,9 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_lambda_shape1, double& prior_lambda_shape2){
-	string parameterfile = "parameters.ini";
+		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
+		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2){
+	string parameterfile = "./data/parameters.ini";
 	CIniFile parameters; //Create a new variable of type CIniFile (see Inifile.h for type definition)
 
 	//Settings
@@ -1299,7 +1323,6 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 	paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", parameterfile).c_str());
 	paramlist.T_sym = atof(parameters.GetValue("T_sym", "Fixed parameters", parameterfile).c_str());
 	paramlist.T_hos = atof(parameters.GetValue("T_hos", "Fixed parameters", parameterfile).c_str());
-	paramlist.p_df = atof(parameters.GetValue("p_df", "Fixed parameters", parameterfile).c_str());
 	day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", parameterfile).c_str());
 	totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", parameterfile).c_str());
 
@@ -1315,6 +1338,13 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 	prior_d_shape2 = atof(parameters.GetValue("prior_d_shape2", "Priors settings", parameterfile).c_str());
 	prior_q_shape1 = atof(parameters.GetValue("prior_q_shape1", "Priors settings", parameterfile).c_str());
 	prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", parameterfile).c_str());
+	prior_rrdh_shape1= atof(parameters.GetValue("prior_rrdh_shape1", "Priors settings", parameterfile).c_str());
+	prior_rrdh_shape2=atof(parameters.GetValue("prior_rrdh_shape2", "Priors settings", parameterfile).c_str());
+	prior_rrdc_shape1=atof(parameters.GetValue("prior_rrdc_shape1", "Priors settings", parameterfile).c_str());
+	prior_rrdc_shape2=atof(parameters.GetValue("prior_rrdc_shape2", "Priors settings", parameterfile).c_str());
+	prior_rrh_shape1=atof(parameters.GetValue("prior_rrh_shape1", "Priors settings", parameterfile).c_str());
+	prior_rrh_shape2=atof(parameters.GetValue("prior_rrh_shape2", "Priors settings", parameterfile).c_str());	
+	
 	prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", parameterfile).c_str());
 	prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", parameterfile).c_str());
 }
