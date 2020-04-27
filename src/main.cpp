@@ -36,10 +36,9 @@
 #include <time.h>
 #include <vector>
 #include <map>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+
 //#include <omp.h>
 #include <random>
 #include <array>
@@ -50,12 +49,14 @@
 #include "Utilities.h"
 #include "CSV.h"
 #include "DistanceComputation.h"
+#include "Model.h"
 
 using namespace std;
 using namespace EERAModel;
 using namespace EERAModel::Utilities;
 using namespace EERAModel::CSV;
 using namespace EERAModel::DistanceComputation;
+using namespace EERAModel::Model;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
@@ -79,26 +80,6 @@ void parameter_select_first_step(vector<double> &selected_param,vector<double> f
 void parameter_select_nsteps(vector<double> &selected_param, int nPar, gsl_rng * r, vector<particle> particleList, int pick_val,
 		double vlimitKernel[], double vect_min[], double vect_Max[]);
 void weight_calc(int smc,int pastNpart, vector<particle > pastPart, particle & currentPart, double vlimitKernel[],int nPar);
-
-
-
-
-	//model functions
-void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vector<vector<double>> cfr_byage, 
-				vector<double> pf_byage,
-				vector<vector<double>> waifw_norm, vector<vector<double>> waifw_sdist, vector<vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, int Npop, vector<int> agenums, 
-				double tau, gsl_rng * r, vector<int> &sim_status,vector<vector<int>> &ends,
-				vector<int> &death_status,vector<int> &deathH_status);
-
-void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, 
-				params fixed_parameters, vector<double> parameter_set, vector<double> cfr_tab, double pf_val, double lambda);
-
-void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<double>> waifw_norm,
-				vector<vector<double>> waifw_sdist,vector<vector<double>> waifw_home, 
-				vector<vector<int>> pops, int shut);
-
-
 
 int main(int argc, char **argv) {
 
@@ -720,282 +701,4 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	correct_incidence(obsDeaths_tmp2,obsDeaths_tmp);	
 	obsDeaths_tmp = obsDeaths_tmp2;
 	obsDeaths_tmp2.clear();	
-}
-	
-
-void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<double>> waifw_norm,
-			vector<vector<double>> waifw_sdist,vector<vector<double>> waifw_home, 
-			vector<vector<int>> pops, int shut){
-
-  double p_i = parameter_set[0];	
-  double p_hcw = parameter_set[1];	
-  double c_hcw = parameter_set[2];	
-  double d_val = parameter_set[3];					
-  double q_val = parameter_set[4];					
-	
-
-  //lambda=rep(NA,nrow(pops))
-  int n_agegroup = waifw_norm.size();
-  double quarantined = 0.0;//mean proportion reduction in contacts due to quarantine
-  int inf_hosp=0;
-  vector<double> I_mat(n_agegroup); 
-  //contact matrix
-  vector<vector<double>> waifw(n_agegroup, vector<double> (n_agegroup)); 
-  //age-dependent transmission rate
-  vector<vector<double>> beta(n_agegroup, vector<double> (n_agegroup)); 
-  
-  for ( int from = 0; from < n_agegroup; ++from) {
-	  for ( int to = 0; to < n_agegroup; ++to) {
-		  if(shut==0){
-		  	//contact network during normal period
-		    waifw[from][to]  = waifw_norm[from][to] ;
-		  } else {
-			//contact network during shutdown period, assuming a proportion d will properly do it
-		  	waifw[from][to] = (1.0-d_val) * waifw_sdist[from][to] + (d_val) * waifw_home[from][to];
-		  }
-		  beta[from][to] = waifw[from][to] * p_i ;
-		  if(waifw[from][to]>0) {
-			  quarantined += waifw_home[from][to]/waifw[from][to];
-		  } else {
-			  quarantined += 0;
-		  }
-	  }
-  } 
-  
-  //mean proportion reduction in contacts due to quarantine accounting for compliance
-  quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
-  
-  //compute the pressure from infectious groups, normalizes by group size
-  //compute the pressure from hospitalised, normalized by group size
-  for ( int from = 0; from < n_agegroup; ++from) {
-	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
-	 	// are considered those that are infectious asymp, tested or symptomatic only
-		I_mat[from] = (double)pops[from][3] + (1-quarantined) * ( (double)pops[from][4] + (double)pops[from][5] );
-		//normalisation shouldnt account for dead individuals	
-		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
-		I_mat[from] = (double)I_mat[from] / (double)(tot_pop- pops[from][pops[from].size()-1] ); 
-				
-	}
-	//sum up of number of hospitalised cases 
-	inf_hosp+= pops[from][6];
-  }
-
-  //sum up infectious pressure from each age group
-  for ( int from = 0; from < (n_agegroup); ++from) {
-	  for(int ii = 0; ii < (n_agegroup-1); ++ii){
-	  	lambda[from] += ( beta[from][ii]*I_mat[ii] );
-	  }
-  }
-
-  int tot_pop = accumulate(pops[n_agegroup-1].begin(), pops[n_agegroup-1].end(), 0);
-  int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
-  lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop - rem_pop) );
- 
-}
-
-
-void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, 
-	params fixed_parameters, vector<double> parameter_set, vector<double> cfr_tab, double pf_val, double lambda){
-		
-    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I=pop[3], I_t=pop[4], I_s=pop[5], H=pop[6], R=pop[7], D=pop[8] ;
-	
-	double T_lat= fixed_parameters.T_lat;
-	double p_s= fixed_parameters.p_s;
-	double T_inf= fixed_parameters.T_inf;
-	double T_rec= fixed_parameters.T_rec;
-	double T_sym= fixed_parameters.T_sym;
-	double T_hos= fixed_parameters.T_hos;
-	
-	double p_h= cfr_tab[0];
-	double cfr= cfr_tab[1];	
-	double p_d= cfr_tab[2];	
-	//double p_dc= cfr_tab[3];
-		
-	double rrdh = parameter_set[5];
-	double rrdc = parameter_set[6];
-	double rrh = parameter_set[7];	
-	
-	
-	double C_val = pf_val  * rrh * p_h ;
-	double D_val = (1 - pf_val) * p_h;
-	double A_val = ( ( C_val * rrdh + D_val ) / ( C_val + D_val ) ) * p_d;
-	double B_val = ( (C_val * ( 1 -  rrdh * p_d ) + D_val * ( 1 - p_d ) ) / (C_val+D_val) );
-	double E_val = (( pf_val - C_val ) * rrdc + ((1 - pf_val ) - D_val ) ) * cfr;
-	double F_val = ( pf_val - C_val ) * (1 - rrdc * cfr ) + ((1 - pf_val ) - D_val ) * ( 1 - cfr ) ;
-	
-    // hospitalized
-    unsigned int newdeathsH = gsl_ran_poisson(r, A_val * (1 / T_hos) * (double)H);
-	newdeathsH = min(H,newdeathsH);
-    D += newdeathsH;
-	H -= newdeathsH;
-    unsigned int recoverH = gsl_ran_poisson(r,  B_val * (1 / T_hos) * (double)H);//hospitalized recover
-	recoverH=min(H,recoverH) ;
-    R += recoverH;
-	H -= recoverH;
-	
-    // symptomatic
-    unsigned int hospitalize = gsl_ran_poisson(r, (C_val + D_val) * (1 / T_sym) * (double)I_s); //symptomatic become hospitalized
-    hospitalize = min(I_s, hospitalize);
-	H += hospitalize;
-	I_s -= hospitalize;
-	
-    unsigned int newdeathsC = gsl_ran_poisson(r, E_val * ( 2 / T_hos) * (double)I_s); //symptomatic die at home / in communities	
-    newdeathsC = min(I_s, newdeathsC);
-    D += newdeathsC;
-	I_s -= newdeathsC;
-	
-    unsigned int recoverI_s = gsl_ran_poisson(r, F_val * ( 1 / T_rec) * (double)I_s); //symptomatic recover at home / in communities	
-    recoverI_s = min(I_s, recoverI_s);
-    R += recoverI_s;
-	I_s -= recoverI_s;
-	
-    // infectious
-    unsigned int symptomsI = gsl_ran_poisson(r, p_s * ( 1/T_inf ) * (double)I ) ; //infectious become symptomatic
-    symptomsI = min(I, symptomsI);
-	unsigned int symptomsI_t=gsl_ran_poisson(r, p_s * ( 1/T_inf ) * (double)I_t); //tested infectious become symptomatic
-    symptomsI_t=min(I_t,symptomsI_t);
-	I_s += (symptomsI+symptomsI_t);
-	I -= symptomsI;
-	I_t -= symptomsI_t;
-	
-    unsigned int recoverI = gsl_ran_poisson(r, (1 - p_s) * ( 1/T_inf ) * (double)I); //infectious recover
-    recoverI = min(I, recoverI);
-	unsigned int recoverI_t = gsl_ran_poisson(r, (1 - p_s) * ( 1/T_inf ) * (double)I_t); //tested infectious recover
-	recoverI_t = min(I_t, recoverI_t);
-    R += (recoverI+recoverI_t) ;
-	I -= recoverI;
-	I_t -= recoverI_t;
-	
-    // latent
-    unsigned int infectious = gsl_ran_poisson(r, (double)E/T_lat); //latent become infectious
-	infectious = min(E, infectious);
-    I += infectious;
-	E -= infectious;
-    unsigned int infectious_t = gsl_ran_poisson(r, (double)E_t/T_lat); //tested latent become infectious
-    infectious_t = min(E_t, infectious_t);
-	I_t += infectious_t;
-	E_t -= infectious_t;
-	
-    // susceptible
-    unsigned int newinfection= gsl_ran_poisson(r, (double)S*lambda); //susceptible become infected
-    newinfection= min(S, newinfection);
-	S -= newinfection;
-	E += newinfection;
-	
-    // recover population
-	vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I,(int)I_t,(int)I_s,(int)H,(int)R,(int)D};
-	pop = newpop;
-	deaths += (newdeathsC + newdeathsH);
-	deathsH += newdeathsH;
-	detected += (H + I_t);	
-	
-}
-
-
-void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vector<vector<double>> cfr_byage, 
-				vector<double> pf_byage,
-				vector<vector<double>> waifw_norm, vector<vector<double>> waifw_sdist, vector<vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, int Npop,
-				vector<int> agenums, double tau, gsl_rng * r, vector<int> &sim_status, vector<vector<int>> &ends,
-				vector<int> &death_status,vector<int> &deathH_status){
-
-	int n_agegroup = waifw_norm.size();
-	int inLockdown = 0;
-	double seed_pop[6];
-	
-
-	//sets up an array for the population at each timestep in each age and disease category	
-	//also set up the age distribution of old ages as target for disease introduction
-	vector<vector<int>> poparray(n_agegroup, vector<int>(9));	  
-	for ( int age = 0; age < (n_agegroup); ++age) {
-		for ( int st = 0; st < 9; ++st) {
-			if(st ==0) {
-				poparray[age][st]=agenums[age]; //set up the starting population as fully susceptible
-			} else {
-				poparray[age][st] = 0;
-			}
-		}
-		if(age >0 & age < (n_agegroup-1) ){ //seed only occurs in >20yo and not in HCW
-			seed_pop[age-1] = (double)agenums[age];
-		}
-	}
-
-
-	//introduce disease at t=0. if seedmethod != "background"
-	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
-	if(seedlist.seedmethod != "background"){
-	//	size_t k = sizeof(seed_pop);
-	//	unsigned int startdist[k];
-		vector<int> startdist = {0,0,0,0,0,0};
-		startdist[(int)gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
-	//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
-
-		for ( int age =1; age < (n_agegroup-1); ++age) {
-			poparray[age][0] -=  startdist[age-1];//take diseased out of S
-			poparray[age][3] +=  startdist[age-1];//put diseased in I	
-		}	
-	}
-
-
-  	//initialize saving of the detection for t=0
-	sim_status.push_back(0); 
-	death_status.push_back(0); 
-	deathH_status.push_back(0); 
-	//run the simulation
-	for (int tt = 1; tt < (int)ceil(duration/tau); ++tt) {
-		//initialize return value
-		int deaths=0;
-		int deathsH=0;
-		int detected=0;
-		vector<int> popcomp;
-		
-		//identify the lock down
-		if(tt >= day_shut)  inLockdown = 1;
-		
-		
-		//introduce disease from background infection until lockdown
-	    if(inLockdown<1){
-			if(seedlist.seedmethod == "background"){
-				double bkg_lambda = parameter_set[parameter_set.size()-1];
-				unsigned int startdz = gsl_ran_poisson(r, (double)Npop * bkg_lambda);	//how many diseased is introduced in each given day before lockdown
-		
-			//	size_t k = sizeof(seed_pop);
-			//	unsigned int startdist[k];
-				vector<int> startdist = {0,0,0,0,0,0};
-				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
-				while(poparray[pickcomp][0]<1){
-					pickcomp = (int)gsl_ran_flat(r, 0, 6);
-				} 
-				startdist[pickcomp] = startdz;
-			//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
-
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-					int nseed = min(poparray[age][0], startdist[age-1]);
-					poparray[age][0] -=  nseed;//take diseased out of S
-					poparray[age][1] +=  nseed;//put diseased in E	
-				}	
-			}
-	    }
-
-
-		//compute the forces of infection
-		vector<double> lambda(n_agegroup);
-		Lambda(lambda, parameter_set,waifw_norm, waifw_sdist,waifw_home, poparray, inLockdown);	
-	
-		//step each agegroup through infections
-		for ( int age = 0; age < (n_agegroup); ++age) {	
-			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_set,
-				cfr_byage[age],pf_byage[age],lambda[age]);
-		}
-
-		//cout << tt << " , " <<  detected << " , " << obsHosp[tt]<< " , "<< deaths << '\n';
-
-		sim_status.push_back(detected); 
-		death_status.push_back(deaths); 
-		deathH_status.push_back(deathsH);
-    }	
-	//save the population in each epi compt for the last day
-	for ( int age = 0; age < n_agegroup; ++age) {
-		ends.push_back(poparray[age]);
-	}
 }
