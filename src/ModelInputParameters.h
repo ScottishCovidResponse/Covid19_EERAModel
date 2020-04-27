@@ -138,6 +138,8 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath)
 	
 	modelInputParameters.prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", filePath).c_str());
+
+	return modelInputParameters;
 }
 
 } // namespace EERAModel
