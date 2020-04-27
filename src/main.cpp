@@ -47,9 +47,11 @@
 #include "IniFile.h"
 #include "ModelTypes.h"
 #include "ModelInputParameters.h"
+#include "Utilities.h"
 
 using namespace std;
 using namespace EERAModel;
+using namespace EERAModel::Utilities;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
@@ -59,18 +61,6 @@ vector<int > obsDeaths;
 	//tools
 void read_csv_int(vector<vector<int> > &data, const string &inputfile, char delimiter);
 void read_csv_double(vector<vector<double> > &data, const string &inputfile, char delimiter);
-
-double mean_calc_double( vector<double> v);
-void cumsum_calc(vector<double> v,vector<double>& r_val);
-double max_calc(double a,double b);
-double sum_calc(vector<double> v);
-double colsum_calc(vector<vector<double>> m, int colid);
-
-double mean_calc_int( vector<int> v);
-void cumsum_calc_int(vector<int> v,vector<int>& r_val);
-int max_calc_int(int a,int b);
-int sum_calc_int(vector<int> v);
-int colsum_calc_int(vector<vector<int>> m, int colid);
 
 void compute_incidence(vector<int> v,vector<int>& r_val);
 void correct_incidence(vector<int>& v,vector<int> cumv);
@@ -1220,79 +1210,3 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 		ends.push_back(poparray[age]);
 	}
 }
-
-double mean_calc_double( vector<double> v){
-	double return_value = 0.0;
-	int n = v.size();
-	for(vector<double>::iterator j=v.begin();j!=v.end();++j)  return_value += *j;
-    return ( return_value / n);
-}
-
-double mean_calc_int( vector<int> v){
-	int return_value = 0;
-	int n = v.size();
-	for(vector<int>::iterator j=v.begin();j!=v.end();++j)  return_value += *j;
-    return ( (double)return_value / n);
-}
-
-void cumsum_calc(vector<double> v,vector<double>& r_val){
-	int size_vec = v.size();
-	double tmp_sum=0.0;
-	for (int xx = 0; xx < size_vec; ++xx) {
-		tmp_sum += v[xx];
-		r_val.push_back(tmp_sum);
-	}
-}
-
-void cumsum_calc_int(vector<int> v,vector<int>& r_val){
-	int size_vec = v.size();
-	int tmp_sum=0;
-	for (int xx = 0; xx < size_vec; ++xx) {
-		tmp_sum += v[xx];
-		r_val.push_back(tmp_sum);
-	}
-}
-
-double max_calc(double a,double b){
-	double rval;
-	if(a>=b) rval = a;
-	else rval = b;
-	return rval;
-}
-
-int max_calc_int(int a,int b){
-	int rval;
-	if(a>=b) rval = a;
-	else rval = b;
-	return rval;
-}
-
-double sum_calc(vector<double> v){
-    double rval = 0.0;
-	for(vector<double>::iterator j=v.begin();j!=v.end();++j)  rval += *j;
-	return rval;
-}
-
-int sum_calc_int(vector<int> v){
-    int rval = 0;
-	for(vector<int>::iterator j=v.begin();j!=v.end();++j)  rval += *j;
-	return rval;
-}
-
-int colsum_calc_int(vector<vector<int>> m, int colid){
-    int rval = 0;
-	for (unsigned int j = 0; j < m.size(); ++j) {
-		rval += m[j][colid];
-	}
-	return rval;
-}
-
-double colsum_calc(vector<vector<double>> m, int colid){
-    double rval = 0.0;
-	for (unsigned int j = 0; j < m.size(); ++j) {
-		rval += m[j][colid];
-	}
-	return rval;
-}
-
-
