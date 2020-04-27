@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "ModelTypes.h"
+#include "DistanceComputation.h"
 
 #include <algorithm>
 #include <numeric>
@@ -18,11 +19,78 @@ static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_se
 				std::vector<std::vector<double>> waifw_sdist,std::vector<std::vector<double>> waifw_home, 
 				std::vector<std::vector<int>> pops, int shut);
 
-void my_model(std::vector<double> parameter_set, std::vector<params> fixed_parameters, std::vector<std::vector<double>> cfr_byage, 
-				std::vector<double> pf_byage,
-				std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, int Npop,
-				std::vector<int> agenums, double tau, gsl_rng * r, std::vector<int> &sim_status, std::vector<std::vector<int>> &ends,
+static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
+				std::vector<std::vector<double>> waifw_norm,
+				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
+				int duration, seed seedlist, int day_shut, int Npop, std::vector<int> agenums, 
+				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
+				std::vector<int> &death_status,std::vector<int> &deathH_status);
+
+void model_select(int smc, EERAModel::particle &outvec, std::vector<params> fixed_parameters,
+	std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage, 
+	std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist,
+	std::vector<std::vector<double>> waifw_home, std::vector <int> agenums, double tau,
+	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
+	const std::vector<int>& obsDeaths) {
+
+	//---------------------------------------
+	// the root model
+	//---------------------------------------
+	//declare the vector of outputs		int t, t_int, i, j, yr,yr_int,increment;
+	std::vector<int> sim_status;
+	std::vector<int> death_status;
+	std::vector<int> deathH_status;
+	std::vector<std::vector<int>> ends;
+	
+	//main loop
+	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist, waifw_home,
+					duration, seedlist, day_shut, Npop,agenums, tau, r, sim_status, ends,
+					death_status,deathH_status);
+
+	//---------------------------------------
+	// compute the  sum of squared errors
+	//---------------------------------------
+	double sum_sq_cases = 1000000.0,sum_sq_deaths = 1000000.0,nsse_cases=1000000.0,nsse_deaths=1000000.0;
+	std::vector<int> obs_case = obsHosp;
+	std::vector<int> obs_death = obsDeaths;
+	sum_sq_cases = ::EERAModel::DistanceComputation::sse_calc_int(sim_status,obs_case);
+		
+	sum_sq_deaths= ::EERAModel::DistanceComputation::sse_calc_int(deathH_status,obs_death);
+	//---------------------------------------
+	// compute the deviation of the fit expressed as % total number of cases
+	//---------------------------------------
+	//total numbers of cases and deaths (at hospital)
+	int sum_obs_cases = std::accumulate(obsHosp.begin(), obsHosp.end(), 0);
+	int sum_obs_deaths = std::accumulate(obsDeaths.begin(), obsDeaths.end(), 0);
+	
+	nsse_cases = sqrt(sum_sq_cases)/ (double)sum_obs_cases;
+	nsse_deaths = sqrt(sum_sq_deaths)/ (double)sum_obs_deaths;
+ 	
+	//cout << "nsse_cases: " << nsse_cases << " , nsse_deaths: " << nsse_deaths <<'\n';
+
+	//---------------------------------------
+	// Return a vector with all selection measures
+	//---------------------------------------
+	//	outvec.sum_sq = sum_sq;
+	outvec.nsse_cases = nsse_cases;
+	outvec.nsse_deaths = nsse_deaths;
+	for (unsigned int ii = 0; ii < sim_status.size(); ++ii) {
+		outvec.simu_outs.push_back(sim_status[ii]);
+		outvec.death_outs.push_back(deathH_status[ii]);
+	}
+	for (unsigned int ii = 0; ii < ends.size(); ++ii) {
+		outvec.end_comps.push_back(ends[ii]);
+	}		
+
+}
+
+static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
+				std::vector<std::vector<double>> waifw_norm,
+				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
+				int duration, seed seedlist, int day_shut, int Npop, std::vector<int> agenums, 
+				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status) {
 
 	int n_agegroup = waifw_norm.size();
