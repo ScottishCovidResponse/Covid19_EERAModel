@@ -49,11 +49,13 @@
 #include "ModelInputParameters.h"
 #include "Utilities.h"
 #include "CSV.h"
+#include "DistanceComputation.h"
 
 using namespace std;
 using namespace EERAModel;
 using namespace EERAModel::Utilities;
 using namespace EERAModel::CSV;
+using namespace EERAModel::DistanceComputation;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
@@ -79,12 +81,7 @@ void parameter_select_nsteps(vector<double> &selected_param, int nPar, gsl_rng *
 void weight_calc(int smc,int pastNpart, vector<particle > pastPart, particle & currentPart, double vlimitKernel[],int nPar);
 
 
-	//distance computation functions
-double sse_calc(int Npop, vector<double> simHosp);
-double sse_calc_int(vector<int> simval, vector<int> obsval);
-double nsse_calc_int(vector<int> simHosp);
-double sst_calc(int Npop, vector<double> simHosp);
-double sst_calc_int(int Npop, vector<int> simHosp);
+
 
 	//model functions
 void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vector<vector<double>> cfr_byage, 
@@ -474,109 +471,6 @@ int main(int argc, char **argv) {
 	cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << endl;
 }
 ///##########################################################################################################//todo:
-double sse_calc(int Npop, vector<double> simHosp){
-	double sum_sq=0.0;
-	//verify that the 2 vectors have the same size
-	if(simHosp.size() != obsHosp.size()){
-		cout<< "Warning!!! Simulated and observed vectors of different sizes." << endl;
-	}
-	//compute the sum of squared errors
-	for (unsigned int xx = 0; xx < obsHosp.size(); ++xx) {
-		double error = 0.0;
-		error = simHosp[xx]/Npop - obsHosp[xx]/Npop;
-		sum_sq += pow(error,2);
-	}
-	return sum_sq;
-}
-
-double sse_calc_int(vector<int> simval, vector<int> obsval){
-	
-	//verify that the 2 vectors have the same size
-	if(simval.size() != obsval.size()){
-		cout<< "Warning!!! Simulated and observed vectors of different sizes." << endl;
-	}
-
-	//compute the sum of squared errors
-	double sum_sq=0.0;
-	for (unsigned int xx = 0; xx < obsval.size(); ++xx) {
-		double error = 0.0;
-		error = (double)( obsval[xx] - simval[xx] ) ;
-		sum_sq += pow(error,2);
-	}
-
-	return sum_sq;
-	
-}
-double nsse_calc_int(vector<int> simHosp){
-	
-	//verify that the 2 vectors have the same size
-	if(simHosp.size() != obsHosp.size()){
-		cout<< "Warning!!! Simulated and observed vectors of different sizes." << endl;
-	}
-	
-	//maximum numbers of cases
-	int max_obs = accumulate(obsHosp.begin(), obsHosp.end(), 0);
-	cout << "max_obs: " << max_obs <<'\n';
-	//compute the sum of squared errors
-	double sum_sq=0.0;
-	//compute the sum of squared errors
-	for (unsigned int xx = 0; xx < obsHosp.size(); ++xx) {
-		double error = 0.0;
-		error = (double)simHosp[xx] - (double)obsHosp[xx];
-		sum_sq += pow(error,2);
-	}
-	
-	//comute the normalised sum of squared error by the total number of cases
-	double nsse = sum_sq / (double)max_obs;
-
-	return nsse;
-	
-}
-
-
-double sst_calc(int Npop, vector<double> simHosp){
-	double sum_tot=0.0;
-	double mean_obs=0.0;
-	//verify that the 2 vectors have the same size
-
-	if(simHosp.size() != obsHosp.size()){
-		cout << obsHosp.size() << "vs. " << simHosp.size() << endl;
-		cout<< "Warning!!! Simulated and observed vectors of different sizes." << endl;
-	}
-
-	//compute the mean of the observed value
-	mean_obs=mean_calc_int(obsHosp);
-	//compute the sum of squared total
-	for (unsigned int xx = 0; xx < obsHosp.size(); ++xx) {
-		double error = 0.0;
-		error = simHosp[xx]/Npop - mean_obs/Npop;
-		sum_tot += pow(error,2);
-	}
-	return sum_tot;
-}
-
-double sst_calc_int(int Npop, vector<int> simHosp){
-	double sum_tot=0.0;
-	double mean_obs=0.0;
-	//verify that the 2 vectors have the same size
-
-	if(simHosp.size() != obsHosp.size()){
-		cout << obsHosp.size() << "vs. " << simHosp.size() << endl;
-		cout<< "Warning!!! Simulated and observed vectors of different sizes." << endl;
-	}
-
-	//compute the mean of the observed value
-	mean_obs=mean_calc_int(obsHosp);
-	//compute the sum of squared total
-	for (unsigned int xx = 0; xx < obsHosp.size(); ++xx) {
-		double error = 0.0;
-		error = ((double)simHosp[xx]/Npop) - (mean_obs/Npop);
-		sum_tot += pow(error,2);
-	}
-	return sum_tot;
-}
-
-
 void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vector<vector<double>> cfr_byage, 
 				vector<double> pf_byage,
 				vector<vector<double>> waifw_norm, vector<vector<double>> waifw_sdist, vector<vector<double>> waifw_home, 
