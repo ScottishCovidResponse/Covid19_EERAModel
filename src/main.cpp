@@ -50,6 +50,7 @@
 #include "CSV.h"
 #include "DistanceComputation.h"
 #include "Model.h"
+#include "FittingProcess.h"
 
 using namespace std;
 using namespace EERAModel;
@@ -57,6 +58,7 @@ using namespace EERAModel::Utilities;
 using namespace EERAModel::CSV;
 using namespace EERAModel::DistanceComputation;
 using namespace EERAModel::Model;
+using namespace EERAModel::FittingProcess;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
@@ -70,16 +72,6 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	vector<int>& obsHosp_tmp, vector<int>& obsDeaths_tmp, 
 	vector<vector<int> > data_tmp, vector<vector<int> > death_tmp, int herd_id, 
 	int time_back);
-
-	//fitting process functions
-void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vector<vector<double>> cfr_byage, 
-	vector<double> pf_byage,
-	vector<vector<double>> waifw_norm, vector<vector<double>> waifw_sdist, vector<vector<double>> waifw_home, 
-	vector <int> agenums, double tau, int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r);
-void parameter_select_first_step(vector<double> &selected_param,vector<double> flag1, vector<double> flag2, gsl_rng * r,int nPar);
-void parameter_select_nsteps(vector<double> &selected_param, int nPar, gsl_rng * r, vector<particle> particleList, int pick_val,
-		double vlimitKernel[], double vect_min[], double vect_Max[]);
-void weight_calc(int smc,int pastNpart, vector<particle > pastPart, particle & currentPart, double vlimitKernel[],int nPar);
 
 int main(int argc, char **argv) {
 
@@ -372,7 +364,8 @@ int main(int argc, char **argv) {
 				}
 				//run the model and compute the different measures for each potential parameters value
 				model_select(smc,outs_vec, fixed_parameters, cfr_byage,pf_byage,waifw_norm,waifw_sdist,waifw_home,
-							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist, modelInputParameters.day_shut, Npop, r);
+							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
+							modelInputParameters.day_shut, Npop, r, obsHosp, obsDeaths);
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
 					{
@@ -451,134 +444,6 @@ int main(int argc, char **argv) {
 	//output on screen the overall computation time
 	cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << endl;
 }
-///##########################################################################################################//todo:
-void model_select(int smc,particle &outvec, vector<params> fixed_parameters,vector<vector<double>> cfr_byage, 
-				vector<double> pf_byage,
-				vector<vector<double>> waifw_norm, vector<vector<double>> waifw_sdist, vector<vector<double>> waifw_home, 
-				vector <int> agenums, double tau, int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r){
-
-	//---------------------------------------
-	// the root model
-	//---------------------------------------
-	//declare the vector of outputs		int t, t_int, i, j, yr,yr_int,increment;
-	vector<int> sim_status;
-	vector<int> death_status;
-	vector<int> deathH_status;
-	vector<vector<int>> ends;
-	
-	//main loop
-	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist, waifw_home,
-					duration, seedlist, day_shut, Npop,agenums, tau, r, sim_status, ends,
-					death_status,deathH_status);
-
-	//---------------------------------------
-	// compute the  sum of squared errors
-	//---------------------------------------
-	double sum_sq_cases = 1000000.0,sum_sq_deaths = 1000000.0,nsse_cases=1000000.0,nsse_deaths=1000000.0;
-	vector<int> obs_case = obsHosp;
-	vector<int> obs_death = obsDeaths;
-	sum_sq_cases= sse_calc_int(sim_status,obs_case);
-		
-	sum_sq_deaths= sse_calc_int(deathH_status,obs_death);
-	//---------------------------------------
-	// compute the deviation of the fit expressed as % total number of cases
-	//---------------------------------------
-	//total numbers of cases and deaths (at hospital)
-	int sum_obs_cases = accumulate(obsHosp.begin(), obsHosp.end(), 0);
-	int sum_obs_deaths = accumulate(obsDeaths.begin(), obsDeaths.end(), 0);
-	
-	nsse_cases = sqrt(sum_sq_cases)/ (double)sum_obs_cases;
-	nsse_deaths = sqrt(sum_sq_deaths)/ (double)sum_obs_deaths;
- 	
-	//cout << "nsse_cases: " << nsse_cases << " , nsse_deaths: " << nsse_deaths <<'\n';
-
-	//---------------------------------------
-	// Return a vector with all selection measures
-	//---------------------------------------
-	//	outvec.sum_sq = sum_sq;
-	outvec.nsse_cases = nsse_cases;
-	outvec.nsse_deaths = nsse_deaths;
-	for (unsigned int ii = 0; ii < sim_status.size(); ++ii) {
-		outvec.simu_outs.push_back(sim_status[ii]);
-		outvec.death_outs.push_back(deathH_status[ii]);
-	}
-	for (unsigned int ii = 0; ii < ends.size(); ++ii) {
-		outvec.end_comps.push_back(ends[ii]);
-	}		
-
-}
-
-void parameter_select_first_step(vector<double> &selected_param, vector<double> flag1, vector<double> flag2, gsl_rng * r,int nPar){
- 	//pick randomly parameters' value from priors with gamma shape
-    for (int xx = 0; xx < nPar; ++xx) {
-        double tmpval = 0.0;
-		if(xx == 2 ){
-			tmpval = (double)gsl_ran_poisson(r, flag1[xx]);
-		} else if( xx == (nPar-1)){
-			tmpval = gsl_ran_flat(r, flag1[xx], flag2[xx]);
-		} else if(xx > 4 && xx < (nPar-1) ){
-			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
-		} else {
-			tmpval = gsl_ran_beta(r, flag1[xx], flag2[xx]);
-		}
-    	//return a vector with all selection measures
-    	selected_param[xx] = tmpval;
-	}
-}
-
-void parameter_select_nsteps(vector<double> &selected_param, int nPar, gsl_rng * r, vector<particle> particleList, int pick_val,
-		double vlimitKernel[], double vect_min[], double vect_Max[]){
-
-	particle perturbList;
-
-    //define the elements of the chosen particle
-    perturbList = particleList[pick_val];
-
-	//perturb all elements of the chosen particle with a kernel following a uniform distribution +/- kernelFactor
-
-    for (int xx = 0; xx < nPar; ++xx) {
-        double tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        while(isnan(tmpval) || tmpval<=vect_min[xx] || tmpval>=vect_Max[xx]){
-        	tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        }
-
-
-    	//return a vector with all selection measures
-    	selected_param[xx] = tmpval;
-	}
-}
-
-void weight_calc(int smc,int pastNpart, vector<particle > pastPart, particle & currentPart, double vlimitKernel[],int nPar){
-
-	//calculate the weight of the accepted particle here
-	if(smc == 0){
-		currentPart.weight = 1.0;
-	} else {
-		double denom = 0;
-		for (int jj = 0; jj < pastNpart; ++jj) {
-			int rval_dist=0;
-			double m = 0.0;
-			//for each parameter of each particle
-			for (int ii = 0; ii < nPar; ++ii) {
-				//compute the distance between the jjth previous particle and the chosen particle for the iith parameters
-				m=fabs(currentPart.parameter_set[ii] - pastPart[jj].parameter_set[ii]);
-				//add 1 to rval_dist if iith parameter is within the range of the corresponding parameters of the jjth particle
-				if(m <= vlimitKernel[ii]){
-					++rval_dist;
-				}
-			}
-			//if all values of parameter of the particle are within the range of perturbation of all parameters of a given source particle
-			if(rval_dist==nPar){
-				//add the weight of this particle to denom
-				denom += pastPart[jj].weight;
-			}
-		}
-
-		if(denom == 0) denom = 1.0 ;
-		//the weight of each particle is 1 over the sum of the weights from the particles at s-1 that may generate this particle
-		currentPart.weight = 1.0 / denom;
-	}
-}
 
 //transform the timeseries of cummulative cases into incidence
 void compute_incidence(vector<int> v,vector<int>& r_val){
@@ -630,7 +495,6 @@ void correct_incidence(vector<int>& v,vector<int> cumv){
 	}
 }
   
-
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	vector<int>& obsHosp_tmp, vector<int>& obsDeaths_tmp, 
 	vector<vector<int> > data_tmp, vector<vector<int> > death_tmp, int herd_id, 
@@ -702,3 +566,4 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	obsDeaths_tmp = obsDeaths_tmp2;
 	obsDeaths_tmp2.clear();	
 }
+
