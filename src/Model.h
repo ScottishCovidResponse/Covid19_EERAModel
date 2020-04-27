@@ -14,5 +14,10 @@ void model_select(int smc, ::EERAModel::particle &outvec, std::vector<params> fi
 	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
 
+void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
+	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
+	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
+	int time_back);
+
 } // namespace Model
 } // namespace EERAModel
