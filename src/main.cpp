@@ -43,46 +43,13 @@
 //#include <omp.h>
 #include <random>
 #include <array>
+
 #include "IniFile.h"
+#include "ModelTypes.h"
+#include "ModelInputParameters.h"
 
 using namespace std;
-
-
-
-//create structure for particles generated during inference
-struct particle {
-	double nsse_cases;
-	double nsse_deaths;
-	vector<double> parameter_set;
-	int iter;
-	double weight;
-	vector<int> simu_outs;
-	vector<int> death_outs;
-	vector<vector<int>> end_comps;
-};
-
-
-//create structure for fixed parameters.
-struct params {
-	double T_lat;
-	double p_s;
-	double juvp_s;
-	double T_inf;
-	double T_rec;
-	double T_sym;
-	double T_hos;
-};
-
-//create structure for seed settings.
-struct seed {
-	string seedmethod;
-	int nseed;
-	int hrp;
-	int day_intro;
-	double lambda;
-};
-
-
+using namespace EERAModel;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
@@ -93,13 +60,6 @@ vector<int > obsDeaths;
 void read_csv_int(vector<vector<int> > &data, const string &inputfile, char delimiter);
 void read_csv_double(vector<vector<double> > &data, const string &inputfile, char delimiter);
 
-void read_parameters(int& herd_id, double& tau, int&num_threads, bool& apply_death_tolerance_limit, int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
-		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
-		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
-		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
-		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2);
-		
 double mean_calc_double( vector<double> v);
 void cumsum_calc(vector<double> v,vector<double>& r_val);
 double max_calc(double a,double b);
@@ -169,35 +129,16 @@ int main(int argc, char **argv) {
 	int smc,kk;
 	double time_taken;
 	double valMax, valmin;
-	int herd_id,nsteps,nParticLimit,nSim,num_threads;
-	double tau,kernelFactor;
-	vector<double> toleranceLimit;
-	bool apply_death_tolerance_limit;
-	
-	params paramlist;
-	seed seedlist;
-	double prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2;
-	double prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2;
-	
-	double prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2;
-	double prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2;
-	int nPar=0, day_shut=0, totN_hcw=0;
-	
-	//read settings information for fitting procedure
-	read_parameters(herd_id, tau, num_threads, apply_death_tolerance_limit, nsteps, nParticLimit,nSim,kernelFactor,toleranceLimit,
-			paramlist,seedlist,day_shut, totN_hcw,
-			nPar,prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2,
-			prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2,
-			prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2,
-			prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2);
+
+	ModelInputParameters modelInputParameters = ReadParametersFromFile("./data/parameters.ini");
 
     cout << "[Settings]:\n";
-	cout<< "number of parameters tested: "<<nPar<<endl;
-    cout<< "seeding method: "<<seedlist.seedmethod<<endl;
-	if(seedlist.seedmethod == "random"){
-		cout<< "number of seed: " << seedlist.nseed <<endl;
-	} else if(seedlist.seedmethod == "background"){
-		cout<< "duration of the high risk period: " << seedlist.hrp <<endl;
+	cout<< "number of parameters tested: "<< modelInputParameters.nPar <<endl;
+    cout<< "seeding method: "<< modelInputParameters.seedlist.seedmethod<<endl;
+	if(modelInputParameters.seedlist.seedmethod == "random"){
+		cout << "number of seed: " << modelInputParameters.seedlist.nseed <<endl;
+	} else if(modelInputParameters.seedlist.seedmethod == "background"){
+		cout<< "duration of the high risk period: " << modelInputParameters.seedlist.hrp <<endl;
 	}
 	
 	/*---------------------------------------
@@ -253,12 +194,12 @@ int main(int argc, char **argv) {
 	read_csv_double(pf_pop,"./data/scot_frail.csv",',');	
 
 	//keep information for the health board if interest
-	vector<double> pf_byage = pf_pop[herd_id-1];//define frailty structure of the shb of interest.
+	vector<double> pf_byage = pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
 
 	//create vector of fixed parameters		
 	vector<params> fixed_parameters(waifw_norm.size());	
 	for (unsigned int var = 0; var < fixed_parameters.size(); ++var) {
-		fixed_parameters[var] = paramlist;
+		fixed_parameters[var] = modelInputParameters.paramlist;
 	}
 	fixed_parameters[0].p_s = fixed_parameters[0].juvp_s;
 
@@ -266,19 +207,19 @@ int main(int argc, char **argv) {
 	vector<int> obsHosp_tmp, obsDeaths_tmp;
 	int Npop=0;
 	int t_index=-1;
-	seedlist.day_intro=0;
+	modelInputParameters.seedlist.day_intro=0;
 	
 	int duration = 0;
 	
-	if(seedlist.seedmethod == "background"){
-		select_obs(	Npop, t_index, duration, seedlist.day_intro, day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, herd_id, 
-			seedlist.hrp);
+	if(modelInputParameters.seedlist.seedmethod == "background"){
+		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
+			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, modelInputParameters.herd_id, 
+			modelInputParameters.seedlist.hrp);
 	} else{
-		select_obs(	Npop, t_index, duration, seedlist.day_intro, day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, herd_id, 
-			paramlist.T_inf + paramlist.T_sym);
-		if(seedlist.seedmethod!= "random"){
+		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
+			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, modelInputParameters.herd_id, 
+			modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym);
+		if(modelInputParameters.seedlist.seedmethod!= "random"){
 			cout << "Warning!! Unknown seeding method - applying _random_ seed method\n";
 		}
 	}
@@ -295,10 +236,10 @@ int main(int argc, char **argv) {
 		N_scot += data_tmp[nn][0];  //compute number of scots in scotland
 	}
 	double prop_scot = (double)Npop / (double)N_scot;  //proportion of Scots in each shb
-	int N_hcw = round(totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
+	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
 
 	//adjust population structure to the current population size
-	vector<double> agedist = age_pop[herd_id-1];//define age structure of the shb of interest. the -1 is to account for difference in number of rows between two datasets (age_pop does not have a row with column name)
+	vector<double> agedist = age_pop[modelInputParameters.herd_id - 1];//define age structure of the shb of interest. the -1 is to account for difference in number of rows between two datasets (age_pop does not have a row with column name)
 	vector<int> agenums;
 	for (unsigned int var = 0; var < agedist.size(); ++var) {
 		// modulate the population of non-hcw now to proportion in each age group recorded in 2011	
@@ -309,11 +250,11 @@ int main(int argc, char **argv) {
 	agenums.push_back(N_hcw);
 	
     cout << "[Health Board settings]:\n";
-	cout << "    SHB id: " << herd_id <<'\n';
+	cout << "    SHB id: " << modelInputParameters.herd_id <<'\n';
 	cout << "    Population size: " << Npop << '\n';
 	cout << "    Number of HCW: " << N_hcw << '\n';
 	cout << "    Simulation period: " << duration << "days\n";
-	cout << "    time step: " << tau << "days\n";
+	cout << "    time step: " << modelInputParameters.tau << "days\n";
 
 
 	/*---------------------------------------
@@ -333,10 +274,28 @@ int main(int argc, char **argv) {
 	//declare vectors for priors
 	vector<double> flag1, flag2;
 	
-	flag1 = {prior_pinf_shape1, prior_phcw_shape1, prior_chcw_mean, prior_d_shape1, prior_q_shape1, 
-		prior_rrdh_shape1,prior_rrdc_shape1,prior_rrh_shape1,prior_lambda_shape1};	
-	flag2 = { prior_pinf_shape2, prior_phcw_shape2, prior_chcw_mean, prior_d_shape2, prior_q_shape2,
-		prior_rrdh_shape2,prior_rrdc_shape2,prior_rrh_shape2,prior_lambda_shape2};			
+	flag1 = {
+		modelInputParameters.prior_pinf_shape1,
+		modelInputParameters.prior_phcw_shape1,
+		modelInputParameters.prior_chcw_mean,
+		modelInputParameters.prior_d_shape1,
+		modelInputParameters.prior_q_shape1, 
+		modelInputParameters.prior_rrdh_shape1,
+		modelInputParameters.prior_rrdc_shape1,
+		modelInputParameters.prior_rrh_shape1,
+		modelInputParameters.prior_lambda_shape1
+	};	
+	flag2 = {
+		modelInputParameters.prior_pinf_shape2,
+		modelInputParameters.prior_phcw_shape2,
+		modelInputParameters.prior_chcw_mean,
+		modelInputParameters.prior_d_shape2,
+		modelInputParameters.prior_q_shape2,
+		modelInputParameters.prior_rrdh_shape2,
+		modelInputParameters.prior_rrdc_shape2,
+		modelInputParameters.prior_rrh_shape2,
+		modelInputParameters.prior_lambda_shape2
+	};			
 
 	//declare vectors of outputs/inputs for ABC process
 	vector<particle > particleList,particleList1;
@@ -344,9 +303,9 @@ int main(int argc, char **argv) {
 
 	//declare intermediate vectors for ABC smc process
 	int pick_val;
-	double vlimitKernel[nPar];
-	double vect_Max[nPar];
-	double vect_min[nPar];
+	double vlimitKernel[modelInputParameters.nPar];
+	double vect_Max[modelInputParameters.nPar];
+	double vect_min[modelInputParameters.nPar];
 
 	//initialise the number of accepted particles
 	int Nparticle = 0;
@@ -356,15 +315,15 @@ int main(int argc, char **argv) {
 	 * abc-smc loop
 	 *-------------------------------------*/
 	 cout << "[Simulations]:\n";
-	for (smc = 0; smc < nsteps; ++smc) {//todo:
+	for (smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
 
 		//set the output files for each steps
 		namefile.str(std::string());
 		namefile_simu.str(std::string());
 		namefile_ends.str(std::string());
-		namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
+		namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";
+		namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";
+		namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";		
 		ofstream output_step (namefile.str().c_str());
 		ofstream output_simu (namefile_simu.str().c_str());
 		ofstream output_ends (namefile_ends.str().c_str());
@@ -393,12 +352,12 @@ int main(int argc, char **argv) {
 			particleList1.clear();
 
 			//compute the kernel window
-			for (int i = 0; i < nPar; ++i) {
+			for (int i = 0; i < modelInputParameters.nPar; ++i) {
 				particle valMax1 = *max_element(particleList.begin(),particleList.end(), [&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; } ); //find the element of a vector that is the biggest and return its value
 				particle valmin1 = *min_element(particleList.begin(),particleList.end(), [&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; } ); //find the element of a vector  that is the smallest and return its value
 				valMax = vect_Max[i] = valMax1.parameter_set[i];
 				valmin = vect_min[i] = valmin1.parameter_set[i];
-				vlimitKernel[i] = kernelFactor*fabs((valMax)-(valmin));
+				vlimitKernel[i] = modelInputParameters.kernelFactor*fabs((valMax)-(valmin));
 			}
 		}
 
@@ -416,13 +375,13 @@ int main(int argc, char **argv) {
 	 *---------------------------------------*/
 		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
 		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
-		for (kk = 0; kk < nSim; ++kk) {//todo
+		for (kk = 0; kk < modelInputParameters.nSim; ++kk) {//todo
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
 
 				//Update progress
-				if (counter >= (nParticLimit)) {
+				if (counter >= (modelInputParameters.nParticalLimit)) {
 					aborting = true;
 					//#pragma omp flush (aborting)
 				}
@@ -433,40 +392,42 @@ int main(int argc, char **argv) {
 				outs_vec.nsse_cases = 0.0;
 				outs_vec.nsse_deaths = 0.0;
 //				outs_vec.sum_sq = 1.e06;
-				for (int i = 0; i < nPar; ++i) {
+				for (int i = 0; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
 				//pick the values of each particles
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
-					parameter_select_first_step(outs_vec.parameter_set,flag1, flag2, r,nPar);
+					parameter_select_first_step(outs_vec.parameter_set,flag1, flag2, r, modelInputParameters.nPar);
 				} else {
 					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
 				    pick_val = weight_distr(gen);
-				    parameter_select_nsteps(outs_vec.parameter_set, nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
+				    parameter_select_nsteps(outs_vec.parameter_set, modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
 				//run the model and compute the different measures for each potential parameters value
 				model_select(smc,outs_vec, fixed_parameters, cfr_byage,pf_byage,waifw_norm,waifw_sdist,waifw_home,
-							agenums,tau, duration, seedlist, day_shut, Npop, r);
+							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist, modelInputParameters.day_shut, Npop, r);
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
 					{
-					if (counter < nParticLimit) ++nsim_count;
+					if (counter < modelInputParameters.nParticalLimit) ++nsim_count;
 					}
 				//if the particle agrees with the different criteria defined for each ABC-smc step
 				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
 				
-				if (counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] ) {	
+				if (counter < modelInputParameters.nParticalLimit && outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc]) {	
 					// Apply the death tolerance limit if applicable
-					if (!apply_death_tolerance_limit || (apply_death_tolerance_limit && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5))
-					//#pragma omp critical
-					{
-						weight_calc(smc,Nparticle, particleList, outs_vec, vlimitKernel,nPar);
-						particleList1.push_back(outs_vec);
-						++counter;		//count the number of accepted particles
-						if(counter % 10 == 0) cout << "|" << flush;
-						//cout << counter << " " ;
+					if (!modelInputParameters.apply_death_tolerance_limit || (modelInputParameters.apply_death_tolerance_limit && outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]*1.5)) {
+									
+						//#pragma omp critical
+						{
+							weight_calc(smc,Nparticle, particleList, outs_vec, vlimitKernel, modelInputParameters.nPar);
+							particleList1.push_back(outs_vec);
+							++counter;		//count the number of accepted particles
+							if(counter % 10 == 0) cout << "|" << flush;
+							//cout << counter << " " ;
+						}
 					}
 				}			
 			}
@@ -500,7 +461,7 @@ int main(int argc, char **argv) {
 		for (kk = 0; kk < Nparticle; ++kk) {
 			output_step << particleList1[kk].iter << ", " << particleList1[kk].nsse_cases <<  ", " << particleList1[kk].nsse_deaths <<  ", " ;
 
-			for (int var = 0; var < nPar; ++var) {
+			for (int var = 0; var < modelInputParameters.nPar; ++var) {
 				output_step << particleList1[kk].parameter_set[var] << ", ";
 			}
 			output_step	<< particleList1[kk].weight<< '\n';
@@ -1258,106 +1219,6 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 	for ( int age = 0; age < n_agegroup; ++age) {
 		ends.push_back(poparray[age]);
 	}
-}
-
-
-
-
-void read_parameters(int& herd_id, double& tau, int&num_threads, bool& apply_death_tolerance_limit, int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
-		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
-		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
-		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
-		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2){
-	string parameterfile = "./data/parameters.ini";
-	CIniFile parameters; //Create a new variable of type CIniFile (see Inifile.h for type definition)
-
-	//Settings
-	herd_id = atoi(parameters.GetValue("shb_id", "Settings", parameterfile).c_str());
-
-	//time step for the modelling process
-	tau = atof(parameters.GetValue("tau", "Settings", parameterfile).c_str());
-
-	//number of threads used for computation
-	num_threads = atoi(parameters.GetValue("num_threads", "Settings", parameterfile).c_str());
-
-	// Whether or not to apply the tolerance limit
-	int temp = atoi(parameters.GetValue("apply_death_tolerance_check", "Settings", parameterfile).c_str());
-	if (temp) {
-		apply_death_tolerance_limit = true;
-	} else {
-		apply_death_tolerance_limit = false;
-	}
-
-	//Seed settings
-	seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", parameterfile).c_str();
-	if(seedlist.seedmethod == "random"){
-		seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", parameterfile).c_str());
-	} else if(seedlist.seedmethod == "background"){
-		seedlist.hrp = atoi(parameters.GetValue("hrp", "Seed settings", parameterfile).c_str());
-	} else {
-		cout<< "Warning!!! Unknown method - using random seed method instead." << endl;
-		seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", parameterfile).c_str());
-	}
-	
-	//Fit settings
-	nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", parameterfile).c_str());
-	nParticLimit = atoi(parameters.GetValue("nParticLimit", "Fit settings", parameterfile).c_str());
-	nSim = atoi(parameters.GetValue("nSim", "Fit settings", parameterfile).c_str());
-	kernelFactor = atof(parameters.GetValue("kernelFactor", "Fit settings", parameterfile).c_str());
-
-	//Tolerance settings
-	for (int ii = 1; ii <= nsteps; ++ii) {
-		toleranceLimit.push_back(0.0);
-	}
-
-	for (int ii = 1; ii <= nsteps; ++ii) {
-		if(ii==1) toleranceLimit[ii-1] = atof(parameters.GetValue("Key1", "Tolerance settings", parameterfile).c_str());
-		if(ii==2) toleranceLimit[ii-1] = atof(parameters.GetValue("Key2", "Tolerance settings", parameterfile).c_str());
-		if(ii==3) toleranceLimit[ii-1] = atof(parameters.GetValue("Key3", "Tolerance settings", parameterfile).c_str());
-		if(ii==4) toleranceLimit[ii-1] = atof(parameters.GetValue("Key4", "Tolerance settings", parameterfile).c_str());
-		if(ii==5) toleranceLimit[ii-1] = atof(parameters.GetValue("Key5", "Tolerance settings", parameterfile).c_str());
-		if(ii==6) toleranceLimit[ii-1] = atof(parameters.GetValue("Key6", "Tolerance settings", parameterfile).c_str());
-		if(ii==7) toleranceLimit[ii-1] = atof(parameters.GetValue("Key7", "Tolerance settings", parameterfile).c_str());
-		if(ii==8) toleranceLimit[ii-1] = atof(parameters.GetValue("Key8", "Tolerance settings", parameterfile).c_str());
-		if(ii==9) toleranceLimit[ii-1] = atof(parameters.GetValue("Key9", "Tolerance settings", parameterfile).c_str());
-		if(ii==10) toleranceLimit[ii-1] = atof(parameters.GetValue("Key10", "Tolerance settings", parameterfile).c_str());
-	}
-
-
-	//Fixed parameters
-	
-	paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", parameterfile).c_str());
-	paramlist.p_s = atof(parameters.GetValue("p_s", "Fixed parameters", parameterfile).c_str());
-	paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", parameterfile).c_str());
-	paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", parameterfile).c_str());
-	paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", parameterfile).c_str());
-	paramlist.T_sym = atof(parameters.GetValue("T_sym", "Fixed parameters", parameterfile).c_str());
-	paramlist.T_hos = atof(parameters.GetValue("T_hos", "Fixed parameters", parameterfile).c_str());
-	day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", parameterfile).c_str());
-	totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", parameterfile).c_str());
-
-	//priors settings
-
-	nPar = atoi(parameters.GetValue("nPar", "Priors settings", parameterfile).c_str());
-	prior_pinf_shape1 = atof(parameters.GetValue("prior_pinf_shape1", "Priors settings", parameterfile).c_str());
-	prior_pinf_shape2 = atof(parameters.GetValue("prior_pinf_shape2", "Priors settings", parameterfile).c_str());
-	prior_phcw_shape1 = atof(parameters.GetValue("prior_phcw_shape1", "Priors settings", parameterfile).c_str());
-	prior_phcw_shape2 = atof(parameters.GetValue("prior_phcw_shape2", "Priors settings", parameterfile).c_str());
-	prior_chcw_mean = atof(parameters.GetValue("prior_chcw_mean", "Priors settings", parameterfile).c_str());
-	prior_d_shape1 = atof(parameters.GetValue("prior_d_shape1", "Priors settings", parameterfile).c_str());
-	prior_d_shape2 = atof(parameters.GetValue("prior_d_shape2", "Priors settings", parameterfile).c_str());
-	prior_q_shape1 = atof(parameters.GetValue("prior_q_shape1", "Priors settings", parameterfile).c_str());
-	prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", parameterfile).c_str());
-	prior_rrdh_shape1= atof(parameters.GetValue("prior_rrdh_shape1", "Priors settings", parameterfile).c_str());
-	prior_rrdh_shape2=atof(parameters.GetValue("prior_rrdh_shape2", "Priors settings", parameterfile).c_str());
-	prior_rrdc_shape1=atof(parameters.GetValue("prior_rrdc_shape1", "Priors settings", parameterfile).c_str());
-	prior_rrdc_shape2=atof(parameters.GetValue("prior_rrdc_shape2", "Priors settings", parameterfile).c_str());
-	prior_rrh_shape1=atof(parameters.GetValue("prior_rrh_shape1", "Priors settings", parameterfile).c_str());
-	prior_rrh_shape2=atof(parameters.GetValue("prior_rrh_shape2", "Priors settings", parameterfile).c_str());	
-	
-	prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", parameterfile).c_str());
-	prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", parameterfile).c_str());
 }
 
 double mean_calc_double( vector<double> v){
