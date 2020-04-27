@@ -48,20 +48,18 @@
 #include "ModelTypes.h"
 #include "ModelInputParameters.h"
 #include "Utilities.h"
+#include "CSV.h"
 
 using namespace std;
 using namespace EERAModel;
 using namespace EERAModel::Utilities;
+using namespace EERAModel::CSV;
 
 //declare vectors of inputs as global variables
 vector<int > obsHosp;
 vector<int > obsDeaths;
 
 //declare functions
-	//tools
-void read_csv_int(vector<vector<int> > &data, const string &inputfile, char delimiter);
-void read_csv_double(vector<vector<double> > &data, const string &inputfile, char delimiter);
-
 void compute_incidence(vector<int> v,vector<int>& r_val);
 void correct_incidence(vector<int>& v,vector<int> cumv);
 
@@ -476,109 +474,6 @@ int main(int argc, char **argv) {
 	cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << endl;
 }
 ///##########################################################################################################//todo:
-
-
-void read_csv_int(vector<vector<int> > &data, const string &inputfile, char delimiter)
-{
-	ifstream infile(inputfile.c_str());
-	if (infile.fail())  { cout << "Input file not found" << endl; return; }
-	string line;
-	vector<int> record;
-	
-	while (getline(infile, line,'\n') )
-	{
-		int linepos=0;
-		int inquotes=false;
-		char c;
-		int linemax=line.length();
-		string curstring;
-		record.clear();
-	while(line[linepos]!=0 && linepos < linemax)
-		{
-			c = line[linepos];
-			
-			if (!inquotes && curstring.length()==0 && c=='"'){ inquotes=true;}	//beginquotechar
-			else if (inquotes && c=='"')
-			{																	//quotechar
-				if ( (linepos+1 <linemax) && (line[linepos+1]=='"') )
-				{
-					curstring.push_back(c);										//encountered 2 double quotes in a row (resolves to 1 double quote)
-					linepos++;
-				}
-				else {inquotes=false;}											//endquotechar
-			}
-			else if (!inquotes && c==delimiter)
-			{																//end of field
-				record.push_back(atoi(curstring.c_str()) );
-				curstring="";
-			}
-/*			else if (!inquotes && (c=='\r' || c=='\n') )
-			{
-				record.push_back( atoi(curstring.c_str()) );
-				break;
-			}
-*/			else
-			{
-				curstring.push_back(c);
-			}
-			linepos++;
-		}
-		record.push_back( atoi(curstring.c_str()) );
-		data.push_back(record);
-	}
-}
-
-void read_csv_double(vector<vector<double> > &data, const string &inputfile, char delimiter)
-{
-	ifstream infile(inputfile.c_str());
-	if (infile.fail())  { cout << "Input file not found" << endl; return; }
-	string line;
-	vector<double> record;
-	
-	while (getline(infile, line,'\n') )
-	{
-		int linepos=0;
-		int inquotes=false;
-		char c;
-		int linemax=line.length();
-		string curstring;
-		record.clear();
-	while(line[linepos]!=0 && linepos < linemax)
-		{
-			c = line[linepos];
-			
-			if (!inquotes && curstring.length()==0 && c=='"'){ inquotes=true;}	//beginquotechar
-			else if (inquotes && c=='"')
-			{																	//quotechar
-				if ( (linepos+1 <linemax) && (line[linepos+1]=='"') )
-				{
-					curstring.push_back(c);										//encountered 2 double quotes in a row (resolves to 1 double quote)
-					linepos++;
-				}
-				else {inquotes=false;}											//endquotechar
-			}
-			else if (!inquotes && c==delimiter)
-			{																//end of field
-				record.push_back(atof(curstring.c_str()) );
-				curstring="";
-			}
-/*			else if (!inquotes && (c=='\r' || c=='\n') )
-			{
-				record.push_back( atoi(curstring.c_str()) );
-				break;
-			}
-*/			else
-			{
-				curstring.push_back(c);
-			}
-			linepos++;
-		}
-		record.push_back( atof(curstring.c_str()) );
-		data.push_back(record);
-	}
-}
-
-
 double sse_calc(int Npop, vector<double> simHosp){
 	double sum_sq=0.0;
 	//verify that the 2 vectors have the same size
