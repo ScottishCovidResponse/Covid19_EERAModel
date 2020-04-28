@@ -1,58 +1,11 @@
-#pragma once
-
-#include <vector>
-
-#include "ModelTypes.h"
+#include "IO.h"
 #include "IniFile.h"
+#include "CSV.h"
 
 namespace EERAModel {
+namespace IO {
 
-/**
- * @brief Structure containing the inputs to a model run
- */
-struct ModelInputParameters
-{
-	int herd_id;
-	double tau;
-	int num_threads;
-	bool apply_death_tolerance_limit;
-	int nsteps;
-	int nParticalLimit;
-	int nSim;
-	double kernelFactor;
-	std::vector<double> toleranceLimit;
-	params paramlist;
-	seed seedlist;
-	int day_shut;
-	int totN_hcw;
-	int nPar;
-	double prior_pinf_shape1;
-	double prior_pinf_shape2;
-	double prior_phcw_shape1;
-	double prior_phcw_shape2;
-	double prior_chcw_mean;
-	double prior_d_shape1;
-	double prior_d_shape2;
-	double prior_q_shape1;
-	double prior_q_shape2;
-	double prior_rrdh_shape1;
-	double prior_rrdh_shape2;
-	double prior_rrdc_shape1;
-	double prior_rrdc_shape2;
-	double prior_rrh_shape1;
-	double prior_rrh_shape2;
-	double prior_lambda_shape1;
-	double prior_lambda_shape2;
-};
-
-/**
- * @brief Read model input parameters from an INI file
- * 
- * @param filePath Path to the INI file
- * 
- * @return Model parameters
- */
-ModelInputParameters ReadParametersFromFile(const std::string& filePath)
+EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath)
 {
 	ModelInputParameters modelInputParameters;
 
@@ -142,4 +95,52 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath)
 	return modelInputParameters;
 }
 
+EERAModel::Observations ReadObservationsFromFiles()
+{
+	EERAModel::Observations observations;
+	
+	//Uploading observed disease data
+	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
+	//rows from 1 are indivudual health board
+	//last row is for all of scotland
+	EERAModel::CSV::read_csv_int(observations.cases,"./data/scot_data.csv",',');
+	
+	//Uploading observed death data
+	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
+	//rows from 1 are indivudual health board
+	//last row is for all of scotland
+	EERAModel::CSV::read_csv_int(observations.deaths,"./data/scot_deaths.csv",',');
+	
+	//Uploading population per age group
+	//columns are for each individual Health Borad
+	//last column is for Scotland
+	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+	EERAModel::CSV::read_csv_double(observations.age_pop,"./data/scot_age.csv",',');	
+	
+	//mean number of daily contacts per age group (overall)	
+	EERAModel::CSV::read_csv_double(observations.waifw_norm,"./data/waifw_norm.csv",',');
+
+	//mean number of daily contacts per age group (home only)		
+	EERAModel::CSV::read_csv_double(observations.waifw_home,"./data/waifw_home.csv",',');
+	
+	//mean number of daily contacts per age group (not school, not work)			
+	EERAModel::CSV::read_csv_double(observations.waifw_sdist,"./data/waifw_sdist.csv",',');	
+	
+	//Upload cfr by age group
+	//col0: p_h: probability of hospitalisation
+	//col1: cfr: case fatality ratio
+	//col2: p_d: probability of death, given hospitalisation
+	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+	EERAModel::CSV::read_csv_double(observations.cfr_byage,"./data/cfr_byage.csv",',');	
+		
+	//Upload frailty probability p_f by age group
+	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+	//rows are for each individual Health Borad
+	//last row is for Scotland
+	EERAModel::CSV::read_csv_double(observations.pf_pop,"./data/scot_frail.csv",',');	
+
+	return observations;
+}
+
+} // namespace IO
 } // namespace EERAModel
