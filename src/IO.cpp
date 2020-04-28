@@ -2,6 +2,9 @@
 #include "IniFile.h"
 #include "CSV.h"
 
+#include <fstream>
+#include <sstream>
+
 namespace EERAModel {
 namespace IO {
 
@@ -140,6 +143,52 @@ EERAModel::Observations ReadObservationsFromFiles()
 	EERAModel::CSV::read_csv_double(observations.pf_pop,"./data/scot_frail.csv",',');	
 
 	return observations;
+}
+
+void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, const std::vector<EERAModel::particle>& particleList)
+{
+	std::stringstream namefile, namefile_simu, namefile_ends;
+	namefile << "./OUTPUTS/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
+	namefile_simu << "./OUTPUTS/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
+	namefile_ends << "./OUTPUTS/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
+	
+	std::ofstream output_step (namefile.str().c_str());
+	std::ofstream output_simu (namefile_simu.str().c_str());
+	std::ofstream output_ends (namefile_ends.str().c_str());
+	
+	//add the column names for each output list of particles
+	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,rrdh,rrdc,rrh,intro,weight\n";
+
+	//add the column names for each output list of chosen simulations
+	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
+	
+	//add the column names for each output list of the compartment values of the last day of the chosen simulations
+	output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value\n";		
+
+	// outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
+	for (int kk = 0; kk < Nparticle; ++kk) {
+		output_step << particleList[kk].iter << ", " << particleList[kk].nsse_cases <<  ", " << particleList[kk].nsse_deaths <<  ", " ;
+
+		for (int var = 0; var < nPar; ++var) {
+			output_step << particleList[kk].parameter_set[var] << ", ";
+		}
+		output_step	<< particleList[kk].weight<< '\n';
+		
+		for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
+//				cout  << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].death_outs[var] << '\n';
+			output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].death_outs[var] << '\n';
+		}
+		
+		for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
+			for (unsigned int var = 0; var < particleList[kk].end_comps[0].size(); ++var) {
+				output_ends << particleList[kk].iter << ", " << age << ", " << var << ", " <<  particleList[kk].end_comps[age][var] << '\n';
+			}
+		}
+	}
+	
+	output_step.close();
+	output_simu.close();
+	output_ends.close();
 }
 
 } // namespace IO

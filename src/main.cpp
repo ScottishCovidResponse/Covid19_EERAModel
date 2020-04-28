@@ -43,11 +43,9 @@
 #include <random>
 #include <array>
 
-#include "IniFile.h"
 #include "ModelTypes.h"
-#include "ModelInputParameters.h"
+#include "IO.h"
 #include "Utilities.h"
-#include "CSV.h"
 #include "DistanceComputation.h"
 #include "Model.h"
 #include "FittingProcess.h"
@@ -55,7 +53,7 @@
 using namespace std;
 using namespace EERAModel;
 using namespace EERAModel::Utilities;
-using namespace EERAModel::CSV;
+using namespace EERAModel::IO;
 using namespace EERAModel::DistanceComputation;
 using namespace EERAModel::Model;
 using namespace EERAModel::FittingProcess;
@@ -74,11 +72,14 @@ int main(int argc, char **argv) {
 	vector<int > obsDeaths;
 
 	// variable declaration
-	int smc,kk;
-	double time_taken;
+	
 	double valMax, valmin;
 
+	// Read in the model's input parameters
 	ModelInputParameters modelInputParameters = ReadParametersFromFile("./data/parameters.ini");
+
+	// Read in the observations
+	Observations observations = ReadObservationsFromFiles();
 
     cout << "[Settings]:\n";
 	cout<< "number of parameters tested: "<< modelInputParameters.nPar <<endl;
@@ -89,63 +90,11 @@ int main(int argc, char **argv) {
 		cout<< "duration of the high risk period: " << modelInputParameters.seedlist.hrp <<endl;
 	}
 	
-	/*---------------------------------------
-	 * Observed data
-	 *---------------------------------------*/
-
-	//Uploading observed disease data
-	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
-	//rows from 1 are indivudual health board
-	//last row is for all of scotland
-	vector<vector<int> > data_tmp;
-	read_csv_int(data_tmp,"./data/scot_data.csv",',');
-	
-	//Uploading observed death data
-	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
-	//rows from 1 are indivudual health board
-	//last row is for all of scotland
-	vector<vector<int> > death_tmp;
-	read_csv_int(death_tmp,"./data/scot_deaths.csv",',');
-	
-	//Uploading population per age group
-	//columns are for each individual Health Borad
-	//last column is for Scotland
-	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	vector<vector<double> > age_pop;
-	read_csv_double(age_pop,"./data/scot_age.csv",',');	
-	//Uploading contact matrices
-	vector<vector<double> > waifw_norm, waifw_home, waifw_sdist;
-
-	//mean number of daily contacts per age group (overall)	
-	read_csv_double(waifw_norm,"./data/waifw_norm.csv",',');
-
-	//mean number of daily contacts per age group (home only)		
-	read_csv_double(waifw_home,"./data/waifw_home.csv",',');
-	
-	//mean number of daily contacts per age group (not school, not work)			
-	read_csv_double(waifw_sdist,"./data/waifw_sdist.csv",',');	
-	
-	
-	//Upload cfr by age group
-	//col0: p_h: probability of hospitalisation
-	//col1: cfr: case fatality ratio
-	//col2: p_d: probability of death, given hospitalisation
-	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	vector<vector<double> > cfr_byage;
-	read_csv_double(cfr_byage,"./data/cfr_byage.csv",',');	
-		
-	//Upload frailty probability p_f by age group
-	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	//rows are for each individual Health Borad
-	//last row is for Scotland
-	vector<vector<double> > pf_pop;
-	read_csv_double(pf_pop,"./data/scot_frail.csv",',');	
-
 	//keep information for the health board if interest
-	vector<double> pf_byage = pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
+	vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
 
 	//create vector of fixed parameters		
-	vector<params> fixed_parameters(waifw_norm.size());	
+	vector<params> fixed_parameters(observations.waifw_norm.size());	
 	for (unsigned int var = 0; var < fixed_parameters.size(); ++var) {
 		fixed_parameters[var] = modelInputParameters.paramlist;
 	}
@@ -161,11 +110,11 @@ int main(int argc, char **argv) {
 	
 	if(modelInputParameters.seedlist.seedmethod == "background"){
 		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, modelInputParameters.herd_id, 
+			obsHosp_tmp, obsDeaths_tmp, observations.cases, observations.deaths, modelInputParameters.herd_id, 
 			modelInputParameters.seedlist.hrp);
 	} else{
 		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, data_tmp, death_tmp, modelInputParameters.herd_id, 
+			obsHosp_tmp, obsDeaths_tmp, observations.cases, observations.deaths, modelInputParameters.herd_id, 
 			modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym);
 		if(modelInputParameters.seedlist.seedmethod!= "random"){
 			cout << "Warning!! Unknown seeding method - applying _random_ seed method\n";
@@ -180,14 +129,14 @@ int main(int argc, char **argv) {
 	//define age structure and number of hcw of the population at risk
 	//compute the number of hcw in the shb
 	int N_scot = 0;
-	for (unsigned int nn = 0; nn < data_tmp.size()-1; ++nn) {
-		N_scot += data_tmp[nn][0];  //compute number of scots in scotland
+	for (unsigned int nn = 0; nn < observations.cases.size()-1; ++nn) {
+		N_scot += observations.cases[nn][0];  //compute number of scots in scotland
 	}
 	double prop_scot = (double)Npop / (double)N_scot;  //proportion of Scots in each shb
 	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
 
 	//adjust population structure to the current population size
-	vector<double> agedist = age_pop[modelInputParameters.herd_id - 1];//define age structure of the shb of interest. the -1 is to account for difference in number of rows between two datasets (age_pop does not have a row with column name)
+	vector<double> agedist = observations.age_pop[modelInputParameters.herd_id - 1];//define age structure of the shb of interest. the -1 is to account for difference in number of rows between two datasets (age_pop does not have a row with column name)
 	vector<int> agenums;
 	for (unsigned int var = 0; var < agedist.size(); ++var) {
 		// modulate the population of non-hcw now to proportion in each age group recorded in 2011	
@@ -208,9 +157,6 @@ int main(int argc, char **argv) {
 	/*---------------------------------------
 	 * Model settings
 	 *---------------------------------------*/
-	//set output file name
-	stringstream namefile, namefile_simu, namefile_ends;
-
 	//initialise the gsl random number generator with a seed depending of time of the run
 	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937); //�Mersenne Twister� random number generator
 	gsl_rng_set(r, time(NULL));
@@ -263,26 +209,7 @@ int main(int argc, char **argv) {
 	 * abc-smc loop
 	 *-------------------------------------*/
 	 cout << "[Simulations]:\n";
-	for (smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
-
-		//set the output files for each steps
-		namefile.str(std::string());
-		namefile_simu.str(std::string());
-		namefile_ends.str(std::string());
-		namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";
-		namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";
-		namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< modelInputParameters.herd_id << ".txt";		
-		ofstream output_step (namefile.str().c_str());
-		ofstream output_simu (namefile_simu.str().c_str());
-		ofstream output_ends (namefile_ends.str().c_str());
-		//add the column names for each output list of particles
-		output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,rrdh,rrdc,rrh,intro,weight\n";
-
-		//add the column names for each output list of chosen simulations
-		output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
-		
-		//add the column names for each output list of the compartment values of the last day of the chosen simulations
-		output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value\n";		
+	for (int smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
 
 		//the abort statement for keeping the number of particles less than 1000
 		bool aborting = false;
@@ -323,7 +250,7 @@ int main(int argc, char **argv) {
 	 *---------------------------------------*/
 		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
 		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
-		for (kk = 0; kk < modelInputParameters.nSim; ++kk) {//todo
+		for (int kk = 0; kk < modelInputParameters.nSim; ++kk) {//todo
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
@@ -353,7 +280,8 @@ int main(int argc, char **argv) {
 				    parameter_select_nsteps(outs_vec.parameter_set, modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
 				//run the model and compute the different measures for each potential parameters value
-				model_select(smc,outs_vec, fixed_parameters, cfr_byage,pf_byage,waifw_norm,waifw_sdist,waifw_home,
+				model_select(smc,outs_vec, fixed_parameters, observations.cfr_byage,pf_byage,
+							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
 							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
 							modelInputParameters.day_shut, Npop, r, obsHosp, obsDeaths);
 				//count the number of simulations that were used to reach the maximum number of accepted particles
@@ -387,6 +315,7 @@ int main(int argc, char **argv) {
 		nsim_val = nsim_count;
 
 		//time taken per step
+		double time_taken;
 		if(smc == 0){
 			time_taken = double( clock() - startTime ) / (double)CLOCKS_PER_SEC;
 			time_taken1 = clock();
@@ -398,37 +327,18 @@ int main(int argc, char **argv) {
 		/*---------------------------------------
 		 * Outputs
 		 *---------------------------------------*/
-		//output on screen of the number of accepted particles, the number of simulations and the computation time at each step
-		cout << "\nStep:" << smc << ", <number of accepted particles> " << Nparticle << "; <number of simulations> " << nsim_val << "; <computation time> " <<  time_taken << " seconds.\n";
+		// Output on screen of the number of accepted particles, 
+		// the number of simulations and the computation time at each step
+		cout << "\nStep:" << smc
+			<< ", <number of accepted particles> " << Nparticle
+			<< "; <number of simulations> " << nsim_val
+			<< "; <computation time> " <<  time_taken
+			<< " seconds.\n";
 
 		//break the ABC-smc at the step where no particles were accepted
-		if(Nparticle==0){
-			break;
+		if (Nparticle > 0) {
+			WriteOutputsToFiles(smc, modelInputParameters.herd_id, Nparticle, modelInputParameters.nPar, particleList1);
 		}
-
-		// outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
-		for (kk = 0; kk < Nparticle; ++kk) {
-			output_step << particleList1[kk].iter << ", " << particleList1[kk].nsse_cases <<  ", " << particleList1[kk].nsse_deaths <<  ", " ;
-
-			for (int var = 0; var < modelInputParameters.nPar; ++var) {
-				output_step << particleList1[kk].parameter_set[var] << ", ";
-			}
-			output_step	<< particleList1[kk].weight<< '\n';
-			
-			for (unsigned int var = 0; var < particleList1[kk].simu_outs.size(); ++var) {
-//				cout  << particleList1[kk].iter << ", " << var << ", " <<  particleList1[kk].simu_outs[var] << ", " <<  particleList1[kk].death_outs[var] << '\n';
-				output_simu << particleList1[kk].iter << ", " << var << ", " <<  particleList1[kk].simu_outs[var] << ", " <<  particleList1[kk].death_outs[var] << '\n';
-			}
-			
-			for (unsigned int age = 0; age < particleList1[kk].end_comps.size(); ++age) {
-				for (unsigned int var = 0; var < particleList1[kk].end_comps[0].size(); ++var) {
-					output_ends << particleList1[kk].iter << ", " << age << ", " << var << ", " <<  particleList1[kk].end_comps[age][var] << '\n';
-				}
-			}
-		}
-		output_step.close();
-		output_simu.close();
-		output_ends.close();
 	}
 
 	//output on screen the overall computation time

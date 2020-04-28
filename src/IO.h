@@ -25,5 +25,16 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
  */
 EERAModel::Observations ReadObservationsFromFiles();
 
+/**
+ * @brief  Write outputs to files
+ * 
+ * @param smc Iteration number
+ * @param herd_id Herd Id
+ * @param Nparticle Number of particles
+ * @param nPar Number of parameters
+ * @param particleList Vector of particles to write out
+ */
+void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, const std::vector<EERAModel::particle>& particleList);
+
 } // namespace IO
 } // namespace EERAModel
