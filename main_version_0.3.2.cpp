@@ -455,7 +455,7 @@ int main(int argc, char **argv) {
 				//if the particle agrees with the different criteria defined for each ABC-smc step
 				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
-				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5){
+				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 					
 					//#pragma omp critical
 					{
