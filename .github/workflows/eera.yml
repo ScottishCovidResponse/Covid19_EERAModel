@@ -51,4 +51,3 @@ jobs:
         else
           echo "All required output files found"
         fi
-      fi
