@@ -19,9 +19,10 @@ jobs:
         cmake ..
         make
         
-    - name: Run test model
+    - name: Run test model (short run)
       run: |
         rm -rf OUTPUTS
+        cp test/end-to-end/short/parameters.ini data/parameters.ini
         ./build/bin/Covid19EERAModel
         
     - name: Check output files
