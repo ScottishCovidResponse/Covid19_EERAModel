@@ -362,9 +362,9 @@ int main(int argc, char **argv) {
 		namefile.str(std::string());
 		namefile_simu.str(std::string());
 		namefile_ends.str(std::string());
-		namefile << "./OUTPUTS/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_simu << "./OUTPUTS/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_ends << "./OUTPUTS/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
+		namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
+		namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
+		namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
 		ofstream output_step (namefile.str().c_str());
 		ofstream output_simu (namefile_simu.str().c_str());
 		ofstream output_ends (namefile_ends.str().c_str());
