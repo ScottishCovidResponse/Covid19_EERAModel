@@ -56,7 +56,7 @@ jobs:
     - name: Run unit tests
       run: |
         ./build/bin/Covid19EERAModel-unit_tests
-        if [ $? eq 0 ]; then
+        if [ $? -eq 0 ]; then
           echo "Unit tests completed successfully"
           exit 0
         else
