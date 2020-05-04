@@ -22,7 +22,7 @@ jobs:
     - name: Run test model
       run: |
         rm -rf OUTPUTS
-        ./Covid19EERAModel
+        ./build/bin/Covid19EERAModel
         
     - name: Check output files
       run: |
