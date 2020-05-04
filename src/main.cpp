@@ -93,7 +93,7 @@ vector<int > obsDeaths;
 void read_csv_int(vector<vector<int> > &data, const string &inputfile, char delimiter);
 void read_csv_double(vector<vector<double> > &data, const string &inputfile, char delimiter);
 
-void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
+void read_parameters(int& herd_id, double& tau, int&num_threads, bool& apply_death_tolerance_limit, int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
@@ -172,6 +172,7 @@ int main(int argc, char **argv) {
 	int herd_id,nsteps,nParticLimit,nSim,num_threads;
 	double tau,kernelFactor;
 	vector<double> toleranceLimit;
+	bool apply_death_tolerance_limit;
 	
 	params paramlist;
 	seed seedlist;
@@ -183,7 +184,7 @@ int main(int argc, char **argv) {
 	int nPar=0, day_shut=0, totN_hcw=0;
 	
 	//read settings information for fitting procedure
-	read_parameters(herd_id, tau, num_threads, nsteps, nParticLimit,nSim,kernelFactor,toleranceLimit,
+	read_parameters(herd_id, tau, num_threads, apply_death_tolerance_limit, nsteps, nParticLimit,nSim,kernelFactor,toleranceLimit,
 			paramlist,seedlist,day_shut, totN_hcw,
 			nPar,prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2,
 			prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2,
@@ -361,9 +362,9 @@ int main(int argc, char **argv) {
 		namefile.str(std::string());
 		namefile_simu.str(std::string());
 		namefile_ends.str(std::string());
-		namefile << "./OUTPUTS/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_simu << "./OUTPUTS/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
-		namefile_ends << "./OUTPUTS/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
+		namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
+		namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
+		namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
 		ofstream output_step (namefile.str().c_str());
 		ofstream output_simu (namefile_simu.str().c_str());
 		ofstream output_ends (namefile_ends.str().c_str());
@@ -455,8 +456,10 @@ int main(int argc, char **argv) {
 				//if the particle agrees with the different criteria defined for each ABC-smc step
 				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
-				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5){
-					
+				
+				if (counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] ) {	
+					// Apply the death tolerance limit if applicable
+					if (!apply_death_tolerance_limit || (apply_death_tolerance_limit && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5))
 					//#pragma omp critical
 					{
 						weight_calc(smc,Nparticle, particleList, outs_vec, vlimitKernel,nPar);
@@ -465,7 +468,7 @@ int main(int argc, char **argv) {
 						if(counter % 10 == 0) cout << "|" << flush;
 						//cout << counter << " " ;
 					}
-				}
+				}			
 			}
 		}
 
@@ -1260,7 +1263,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 
 
 
-void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
+void read_parameters(int& herd_id, double& tau, int&num_threads, bool& apply_death_tolerance_limit, int& nsteps, int& nParticLimit, int& nSim, double& kernelFactor, 
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
@@ -1277,6 +1280,14 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 
 	//number of threads used for computation
 	num_threads = atoi(parameters.GetValue("num_threads", "Settings", parameterfile).c_str());
+
+	// Whether or not to apply the tolerance limit
+	int temp = atoi(parameters.GetValue("apply_death_tolerance_check", "Settings", parameterfile).c_str());
+	if (temp) {
+		apply_death_tolerance_limit = true;
+	} else {
+		apply_death_tolerance_limit = false;
+	}
 
 	//Seed settings
 	seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", parameterfile).c_str();

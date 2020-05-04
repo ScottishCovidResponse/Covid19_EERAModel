@@ -1,0 +1,65 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install packages
+      run: sudo apt-get update && sudo apt-get install -y libgsl-dev
+
+    - name: Compile
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+        
+    - name: Run test model (short run)
+      run: |
+        rm -rf outputs/*.txt
+        cp test/end-to-end/short/parameters.ini data/parameters.ini
+        ./build/bin/Covid19EERAModel
+        
+    - name: Check output files
+      run: |
+        cd outputs
+        
+        nsteps=$(awk -F "=" '/nsteps/ {print $2}' ../data/parameters.ini)
+        board=$(awk -F "=" '/shb_id/ {print $2}' ../data/parameters.ini)
+        
+        failures=0
+        let "upper = $nsteps - 1"
+        for i in $(seq 0 $upper) ; do
+          for f in \
+              output\_abc-smc\_particles\_step$i\_shb$board.txt \
+              output\_abc-smc\_simu_step$i\_shb$board.txt \
+              output\_abc-smc\_ends\_step$i\_shb$board.txt; do
+            if [ ! -f "$f" ]; then
+              echo "Required output file $f not found" >&2
+              failures=$((failures+1))
+            fi
+          done
+        done
+        
+        if [ $failures -gt 0 ]; then
+          echo "Failed due to $failures missing output files" >&2
+          exit 1
+        else
+          echo "All required output files found"
+        fi
+    
+    - name: Run unit tests
+      run: |
+        ./build/bin/Covid19EERAModel-unit_tests
+        if [ $? -eq 0 ]; then
+          echo "Unit tests completed successfully"
+          exit 0
+        else
+          echo "Unit tests failed"
+          exit 1
+        fi
