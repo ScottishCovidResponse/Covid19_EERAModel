@@ -33,7 +33,8 @@ jobs:
         board=$(awk -F "=" '/shb_id/ {print $2}' ../data/parameters.ini)
         
         failures=0
-        for i in $(seq 0 $nsteps) ; do
+        let "upper = $nsteps - 1"
+        for i in $(seq 0 $upper) ; do
           for f in \
               output\_abc-smc\_particles\_step$i\_shb$board.txt \
               output\_abc-smc\_simu_step$i\_shb$board.txt \
