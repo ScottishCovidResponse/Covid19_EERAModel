@@ -148,9 +148,9 @@ EERAModel::Observations ReadObservationsFromFiles()
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, const std::vector<EERAModel::particle>& particleList)
 {
 	std::stringstream namefile, namefile_simu, namefile_ends;
-	namefile << "./OUTPUTS/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
-	namefile_simu << "./OUTPUTS/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
-	namefile_ends << "./OUTPUTS/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
+	namefile << "./outputs/output_abc-smc_particles_step" << smc << "_shb"<< herd_id << ".txt";
+	namefile_simu << "./outputs/output_abc-smc_simu_step" << smc << "_shb"<< herd_id << ".txt";
+	namefile_ends << "./outputs/output_abc-smc_ends_step" << smc << "_shb"<< herd_id << ".txt";		
 	
 	std::ofstream output_step (namefile.str().c_str());
 	std::ofstream output_simu (namefile_simu.str().c_str());
