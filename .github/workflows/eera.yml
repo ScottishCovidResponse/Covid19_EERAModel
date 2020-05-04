@@ -52,3 +52,14 @@ jobs:
         else
           echo "All required output files found"
         fi
+    
+    - name: Run unit tests
+      run: |
+        ./build/bin/Covid19EERAModel-unit_tests
+        if [ $? eq 0 ]; then
+          echo "Unit tests completed successfully"
+          exit 0
+        else
+          echo "Unit tests failed"
+          exit 1
+        fi
