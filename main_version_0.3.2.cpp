@@ -1,12 +1,14 @@
-/* Created on: 17 04 2020
+/* Created on: 01 05 2020
  * Authors: Thibaud Porphyre
  *
  *
- *version 0.3.2
+ *version 0.3.2.4
  *
  * version report: 
- *		  - fix the transmission flow between Is,H, D and R relative to %frail
- * 
+ *		  - change the whole model structure (changes in Lambda, infspread)
+ *		  - fix issues in the selection processes
+ * 		  - add/remove parameters to infer
+ *        - add a void function _flow_ to simplify function _infspread_
  *  
  * fitting procedure: ABS-SMC
  * model to fit: spread, SEIIsHRD
@@ -17,7 +19,7 @@
  *
  * selection measures: normalise sum squared error 
  *
- * fitted parameters: p_i, p_hcw, c_hcw, q and d
+ * fitted parameters: p_i, p_hcw, c_hcw, q and d, p_s, p_hf,rrdh,lambda
  *
  * main.cpp
  *
@@ -65,7 +67,7 @@ struct particle {
 //create structure for fixed parameters.
 struct params {
 	double T_lat;
-	double p_s;
+//	double p_s;
 	double juvp_s;
 	double T_inf;
 	double T_rec;
@@ -97,8 +99,8 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
-		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2);
+		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_phf_shape1,double& prior_phf_shape2,
+		double& prior_lambda_shape1, double& prior_lambda_shape2,double& prior_ps_shape1,double& prior_ps_shape2);
 		
 double mean_calc_double( vector<double> v);
 void cumsum_calc(vector<double> v,vector<double>& r_val);
@@ -152,7 +154,8 @@ void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& de
 void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<double>> waifw_norm,
 				vector<vector<double>> waifw_sdist,vector<vector<double>> waifw_home, 
 				vector<vector<int>> pops, int shut);
-
+				
+void flow(gsl_rng * r, unsigned int& pop_from, unsigned& pop_to, double rate, unsigned int& outs);
 
 
 int main(int argc, char **argv) {
@@ -177,9 +180,9 @@ int main(int argc, char **argv) {
 	seed seedlist;
 	double prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2;
 	double prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2;
-	
-	double prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2;
-	double prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2;
+	double prior_ps_shape1,prior_ps_shape2;
+	double prior_rrdh_shape1,prior_rrdh_shape2;
+	double prior_phf_shape1,prior_phf_shape2,prior_lambda_shape1,prior_lambda_shape2;
 	int nPar=0, day_shut=0, totN_hcw=0;
 	
 	//read settings information for fitting procedure
@@ -187,8 +190,8 @@ int main(int argc, char **argv) {
 			paramlist,seedlist,day_shut, totN_hcw,
 			nPar,prior_pinf_shape1,prior_pinf_shape2, prior_phcw_shape1,prior_phcw_shape2,
 			prior_chcw_mean,prior_d_shape1,prior_d_shape2,prior_q_shape1, prior_q_shape2,
-			prior_rrdh_shape1,prior_rrdh_shape2,prior_rrdc_shape1,prior_rrdc_shape2,
-			prior_rrh_shape1,prior_rrh_shape2,prior_lambda_shape1,prior_lambda_shape2);
+			prior_rrdh_shape1,prior_rrdh_shape2,prior_phf_shape1,prior_phf_shape2,
+			prior_lambda_shape1,prior_lambda_shape2,prior_ps_shape1,prior_ps_shape2);
 
     cout << "[Settings]:\n";
 	cout<< "number of parameters tested: "<<nPar<<endl;
@@ -198,6 +201,18 @@ int main(int argc, char **argv) {
 	} else if(seedlist.seedmethod == "background"){
 		cout<< "duration of the high risk period: " << seedlist.hrp <<endl;
 	}
+	
+	
+    cout << "[Parameter Settings]:\n";
+    cout<< "parameter values: ";
+	cout<< "  latent period (theta_l): " << paramlist.T_lat <<endl;
+	cout<< "  pre-clinical period (theta_i): " << paramlist.T_inf <<endl;
+	cout<< "  asymptomatic period (theta_r): " << paramlist.T_rec <<endl;
+	cout<< "  symptomatic period (theta_s): " << paramlist.T_sym <<endl;
+	cout<< "  hospitalisation stay (theta_h): " << paramlist.T_hos <<endl;
+	cout<< "  pre-adult probability of symptoms devt (p_s[0]): " << paramlist.juvp_s <<endl;
+	
+	
 	
 	/*---------------------------------------
 	 * Observed data
@@ -259,7 +274,7 @@ int main(int argc, char **argv) {
 	for (unsigned int var = 0; var < fixed_parameters.size(); ++var) {
 		fixed_parameters[var] = paramlist;
 	}
-	fixed_parameters[0].p_s = fixed_parameters[0].juvp_s;
+//	fixed_parameters[0].p_s = fixed_parameters[0].juvp_s;
 
 	//Separate case information for each herd_id
 	vector<int> obsHosp_tmp, obsDeaths_tmp;
@@ -332,11 +347,11 @@ int main(int argc, char **argv) {
 	//declare vectors for priors
 	vector<double> flag1, flag2;
 	
-	flag1 = {prior_pinf_shape1, prior_phcw_shape1, prior_chcw_mean, prior_d_shape1, prior_q_shape1, 
-		prior_rrdh_shape1,prior_rrdc_shape1,prior_rrh_shape1,prior_lambda_shape1};	
+	flag1 = {prior_pinf_shape1, prior_phcw_shape1, prior_chcw_mean, prior_d_shape1, prior_q_shape1,
+		prior_ps_shape1,prior_phf_shape1, prior_rrdh_shape1,prior_lambda_shape1};	
 	flag2 = { prior_pinf_shape2, prior_phcw_shape2, prior_chcw_mean, prior_d_shape2, prior_q_shape2,
-		prior_rrdh_shape2,prior_rrdc_shape2,prior_rrh_shape2,prior_lambda_shape2};			
-
+		prior_ps_shape2,prior_phf_shape2,prior_rrdh_shape2,prior_lambda_shape2};
+				
 	//declare vectors of outputs/inputs for ABC process
 	vector<particle > particleList,particleList1;
 	vector<double> weight_val;
@@ -368,7 +383,7 @@ int main(int argc, char **argv) {
 		ofstream output_simu (namefile_simu.str().c_str());
 		ofstream output_ends (namefile_ends.str().c_str());
 		//add the column names for each output list of particles
-		output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,rrdh,rrdc,rrh,intro,weight\n";
+		output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,p_hf,rrdh,intro,weight\n";
 
 		//add the column names for each output list of chosen simulations
 		output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
@@ -455,7 +470,7 @@ int main(int argc, char **argv) {
 				//if the particle agrees with the different criteria defined for each ABC-smc step
 				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
-				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
+				if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc] && outs_vec.nsse_deaths <= toleranceLimit[smc]*1.5){
 					
 					//#pragma omp critical
 					{
@@ -792,7 +807,7 @@ void parameter_select_first_step(vector<double> &selected_param, vector<double> 
 			tmpval = (double)gsl_ran_poisson(r, flag1[xx]);
 		} else if( xx == (nPar-1)){
 			tmpval = gsl_ran_flat(r, flag1[xx], flag2[xx]);
-		} else if(xx > 4 && xx < (nPar-1) ){
+		} else if(xx > 6 && xx < (nPar-1) ){
 			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
 		} else {
 			tmpval = gsl_ran_beta(r, flag1[xx], flag2[xx]);
@@ -1023,128 +1038,172 @@ void Lambda(vector<double> &lambda, vector<double> parameter_set,vector<vector<d
   quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
   
   //compute the pressure from infectious groups, normalizes by group size
-  //compute the pressure from hospitalised, normalized by group size
+  //compute the pressure from hospitalised
   for ( int from = 0; from < n_agegroup; ++from) {
 	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
-	 	// are considered those that are infectious asymp, tested or symptomatic only
-		I_mat[from] = (double)pops[from][3] + (1-quarantined) * ( (double)pops[from][4] + (double)pops[from][5] );
+	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
+		// asym are infectious pre-clinical and asymptomatic
+		// sym are infectious frail and not frail plus those that are tested positive
+		int tot_asym = pops[from][3] + pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8];
+		int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12] + pops[from][13];
+		
+		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
 		//normalisation shouldnt account for dead individuals	
 		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
-		I_mat[from] = (double)I_mat[from] / (double)(tot_pop- pops[from][pops[from].size()-1] ); 
+		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
 				
 	}
-	//sum up of number of hospitalised cases 
-	inf_hosp+= pops[from][6];
+	//sum up of number of hospitalised cases (frail and non-frail)
+	inf_hosp+= pops[from][14] + pops[from][15];
   }
 
   //sum up infectious pressure from each age group
-  for ( int from = 0; from < (n_agegroup); ++from) {
-	  for(int ii = 0; ii < (n_agegroup-1); ++ii){
-	  	lambda[from] += ( beta[from][ii]*I_mat[ii] );
+  for ( int to = 0; to < (n_agegroup); ++to) {
+	  for(int from = 0; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
+	  	lambda[to] += ( beta[to][from]*I_mat[from] );
 	  }
   }
 
   int tot_pop = accumulate(pops[n_agegroup-1].begin(), pops[n_agegroup-1].end(), 0);
-  int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
-  lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop - rem_pop) );
+  //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
+  lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
  
+}
+
+
+void flow(gsl_rng * r, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
+    outs = gsl_ran_poisson(r, rate * (double)pop_from); //symptomatic become hospitalized
+    outs = min(pop_from, outs);
+	pop_to += outs;
+	pop_from -= outs;
 }
 
 
 void infspread(gsl_rng * r, vector<int>& pop, int& deaths, int& deathsH, int& detected, 
 	params fixed_parameters, vector<double> parameter_set, vector<double> cfr_tab, double pf_val, double lambda){
 		
-    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I=pop[3], I_t=pop[4], I_s=pop[5], H=pop[6], R=pop[7], D=pop[8] ;
+    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I_p=pop[3], I_t=pop[4],I1=pop[5],I2=pop[6],I3=pop[7],I4=pop[8];
+	unsigned int I_s1=pop[9], I_s2=pop[10], I_s3=pop[11], I_s4=pop[12], I_fs=pop[13];
+	unsigned int H=pop[14], H_f=pop[15], R=pop[16], D=pop[17] ;
+	
 	
 	double T_lat= fixed_parameters.T_lat;
-	double p_s= fixed_parameters.p_s;
+//	double p_s= fixed_parameters.p_s;
 	double T_inf= fixed_parameters.T_inf;
 	double T_rec= fixed_parameters.T_rec;
 	double T_sym= fixed_parameters.T_sym;
 	double T_hos= fixed_parameters.T_hos;
 	
 	double p_h= cfr_tab[0];
-	double cfr= cfr_tab[1];	
+//	double cfr= cfr_tab[1];	
 	double p_d= cfr_tab[2];	
 	//double p_dc= cfr_tab[3];
 		
-	double rrdh = parameter_set[5];
-	double rrdc = parameter_set[6];
-	double rrh = parameter_set[7];	
+	double p_s= parameter_set[5];
+//	double T_hos= parameter_set[6];
+	double p_hf = parameter_set[6];
+	double rrdh = parameter_set[7];	
+
+
+    // hospitalized  - non-frail
+    unsigned int newdeathsH=0;
+//	cout << "newdeathH: " << p_d * (1 / T_hos) << "\n";
+	flow(r, H, D, p_d * (1 / T_hos), newdeathsH);
 	
+    unsigned int recoverH=0;
+//	cout << "recoverH: " << (1 - p_d) * (1 / T_hos) << "\n";
+	flow(r, H, R, (1 - p_d) * (1 / T_hos), recoverH);
 	
-	double C_val = pf_val  * rrh * p_h ;
-	double D_val = (1 - pf_val) * p_h;
-	double A_val = ( ( C_val * rrdh + D_val ) / ( C_val + D_val ) ) * p_d;
-	double B_val = ( (C_val * ( 1 -  rrdh * p_d ) + D_val * ( 1 - p_d ) ) / (C_val+D_val) );
-	double E_val = (( pf_val - C_val ) * rrdc + ((1 - pf_val ) - D_val ) ) * cfr;
-	double F_val = ( pf_val - C_val ) * (1 - rrdc * cfr ) + ((1 - pf_val ) - D_val ) * ( 1 - cfr ) ;
+	//hospitalize - frail
+    unsigned int newdeathsH_f=0;
+//	cout << "newdeathsH_f: " << rrdh * p_d * (1 / T_hos) << "\n";
+	flow(r, H_f, D, rrdh * p_d * (1 / T_hos), newdeathsH_f);
 	
-    // hospitalized
-    unsigned int newdeathsH = gsl_ran_poisson(r, A_val * (1 / T_hos) * (double)H);
-	newdeathsH = min(H,newdeathsH);
-    D += newdeathsH;
-	H -= newdeathsH;
-    unsigned int recoverH = gsl_ran_poisson(r,  B_val * (1 / T_hos) * (double)H);//hospitalized recover
-	recoverH=min(H,recoverH) ;
-    R += recoverH;
-	H -= recoverH;
+    unsigned int recoverH_f=0;
+//	cout << "recoverH_f: " << (1 - rrdh * p_d) * (1 / T_hos) << "\n";
+	flow(r, H_f, R, (1 - rrdh * p_d) * (1 / T_hos), recoverH_f);
 	
-    // symptomatic
-    unsigned int hospitalize = gsl_ran_poisson(r, (C_val + D_val) * (1 / T_sym) * (double)I_s); //symptomatic become hospitalized
-    hospitalize = min(I_s, hospitalize);
-	H += hospitalize;
-	I_s -= hospitalize;
+    // symptomatic - non-frail
+    unsigned int hospitalize=0;
+//	cout << "hospitalize: " << p_h * (4 / T_sym) << "\n";
+	flow(r, I_s4, H, p_h * (4 / T_sym), hospitalize);
+
+    unsigned int recoverI_s=0;
+//	cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";
+	flow(r, I_s4, R, (1 - p_h) * ( 4 / T_sym), recoverI_s);
 	
-    unsigned int newdeathsC = gsl_ran_poisson(r, E_val * ( 2 / T_hos) * (double)I_s); //symptomatic die at home / in communities	
-    newdeathsC = min(I_s, newdeathsC);
-    D += newdeathsC;
-	I_s -= newdeathsC;
+    unsigned int Is_from3_to_4=0;
+//	cout << "Is_from3_to_4: " << (4 / T_sym) << "\n";
+	flow(r, I_s3, I_s4, (4 / T_sym), Is_from3_to_4);
 	
-    unsigned int recoverI_s = gsl_ran_poisson(r, F_val * ( 1 / T_rec) * (double)I_s); //symptomatic recover at home / in communities	
-    recoverI_s = min(I_s, recoverI_s);
-    R += recoverI_s;
-	I_s -= recoverI_s;
+    unsigned int Is_from2_to_3=0;
+//	cout << "Is_from2_to_3: " << (4 / T_sym) << "\n";
+	flow(r, I_s2, I_s3, (4 / T_sym), Is_from2_to_3);
+		
+    unsigned int Is_from1_to_2=0;
+//	cout << "Is_from1_to_2: " << (4 / T_sym) << "\n";
+	flow(r, I_s1, I_s2, (4 / T_sym), Is_from1_to_2);
+
+	// symptomatic -frail
+    unsigned int hospitalize_f=0;
+//	cout << "hospitalize_f: " << p_hf * (2 / T_sym) << "\n";
+	flow(r, I_fs, H_f, p_hf * (1 / T_sym), hospitalize_f);	
 	
-    // infectious
-    unsigned int symptomsI = gsl_ran_poisson(r, p_s * ( 1/T_inf ) * (double)I ) ; //infectious become symptomatic
-    symptomsI = min(I, symptomsI);
-	unsigned int symptomsI_t=gsl_ran_poisson(r, p_s * ( 1/T_inf ) * (double)I_t); //tested infectious become symptomatic
-    symptomsI_t=min(I_t,symptomsI_t);
-	I_s += (symptomsI+symptomsI_t);
-	I -= symptomsI;
-	I_t -= symptomsI_t;
+    unsigned int newdeaths_f=0;
+//	cout << "newdeaths_f: " << ( 1 - p_hf ) * ( 2 / T_sym) << "\n";
+	flow(r, I_fs, D, ( 1 - p_hf ) * ( 1 / T_sym), newdeaths_f);
 	
-    unsigned int recoverI = gsl_ran_poisson(r, (1 - p_s) * ( 1/T_inf ) * (double)I); //infectious recover
-    recoverI = min(I, recoverI);
-	unsigned int recoverI_t = gsl_ran_poisson(r, (1 - p_s) * ( 1/T_inf ) * (double)I_t); //tested infectious recover
-	recoverI_t = min(I_t, recoverI_t);
-    R += (recoverI+recoverI_t) ;
-	I -= recoverI;
-	I_t -= recoverI_t;
+	// asymptomatic
+    unsigned int recoverI=0;
+//	cout << "recoverI: " << ( 4/T_rec ) << "\n";
+	flow(r, I4, R, ( 4/T_rec ), recoverI);
+	
+    unsigned int I_from3_to_4=0;
+//	cout << "I_from3_to_4: " << ( 4/T_rec ) << "\n";
+	flow(r, I3, I4, ( 4/T_rec ), I_from3_to_4);
+	
+    unsigned int I_from2_to_3=0;
+//	cout << "I_from2_to_3: " << ( 4/T_rec ) << "\n";
+	flow(r, I2, I3, ( 4/T_rec ), I_from2_to_3);
+ 
+    unsigned int I_from1_to_2=0;
+//	cout << "I_from1_to_2: " << ( 4/T_rec ) << "\n";
+	flow(r, I1, I2, ( 4/T_rec ), I_from1_to_2);
+	
+	// infectious - pre-clinical
+    unsigned int newasymptomatic=0;
+//	cout << "newasymptomatic: " << p_d * (1 / T_hos) << "\n";
+	flow(r, I_p, I1, p_d * (1 / T_hos), newasymptomatic);	
+
+    unsigned int newsymptomatic=0;
+//	cout << "newsymptomatic: " << (1 - pf_val) * p_s * ( 1/T_inf ) << "\n";
+	flow(r, I_p, I_s1, (1 - pf_val) * p_s * ( 1/T_inf ), newsymptomatic);	
+	
+    unsigned int newinffrail=0;
+//	cout << "newinffrail: " << pf_val * ( 1/T_inf ) << "\n";
+	flow(r, I_p, I_fs, pf_val * ( 1/T_inf ), newinffrail);		
 	
     // latent
-    unsigned int infectious = gsl_ran_poisson(r, (double)E/T_lat); //latent become infectious
-	infectious = min(E, infectious);
-    I += infectious;
-	E -= infectious;
-    unsigned int infectious_t = gsl_ran_poisson(r, (double)E_t/T_lat); //tested latent become infectious
-    infectious_t = min(E_t, infectious_t);
-	I_t += infectious_t;
-	E_t -= infectious_t;
+    unsigned int infectious=0;
+//	cout << "infectious: " << 1/T_lat << "\n";
+	flow(r, E, I_p, ( 1/T_lat ), infectious);
+	
+    unsigned int infectious_t=0;
+//	cout << "infectious_t: " << (1 / T_lat) << "\n";
+	flow(r, E_t, I_t, ( 1/T_lat ), infectious_t);
 	
     // susceptible
-    unsigned int newinfection= gsl_ran_poisson(r, (double)S*lambda); //susceptible become infected
-    newinfection= min(S, newinfection);
-	S -= newinfection;
-	E += newinfection;
+    unsigned int newinfection=0;
+//	cout << "newinfection: " << lambda << "\n";
+	flow(r, S, E, lambda, newinfection);
 	
     // recover population
-	vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I,(int)I_t,(int)I_s,(int)H,(int)R,(int)D};
+	vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)I_fs,(int)H,(int)H_f,(int)R,(int)D};
+	
 	pop = newpop;
-	deaths += (newdeathsC + newdeathsH);
-	deathsH += newdeathsH;
-	detected += (H + I_t);	
+	deaths += (newdeathsH + newdeathsH_f + newdeaths_f) ;
+	deathsH += newdeathsH + newdeathsH_f;
+	detected += (hospitalize + hospitalize_f + infectious_t);	
 	
 }
 
@@ -1159,13 +1218,21 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 	int n_agegroup = waifw_norm.size();
 	int inLockdown = 0;
 	double seed_pop[6];
+	int n_comparts=18;
 	
+
+	
+	vector<vector<double>> parameter_fit(waifw_norm.size());	
+	for (unsigned int var = 0; var < parameter_fit.size(); ++var) {
+		parameter_fit[var] = parameter_set;
+	}
+    	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 	//sets up an array for the population at each timestep in each age and disease category	
 	//also set up the age distribution of old ages as target for disease introduction
-	vector<vector<int>> poparray(n_agegroup, vector<int>(9));	  
+	vector<vector<int>> poparray(n_agegroup, vector<int>(n_comparts));	  
 	for ( int age = 0; age < (n_agegroup); ++age) {
-		for ( int st = 0; st < 9; ++st) {
+		for ( int st = 0; st < n_comparts; ++st) {
 			if(st ==0) {
 				poparray[age][st]=agenums[age]; //set up the starting population as fully susceptible
 			} else {
@@ -1207,7 +1274,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 		vector<int> popcomp;
 		
 		//identify the lock down
-		if(tt >= day_shut)  inLockdown = 1;
+		if(tt > day_shut)  inLockdown = 1;
 		
 		
 		//introduce disease from background infection until lockdown
@@ -1241,7 +1308,7 @@ void my_model(vector<double> parameter_set, vector<params> fixed_parameters, vec
 	
 		//step each agegroup through infections
 		for ( int age = 0; age < (n_agegroup); ++age) {	
-			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_set,
+			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_fit[age],
 				cfr_byage[age],pf_byage[age],lambda[age]);
 		}
 
@@ -1264,8 +1331,8 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 		vector<double>& toleranceLimit, params& paramlist, seed& seedlist, int& day_shut, int& totN_hcw,
 		int& nPar, double& prior_pinf_shape1,double& prior_pinf_shape2,double& prior_phcw_shape1,double& prior_phcw_shape2,
 		double& prior_chcw_mean,double& prior_d_shape1,double& prior_d_shape2,double& prior_q_shape1, double& prior_q_shape2,
-		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_rrdc_shape1,double& prior_rrdc_shape2,
-		double& prior_rrh_shape1,double& prior_rrh_shape2,double& prior_lambda_shape1, double& prior_lambda_shape2){
+		double& prior_rrdh_shape1,double& prior_rrdh_shape2,double& prior_phf_shape1,double& prior_phf_shape2,
+		double& prior_lambda_shape1, double& prior_lambda_shape2,double& prior_ps_shape1,double& prior_ps_shape2){
 	string parameterfile = "parameters.ini";
 	CIniFile parameters; //Create a new variable of type CIniFile (see Inifile.h for type definition)
 
@@ -1317,7 +1384,7 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 	//Fixed parameters
 	
 	paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", parameterfile).c_str());
-	paramlist.p_s = atof(parameters.GetValue("p_s", "Fixed parameters", parameterfile).c_str());
+//	paramlist.p_s = atof(parameters.GetValue("p_s", "Fixed parameters", parameterfile).c_str());
 	paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", parameterfile).c_str());
 	paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", parameterfile).c_str());
 	paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", parameterfile).c_str());
@@ -1340,13 +1407,14 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 	prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", parameterfile).c_str());
 	prior_rrdh_shape1= atof(parameters.GetValue("prior_rrdh_shape1", "Priors settings", parameterfile).c_str());
 	prior_rrdh_shape2=atof(parameters.GetValue("prior_rrdh_shape2", "Priors settings", parameterfile).c_str());
-	prior_rrdc_shape1=atof(parameters.GetValue("prior_rrdc_shape1", "Priors settings", parameterfile).c_str());
-	prior_rrdc_shape2=atof(parameters.GetValue("prior_rrdc_shape2", "Priors settings", parameterfile).c_str());
-	prior_rrh_shape1=atof(parameters.GetValue("prior_rrh_shape1", "Priors settings", parameterfile).c_str());
-	prior_rrh_shape2=atof(parameters.GetValue("prior_rrh_shape2", "Priors settings", parameterfile).c_str());	
-	
 	prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", parameterfile).c_str());
 	prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", parameterfile).c_str());
+
+	prior_phf_shape1 = atof(parameters.GetValue("prior_phf_shape1", "Priors settings", parameterfile).c_str());
+	prior_phf_shape2 = atof(parameters.GetValue("prior_phf_shape2", "Priors settings", parameterfile).c_str());
+	
+	prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", parameterfile).c_str());
+	prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", parameterfile).c_str());
 }
 
 double mean_calc_double( vector<double> v){
