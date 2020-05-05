@@ -45,10 +45,10 @@ int main(int argc, char **argv) {
 
 	//initialise the gsl random number generator with a seed depending on the time of the run
 	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937);
-	gsl_rng_set(r, 65535);
+	gsl_rng_set(r, time(NULL));
 
 	//initialise the random number generator for importance sampling
-	std::mt19937 gen(65535);
+	std::mt19937 gen(time(NULL));
 
 	Model::Run(modelInputParameters, observations, r, gen, "./outputs");
 }
