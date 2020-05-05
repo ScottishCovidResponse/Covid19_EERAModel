@@ -2,10 +2,29 @@
 
 #include "ModelTypes.h"
 #include <vector>
+#include <random>
 #include <gsl/gsl_rng.h>
 
 namespace EERAModel {
 namespace Model {
+
+/**
+ * @brief Run the model and inference framework
+ * 
+ * Runs the model based on the given input parameters, observations and seeded random number generator.
+ * Places the outputs in the indicated directory.
+ * 
+ * @param modelInputParameters Input parameters to the model run
+ * @param observations Input observations to the model run
+ * @param r Seeded random number generator
+ * @param gen Seeded random number generator for importance sampling
+ * @param outDirPath Path to the directory in which the output files should be placed
+ */
+void Run(EERAModel::ModelInputParameters& modelInputParameters,
+         EERAModel::Observations observations,
+		 gsl_rng* r,
+		 std::mt19937& gen,
+		 const std::string& outDirPath);
 
 void model_select(int smc, ::EERAModel::particle &outvec, std::vector<params> fixed_parameters,
 	std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage, 
