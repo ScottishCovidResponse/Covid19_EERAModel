@@ -33,8 +33,10 @@ EERAModel::Observations ReadObservationsFromFiles();
  * @param Nparticle Number of particles
  * @param nPar Number of parameters
  * @param particleList Vector of particles to write out
+ * @param outDirPath Path to the directory in which the output files should be placed
  */
-void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, const std::vector<EERAModel::particle>& particleList);
+void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
+	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath);
 
 } // namespace IO
 } // namespace EERAModel
