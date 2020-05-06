@@ -82,6 +82,8 @@ struct seed {
 	int hrp;
 	int day_intro;
 	double lambda;
+	bool use_fixed_seed;
+	unsigned long int seed_value;
 };
 
 
@@ -336,13 +338,20 @@ int main(int argc, char **argv) {
 	//set output file name
 	stringstream namefile, namefile_simu, namefile_ends;
 
+	// Decide which kind of seed to use
+	unsigned long randomiser_seed;
+	if (seedlist.use_fixed_seed) {
+		randomiser_seed = seedlist.seed_value;
+	} else {
+        randomiser_seed = time(NULL);
+	}
 	//initialise the gsl random number generator with a seed depending of time of the run
-	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937); //“Mersenne Twister” random number generator
-	gsl_rng_set(r, time(NULL));
+	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937); //ï¿½Mersenne Twisterï¿½ random number generator
+	gsl_rng_set(r, randomiser_seed);
 
 	//initialise the random number generator for importance sampling
     //default_random_engine gen;
-	mt19937 gen (time(NULL));
+	mt19937 gen (randomiser_seed);
 
 	//declare vectors for priors
 	vector<double> flag1, flag2;
@@ -1355,6 +1364,12 @@ void read_parameters(int& herd_id, double& tau, int&num_threads,int& nsteps, int
 		cout<< "Warning!!! Unknown method - using random seed method instead." << endl;
 		seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", parameterfile).c_str());
 	}
+	seedlist.use_fixed_seed = static_cast<bool>(
+		atoi(parameters.GetValue("use_fixed_seed", "Seed settings", parameterfile).c_str())
+	);
+	seedlist.seed_value = strtoul(
+		parameters.GetValue("seed_value", "Seed settings", parameterfile).c_str(), NULL, 0
+	);
 	
 	//Fit settings
 	nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", parameterfile).c_str());
