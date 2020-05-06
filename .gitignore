@@ -1,3 +1,5 @@
 build
 outputs/*.txt
 .vscode
+data/*.csv
+data/parameters.ini
