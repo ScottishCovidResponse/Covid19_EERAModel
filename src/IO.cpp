@@ -23,11 +23,6 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	//number of threads used for computation
 	modelInputParameters.num_threads = atoi(parameters.GetValue("num_threads", "Settings", filePath).c_str());
 
-	// Whether or not to apply the death tolerance limit
-	modelInputParameters.apply_death_tolerance_limit = static_cast<bool>(
-		atoi(parameters.GetValue("apply_death_tolerance_limit", "Settings", filePath).c_str())
-	);
-
 	//Seed settings
 	modelInputParameters.seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", filePath).c_str();
 	if(modelInputParameters.seedlist.seedmethod == "random"){
@@ -38,6 +33,12 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 		cout<< "Warning!!! Unknown method - using random seed method instead." << endl;
 		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", filePath).c_str());
 	}
+	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
+		atoi(parameters.GetValue("use_fixed_seed", "Seed settings", filePath).c_str())
+	);
+	modelInputParameters.seedlist.seed_value = strtoul(
+		parameters.GetValue("seed_value", "Seed settings", filePath).c_str(), NULL, 0
+	);
 	
 	//Fit settings
 	modelInputParameters.nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", filePath).c_str());
@@ -65,7 +66,6 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 
 	//Fixed parameters
 	modelInputParameters.paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.p_s = atof(parameters.GetValue("p_s", "Fixed parameters", filePath).c_str());
 	modelInputParameters.paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", filePath).c_str());
 	modelInputParameters.paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", filePath).c_str());
 	modelInputParameters.paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", filePath).c_str());
@@ -87,13 +87,14 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	modelInputParameters.prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_rrdh_shape1 = atof(parameters.GetValue("prior_rrdh_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_rrdh_shape2=atof(parameters.GetValue("prior_rrdh_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrdc_shape1=atof(parameters.GetValue("prior_rrdc_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrdc_shape2=atof(parameters.GetValue("prior_rrdc_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrh_shape1=atof(parameters.GetValue("prior_rrh_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrh_shape2=atof(parameters.GetValue("prior_rrh_shape2", "Priors settings", filePath).c_str());	
-	
 	modelInputParameters.prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", filePath).c_str());
+
+	modelInputParameters.prior_phf_shape1 = atof(parameters.GetValue("prior_phf_shape1", "Priors settings", filePath).c_str());
+	modelInputParameters.prior_phf_shape2 = atof(parameters.GetValue("prior_phf_shape2", "Priors settings", filePath).c_str());
+	
+	modelInputParameters.prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", filePath).c_str());
+	modelInputParameters.prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", filePath).c_str());
 
 	return modelInputParameters;
 }
@@ -158,7 +159,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	std::ofstream output_ends (namefile_ends.str().c_str());
 	
 	//add the column names for each output list of particles
-	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,rrdh,rrdc,rrh,intro,weight\n";
+	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,p_hf,rrdh,intro,weight\n";
 
 	//add the column names for each output list of chosen simulations
 	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
