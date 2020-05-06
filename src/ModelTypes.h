@@ -24,7 +24,6 @@ struct particle {
  */
 struct params {
 	double T_lat;
-	double p_s;
 	double juvp_s;
 	double T_inf;
 	double T_rec;
@@ -41,6 +40,8 @@ struct seed {
 	int hrp;
 	int day_intro;
 	double lambda;
+	bool use_fixed_seed;
+	unsigned long int seed_value;
 };
 
 /**
@@ -51,7 +52,6 @@ struct ModelInputParameters
 	int herd_id;
 	double tau;
 	int num_threads;
-	bool apply_death_tolerance_limit;
 	int nsteps;
 	int nParticalLimit;
 	int nSim;
@@ -73,12 +73,12 @@ struct ModelInputParameters
 	double prior_q_shape2;
 	double prior_rrdh_shape1;
 	double prior_rrdh_shape2;
-	double prior_rrdc_shape1;
-	double prior_rrdc_shape2;
-	double prior_rrh_shape1;
-	double prior_rrh_shape2;
+	double prior_phf_shape1;
+	double prior_phf_shape2;
 	double prior_lambda_shape1;
 	double prior_lambda_shape2;
+	double prior_ps_shape1;
+	double prior_ps_shape2;
 };
 
 /**
