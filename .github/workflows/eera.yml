@@ -21,7 +21,7 @@ jobs:
         
     - name: Run regression tests
       run: |
-        ./scripts/RunRegressionTests
+        ./scripts/RunRegressionTests.sh
         if [ $? -eq 0 ]; then
           echo "Regression tests completed successfully"
           exit 0
@@ -29,7 +29,7 @@ jobs:
           echo "Regression tests failed"
           exit 1
         fi
-        
+
     - name: Run unit tests
       run: |
         ./build/bin/Covid19EERAModel-unit_tests
