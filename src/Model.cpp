@@ -40,6 +40,8 @@ static void compute_incidence(std::vector<int> v, std::vector<int>& r_val);
 
 static void correct_incidence(std::vector<int>& v, std::vector<int> cumv);
 
+static void weekly(std::vector<int>& reduced, std::vector<int> original);
+
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
 		 gsl_rng* r,
@@ -60,22 +62,21 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	double valMax, valmin;
 
     std::cout << "[Settings]:\n";
-	std::cout<< "number of parameters tested: "<< modelInputParameters.nPar << std::endl;
-    std::cout<< "seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
+	std::cout<< "    number of parameters tested: "<< modelInputParameters.nPar << std::endl;
+    std::cout<< "    seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
 	if(modelInputParameters.seedlist.seedmethod == "random"){
-		std::cout << "number of seed: " << modelInputParameters.seedlist.nseed << std::endl;
+		std::cout << "    number of seed: " << modelInputParameters.seedlist.nseed << std::endl;
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		std::cout<< "duration of the high risk period: " << modelInputParameters.seedlist.hrp << std::endl;
+		std::cout<< "    duration of the high risk period (hrp): " << modelInputParameters.seedlist.hrp << std::endl;
 	}
 
-    std::cout << "[Parameter Settings]:\n";
-    std::cout<< "parameter values: ";
-	std::cout<< "  latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
-	std::cout<< "  pre-clinical period (theta_i): " << modelInputParameters.paramlist.T_inf <<std::endl;
-	std::cout<< "  asymptomatic period (theta_r): " << modelInputParameters.paramlist.T_rec <<std::endl;
-	std::cout<< "  symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
-	std::cout<< "  hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
-	std::cout<< "  pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
+    std::cout << "[Fixed parameter values]:\n";
+	std::cout<< "    latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
+	std::cout<< "    pre-clinical period (theta_i): " << modelInputParameters.paramlist.T_inf <<std::endl;
+	std::cout<< "    asymptomatic period (theta_r): " << modelInputParameters.paramlist.T_rec <<std::endl;
+	std::cout<< "    symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
+	std::cout<< "    hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
+	std::cout<< "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
 	
 	//keep information for the health board if interest
 	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
@@ -267,8 +268,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
 				if (
 					counter < modelInputParameters.nParticalLimit &&
-					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
-					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]*1.5
+					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc]*1.5 &&
+					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
 					) {				
 						//#pragma omp critical
 						{
@@ -341,26 +342,45 @@ void model_select(int smc, EERAModel::particle &outvec, std::vector<params> fixe
 					death_status,deathH_status);
 
 	//---------------------------------------
-	// compute the  sum of squared errors
+	// compute the  sum of squared errors for daily observations
 	//---------------------------------------
-	double sum_sq_cases = 1000000.0,sum_sq_deaths = 1000000.0,nsse_cases=1000000.0,nsse_deaths=1000000.0;
+	double sum_sq_cases = 1000000.0,nsse_cases=1000000.0;
 	std::vector<int> obs_case = obsHosp;
-	std::vector<int> obs_death = obsDeaths;
 	sum_sq_cases = ::EERAModel::DistanceComputation::sse_calc_int(sim_status,obs_case);
-		
-	sum_sq_deaths= ::EERAModel::DistanceComputation::sse_calc_int(deathH_status,obs_death);
+	
 	//---------------------------------------
-	// compute the deviation of the fit expressed as % total number of cases
+	// compute the  sum of squared errors for weekly observations
+	//---------------------------------------	
+	double sum_sq_deaths = 1000000.0,nsse_deaths=1000000.0;
+	
+	//agregate daily values to weekly values // due to reporting process creating uncertaincies within weeks
+	std::vector<int> obs_death = obsDeaths;
+	
+	std::vector<int> obs_death_red, sim_death_red;
+	weekly(obs_death_red,obs_death);
+	weekly(sim_death_red,deathH_status);
+	
+	//std::cout << obs_death_red.size() <<" , " << sim_death_red.size() << '\n';
+
+	sum_sq_deaths= ::EERAModel::DistanceComputation::sse_calc_int(sim_death_red,obs_death_red);
+	int nweek = obs_death_red.size();
+	sum_sq_deaths = sum_sq_deaths ;// / ((double)nweek * 7.0)
+
+	//---------------------------------------
+	// compute the deviation of the fit expressed as % total number of observations
 	//---------------------------------------
 	//total numbers of cases and deaths (at hospital)
 	int sum_obs_cases = std::accumulate(obsHosp.begin(), obsHosp.end(), 0);
-	int sum_obs_deaths = std::accumulate(obsDeaths.begin(), obsDeaths.end(), 0);
+//	int sum_obs_deaths = std::accumulate(obsDeaths.begin(), obsDeaths.end(), 0);	
+	int sum_obs_deaths = std::accumulate(obs_death_red.begin(), obs_death_red.end(), 0);
+		
+	//std::cout <<"daily obs: " << sum_obs_deaths<< " , red: " << sum_obs_deaths_red << " , length red: " <<	obs_death_red.size() << std::endl;
 	
 	nsse_cases = sqrt(sum_sq_cases)/ (double)sum_obs_cases;
 	nsse_deaths = sqrt(sum_sq_deaths)/ (double)sum_obs_deaths;
  	
 	//cout << "nsse_cases: " << nsse_cases << " , nsse_deaths: " << nsse_deaths <<'\n';
-
+	//std::cout << sqrt(sum_sq_deaths)<<" , " << sum_obs_deaths<< " , "<< nsse_deaths << std::endl;
 	//---------------------------------------
 	// Return a vector with all selection measures
 	//---------------------------------------
@@ -402,6 +422,8 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 		}
 	}
 
+	std::cout << "[Observations]:\n";
+	std::cout << "    day first report (t_index): " << t_index << '\n';
 	//identify the first day of infectiousness for the index case, which will be the start of our simulation, and add days in the observation, and define duration of the disease process
 	int intro = (t_index+1)-(time_back);
 
@@ -432,8 +454,9 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 		extra_deaths.clear();	
 	}
 	
-	std::cout << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
-	std::cout << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
+	std::cout << "    Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
+	std::cout << "    Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
+	std::cout << "    Number of weeks of obs: " << (double)obsDeaths_tmp.size()/7.0 << std::endl;
 	//transform  cumulative numbers into incident cases
 	std::vector<int> obsHosp_tmp2;
 	compute_incidence(obsHosp_tmp,obsHosp_tmp2);
@@ -817,6 +840,24 @@ static void correct_incidence(std::vector<int>& v, std::vector<int> cumv){
 		compute_incidence(cumv,v);
 	}
 }
+
+//reduce vector of daily  value into vector of weekly value
+static void weekly(std::vector<int>& reduced, std::vector<int> original){
+
+	int weekly_value=0;
+	for(unsigned int ttime =0; ttime< original.size(); ++ttime){
+		weekly_value+=original[ttime];
+				
+		if( (ttime % 7) == 6){
+			reduced.push_back(weekly_value);
+			weekly_value=0;
+		}
+	}
+}
+
+
+
+
 
 } // namespace Model
 } // namespace EERAModel
