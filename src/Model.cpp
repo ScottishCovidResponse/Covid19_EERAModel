@@ -94,18 +94,20 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	
 	int duration = 0;
 	
-	if(modelInputParameters.seedlist.seedmethod == "background"){
-		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, observations.cases, observations.deaths, modelInputParameters.herd_id, 
-			modelInputParameters.seedlist.hrp);
-	} else{
-		select_obs(	Npop, t_index, duration, modelInputParameters.seedlist.day_intro, modelInputParameters.day_shut, 
-			obsHosp_tmp, obsDeaths_tmp, observations.cases, observations.deaths, modelInputParameters.herd_id, 
-			modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym);
-		if(modelInputParameters.seedlist.seedmethod!= "random"){
+	int time_back;
+	if(modelInputParameters.seedlist.seedmethod == "background") {
+		time_back = modelInputParameters.seedlist.hrp;
+	} else {
+		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
+		
+		if (modelInputParameters.seedlist.seedmethod != "random") {
 			std::cout << "Warning!! Unknown seeding method - applying _random_ seed method\n";
 		}
 	}
+
+	select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
+		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
+		observations.deaths, modelInputParameters.herd_id, time_back);
 
 	obsHosp = obsHosp_tmp;
 	obsDeaths = obsDeaths_tmp;
