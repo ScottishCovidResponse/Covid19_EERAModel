@@ -26,8 +26,8 @@ void parameter_select_first_step(std::vector<double> &selected_param, std::vecto
 }
 
 void parameter_select_nsteps(std::vector<double> &selected_param, int nPar, gsl_rng * r,
-	std::vector<particle> particleList, int pick_val, double vlimitKernel[], double vect_min[],
-	double vect_Max[]) {
+	std::vector<particle> particleList, int pick_val, const std::vector<double>& vlimitKernel, 
+	const std::vector<double>& vect_min, const std::vector<double>& vect_Max) {
 
 	particle perturbList;
 
@@ -49,7 +49,7 @@ void parameter_select_nsteps(std::vector<double> &selected_param, int nPar, gsl_
 }
 
 void weight_calc(int smc,int pastNpart, std::vector<EERAModel::particle> pastPart,
-	EERAModel::particle &currentPart, double vlimitKernel[], int nPar) {
+	EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel, int nPar) {
 
 	//calculate the weight of the accepted particle here
 	if(smc == 0){

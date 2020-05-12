@@ -14,6 +14,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_randist.h>
+#include <functional>
 
 namespace EERAModel {
 namespace Model {
@@ -41,7 +42,7 @@ static void compute_incidence(std::vector<int> v, std::vector<int>& r_val);
 static void correct_incidence(std::vector<int>& v, std::vector<int> cumv);
 
 /**
- * @brief Calulate the agenums 
+ * @brief Compute the agenums 
  * 
  * @param Npop Population
  * @param Nhcw Number of health care workers
@@ -50,6 +51,19 @@ static void correct_incidence(std::vector<int>& v, std::vector<int> cumv);
  * @return agenums
  */
 static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observations& obs);
+
+/**
+ * @brief Compute the Kernel Window
+ * 
+ * @param nPar Number of parameters to compute kernel for
+ * @param particleList List of previously accepted particles
+ * @param kernelFactor Common kernel multiplicative factor
+ * @param vlimitKernel Storage for the computed kernel
+ * @param vect_Max Storage for maximum values of ranges
+ * @param vect_Min Storage for minimum values of ranges
+ */
+static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
+	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min);
 
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
@@ -66,9 +80,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	// declare vectors of inputs
 	std::vector<int > obsHosp;
 	std::vector<int > obsDeaths;
-
-	// variable declaration
-	double valMax, valmin;
 
     std::cout << "[Settings]:\n";
 	std::cout<< "number of parameters tested: "<< modelInputParameters.nPar << std::endl;
@@ -169,14 +180,11 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	};
 
 	//declare vectors of outputs/inputs for ABC process
-	std::vector<particle > particleList,particleList1;
+	std::vector<particle > particleList, particleList1;
 	std::vector<double> weight_val;
 
 	//declare intermediate vectors for ABC smc process
 	int pick_val;
-	double vlimitKernel[modelInputParameters.nPar];
-	double vect_Max[modelInputParameters.nPar];
-	double vect_min[modelInputParameters.nPar];
 
 	//initialise the number of accepted particles
 	int Nparticle = 0;
@@ -198,21 +206,18 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		int counter = 0;
 
 		//initialise the weight and particle lists
-		if (smc>0) {
+		std::vector<double> vect_Max(modelInputParameters.nPar, 0.0);
+		std::vector<double> vect_min(modelInputParameters.nPar, 0.0);
+		std::vector<double> vlimitKernel(modelInputParameters.nPar, 0.0);
+
+		if (smc > 0) {
 			//update the vectors
 			particleList = particleList1;
 			particleList1.clear();
 
-			//compute the kernel window
-			for (int i = 0; i < modelInputParameters.nPar; ++i) {
-				particle valMax1 = *max_element(particleList.begin(),particleList.end(), [&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; } ); //find the element of a vector that is the biggest and return its value
-				particle valmin1 = *min_element(particleList.begin(),particleList.end(), [&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; } ); //find the element of a vector  that is the smallest and return its value
-				valMax = vect_Max[i] = valMax1.parameter_set[i];
-				valmin = vect_min[i] = valmin1.parameter_set[i];
-				vlimitKernel[i] = modelInputParameters.kernelFactor*fabs((valMax)-(valmin));
-			}
+			ComputeKernelWindow(modelInputParameters.nPar, particleList, 
+				modelInputParameters.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
-
 
 		//create the discrete distribution of the weights for the "importance sampling" process
 		for (unsigned int i = 0; i < particleList.size(); ++i) {
@@ -250,11 +255,13 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//pick the values of each particles
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
-					FittingProcess::parameter_select_first_step(outs_vec.parameter_set,flag1, flag2, r, modelInputParameters.nPar);
+					FittingProcess::parameter_select_first_step(outs_vec.parameter_set,flag1, flag2,
+						r, modelInputParameters.nPar);
 				} else {
 					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
 				    pick_val = weight_distr(gen);
-				    FittingProcess::parameter_select_nsteps(outs_vec.parameter_set, modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
+				    FittingProcess::parameter_select_nsteps(outs_vec.parameter_set,
+						modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
 				//run the model and compute the different measures for each potential parameters value
 				model_select(outs_vec, fixed_parameters, observations.cfr_byage,pf_byage,
@@ -276,7 +283,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 					) {				
 						//#pragma omp critical
 						{
-							FittingProcess::weight_calc(smc,Nparticle, particleList, outs_vec, vlimitKernel, modelInputParameters.nPar);
+							FittingProcess::weight_calc(smc,Nparticle, particleList, outs_vec, 
+								vlimitKernel, modelInputParameters.nPar);
 							particleList1.push_back(outs_vec);
 							++counter;		//count the number of accepted particles
 							if(counter % 10 == 0) std::cout << "|" << std::flush;
@@ -380,7 +388,6 @@ void model_select(EERAModel::particle &outvec, std::vector<params> fixed_paramet
 	}		
 
 }
-
  
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
@@ -827,6 +834,26 @@ static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Ob
 	agenums.push_back(N_hcw);
 
 	return agenums;
+}
+
+static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
+	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
+
+	//compute the kernel window
+	for (int i = 0; i < nPar; ++i) {
+		
+		std::function<bool(particle, particle)> compare = 
+			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
+
+		particle valMax1 = *std::max_element(particleList.begin(), particleList.end(), compare);
+		
+		particle valmin1 = *std::min_element(particleList.begin(), particleList.end(), compare);
+
+		vect_Max[i] = valMax1.parameter_set[i];
+		vect_Min[i] = valmin1.parameter_set[i];
+		
+		vlimitKernel[i] = kernelFactor * fabs(vect_Max[i] - vect_Min[i]);
+	}	
 }
 
 } // namespace Model
