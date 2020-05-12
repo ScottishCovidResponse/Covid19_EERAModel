@@ -26,7 +26,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		 std::mt19937& gen,
 		 const std::string& outDirPath);
 
-void model_select(int smc, ::EERAModel::particle &outvec, std::vector<params> fixed_parameters,
+void model_select(::EERAModel::particle &outvec, std::vector<params> fixed_parameters,
 	std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage, 
 	std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist,
 	std::vector<std::vector<double>> waifw_home, std::vector <int> agenums, double tau,
