@@ -253,7 +253,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				    FittingProcess::parameter_select_nsteps(outs_vec.parameter_set, modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
 				//run the model and compute the different measures for each potential parameters value
-				model_select(smc,outs_vec, fixed_parameters, observations.cfr_byage,pf_byage,
+				model_select(outs_vec, fixed_parameters, observations.cfr_byage,pf_byage,
 							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
 							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
 							modelInputParameters.day_shut, Npop, r, obsHosp, obsDeaths);
@@ -319,7 +319,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
-void model_select(int smc, EERAModel::particle &outvec, std::vector<params> fixed_parameters,
+void model_select(EERAModel::particle &outvec, std::vector<params> fixed_parameters,
 	std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage, 
 	std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist,
 	std::vector<std::vector<double>> waifw_home, std::vector <int> agenums, double tau,
@@ -414,7 +414,7 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	else day_intro=intro;
 		
 	//add the extra information on the observations
-	if(duration > obsHosp_tmp.size()){
+	if(static_cast<unsigned int>(duration) > obsHosp_tmp.size()){
 		int extra_time = duration - obsHosp_tmp.size();
 		std::vector<int> extra_cases, extra_deaths;
 		for (int extra = 0; extra < extra_time; ++extra) {
@@ -459,7 +459,6 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 
 	int n_agegroup = waifw_norm.size();
 	int inLockdown = 0;
-	double seed_pop[6];
 	int n_comparts=18;
 
 	std::vector<std::vector<double>> parameter_fit(waifw_norm.size());	
@@ -479,20 +478,14 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				poparray[age][st] = 0;
 			}
 		}
-		if(age >0 & age < (n_agegroup-1) ){ //seed only occurs in >20yo and not in HCW
-			seed_pop[age-1] = (double)agenums[age];
-		}
 	}
 
 
 	//introduce disease at t=0. if seedmethod != "background"
 	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
 	if(seedlist.seedmethod != "background"){
-	//	size_t k = sizeof(seed_pop);
-	//	unsigned int startdist[k];
 		std::vector<int> startdist = {0,0,0,0,0,0};
 		startdist[(int) gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
-	//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
 
 		for ( int age =1; age < (n_agegroup-1); ++age) {
 			poparray[age][0] -=  startdist[age-1];//take diseased out of S
@@ -523,15 +516,12 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				double bkg_lambda = parameter_set[parameter_set.size()-1];
 				unsigned int startdz = gsl_ran_poisson(r, (double)Npop * bkg_lambda);	//how many diseased is introduced in each given day before lockdown
 		
-			//	size_t k = sizeof(seed_pop);
-			//	unsigned int startdist[k];
 				std::vector<int> startdist = {0,0,0,0,0,0};
 				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
 				while(poparray[pickcomp][0]<1){
 					pickcomp = (int)gsl_ran_flat(r, 0, 6);
 				} 
 				startdist[pickcomp] = startdz;
-			//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
 
 				for ( int age =1; age < (n_agegroup-1); ++age) {
 					int nseed = std::min(poparray[age][0], startdist[age-1]);
@@ -797,12 +787,12 @@ static void correct_incidence(std::vector<int>& v, std::vector<int> cumv){
 		        } else{
 		          //if smaller
 		          //check when the day prior today was smaller than the next day and remove extra cases to this day
-		          int counter_check=1;
+		          unsigned int counter_check = 1;
 		          while( cumv[ii-counter_check]>case_aft){
 		            ++counter_check ;
 		          }
 		          if(v[ii-counter_check+1] >= abs(v[ii])){
-				  	for ( int jj = (ii-counter_check+1); jj < (ii); ++jj) {
+				  	for ( unsigned int jj = (ii-counter_check+1); jj < (ii); ++jj) {
 						cumv[jj] += v[ii];
 					}			
 		          } else {
