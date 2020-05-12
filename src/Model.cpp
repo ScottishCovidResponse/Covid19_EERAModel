@@ -40,6 +40,17 @@ static void compute_incidence(std::vector<int> v, std::vector<int>& r_val);
 
 static void correct_incidence(std::vector<int>& v, std::vector<int> cumv);
 
+/**
+ * @brief Calulate the agenums 
+ * 
+ * @param Npop Population
+ * @param Nhcw Number of health care workers
+ * @param obs Model observations
+ * 
+ * @return agenums
+ */
+static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observations& obs);
+
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
 		 gsl_rng* r,
@@ -123,16 +134,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	double prop_scot = (double)Npop / (double)N_scot;  //proportion of Scots in each shb
 	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
 
-	//adjust population structure to the current population size
-	std::vector<double> agedist = observations.age_pop[modelInputParameters.herd_id - 1];//define age structure of the shb of interest. the -1 is to account for difference in number of rows between two datasets (age_pop does not have a row with column name)
-	std::vector<int> agenums;
-	for (unsigned int var = 0; var < agedist.size(); ++var) {
-		// modulate the population of non-hcw now to proportion in each age group recorded in 2011	
-		agenums.push_back(round(agedist[var] * (Npop - N_hcw))); 
-
-	}		
-	//push back the number of hcw in the shb of interest
-	agenums.push_back(N_hcw);
+	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, Npop, N_hcw, observations);
 	
     std::cout << "[Health Board settings]:\n";
 	std::cout << "    SHB id: " << modelInputParameters.herd_id <<'\n';
@@ -808,6 +810,23 @@ static void correct_incidence(std::vector<int>& v, std::vector<int> cumv){
 		v.clear();
 		compute_incidence(cumv,v);
 	}
+}
+
+static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observations& obs) {
+	std::vector<int> agenums;
+	
+	// define age structure of the shb of interest. the -1 is to account for difference in number of
+	// rows between two datasets (age_pop does not have a row with column name)
+	const auto& agedist = obs.age_pop[shb_id - 1];
+	
+	for (const auto& var : agedist) {
+		// modulate the population of non-hcw now to proportion in each age group recorded in 2011	
+		agenums.push_back(round(var * (Npop - N_hcw))); 
+
+	}		
+	agenums.push_back(N_hcw);
+
+	return agenums;
 }
 
 } // namespace Model
