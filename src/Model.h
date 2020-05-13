@@ -27,9 +27,9 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		 const std::string& outDirPath);
 
 void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
-	std::vector<std::vector<double>> cfr_byage, const std::vector<double>& pf_byage, 
-	std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist,
-	std::vector<std::vector<double>> waifw_home, std::vector <int> agenums, double tau,
+	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
+	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
+	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
 

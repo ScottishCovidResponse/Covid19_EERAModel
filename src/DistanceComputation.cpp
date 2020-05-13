@@ -23,7 +23,7 @@ double sse_calc(int Npop, std::vector<double> simHosp, const std::vector<int>& o
 	return sum_sq;
 }
 
-double sse_calc_int(std::vector<int> simval, std::vector<int> obsval){
+double sse_calc_int(std::vector<int> simval, const std::vector<int>& obsval){
 	
 	//verify that the 2 vectors have the same size
 	if(simval.size() != obsval.size()){

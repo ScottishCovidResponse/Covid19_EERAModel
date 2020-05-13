@@ -7,7 +7,7 @@ namespace DistanceComputation {
 
 double sse_calc(int Npop, std::vector<double> simHosp, const std::vector<int>& obsHosp);
 
-double sse_calc_int(std::vector<int> simval, std::vector<int> obsval);
+double sse_calc_int(std::vector<int> simval, const std::vector<int>& obsval);
 
 double nsse_calc_int(std::vector<int> simHosp, const std::vector<int>& obsHosp);
 
