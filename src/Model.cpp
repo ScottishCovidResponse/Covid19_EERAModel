@@ -25,7 +25,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 				::EERAModel::params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab,
 				double pf_val, double lambda);
 
-static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
+static std::vector<double> Lambda(std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
 				std::vector<std::vector<double>> waifw_sdist,std::vector<std::vector<double>> waifw_home, 
 				std::vector<std::vector<int>> pops, int shut);
 
@@ -510,8 +510,8 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	    }
 
 		// Compute the forces of infection
-		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, parameter_set, waifw_norm, waifw_sdist, waifw_home, poparray, inLockdown);	
+		std::vector<double> lambda = Lambda(parameter_set, waifw_norm, waifw_sdist,	waifw_home,
+			poparray, inLockdown);	
 	
 		// Step each agegroup through infections
 		int deaths = 0;
@@ -656,77 +656,85 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	detected += (hospitalize + hospitalize_f + infectious_t);	
 }
 
-static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
+static std::vector<double> Lambda(std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
 			std::vector<std::vector<double>> waifw_sdist,std::vector<std::vector<double>> waifw_home, 
 			std::vector<std::vector<int>> pops, int shut) {
+  
+	int n_agegroup = waifw_norm.size();
 
-  double p_i = parameter_set[0];	
-  double p_hcw = parameter_set[1];	
-  double c_hcw = parameter_set[2];	
-  double d_val = parameter_set[3];					
-  double q_val = parameter_set[4];					
+	double p_i = parameter_set[0];	
+	double p_hcw = parameter_set[1];	
+	double c_hcw = parameter_set[2];	
+	double d_val = parameter_set[3];					
+	double q_val = parameter_set[4];					
+
+	double quarantined = 0.0; //mean proportion reduction in contacts due to quarantine
 	
-  //lambda=rep(NA,nrow(pops))
-  int n_agegroup = waifw_norm.size();
-  double quarantined = 0.0;//mean proportion reduction in contacts due to quarantine
-  int inf_hosp=0;
-  std::vector<double> I_mat(n_agegroup); 
-  //contact matrix
-  std::vector<std::vector<double>> waifw(n_agegroup, std::vector<double> (n_agegroup)); 
-  //age-dependent transmission rate
-  std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup)); 
+	//contact matrix
+	std::vector<std::vector<double>> waifw(n_agegroup, std::vector<double> (n_agegroup)); 
+
+	//age-dependent transmission rate
+	std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup)); 
+
+	for (int from = 0; from < n_agegroup; ++from) {
+		for (int to = 0; to < n_agegroup; ++to) {
+			
+			if(shut == 0){
+				// contact network during normal period
+				waifw[from][to]  = waifw_norm[from][to] ;
+			} else {
+				//contact network during shutdown period, assuming a proportion d will properly do it
+				waifw[from][to] = (1.0 - d_val) * waifw_sdist[from][to] + (d_val) * waifw_home[from][to];
+			}
+			
+			beta[from][to] = waifw[from][to] * p_i;
+			if(waifw[from][to] > 0) {
+				quarantined += waifw_home[from][to] / waifw[from][to];
+			}
+		}
+	} 
   
-  for ( int from = 0; from < n_agegroup; ++from) {
-	  for ( int to = 0; to < n_agegroup; ++to) {
-		  if(shut==0){
-		  	//contact network during normal period
-		    waifw[from][to]  = waifw_norm[from][to] ;
-		  } else {
-			//contact network during shutdown period, assuming a proportion d will properly do it
-		  	waifw[from][to] = (1.0-d_val) * waifw_sdist[from][to] + (d_val) * waifw_home[from][to];
-		  }
-		  beta[from][to] = waifw[from][to] * p_i ;
-		  if(waifw[from][to]>0) {
-			  quarantined += waifw_home[from][to]/waifw[from][to];
-		  } else {
-			  quarantined += 0;
-		  }
-	  }
-  } 
-  
-  //mean proportion reduction in contacts due to quarantine accounting for compliance
-  quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
-  
-  //compute the pressure from infectious groups, normalizes by group size
-  //compute the pressure from hospitalised
-  for ( int from = 0; from < n_agegroup; ++from) {
-	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
-	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
-		// asym are infectious pre-clinical and asymptomatic
-		// sym are infectious frail and not frail plus those that are tested positive
-		int tot_asym = pops[from][3] + pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8];
-		int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12] + pops[from][13];
-		
-		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
-		//normalisation shouldnt account for dead individuals	
-		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
-		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
-				
+	// mean proportion reduction in contacts due to quarantine accounting for compliance
+	quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
+	
+	// compute the pressure from infectious groups, normalizes by group size
+	// compute the pressure from hospitalised
+	int inf_hosp = 0;
+	std::vector<double> I_mat(n_agegroup);
+	
+	for (int from = 0; from < n_agegroup; ++from) {
+		if (from < (n_agegroup - 1)) { //n-agegroup-1 to not account for hcw (as different contact)
+			// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
+			// asym are infectious pre-clinical and asymptomatic
+			// sym are infectious frail and not frail plus those that are tested positive
+			int tot_asym = pops[from][3] + pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8];
+			int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12] + pops[from][13];
+			
+			I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
+			
+			//normalisation shouldnt account for dead individuals	
+			int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
+			I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 		
+		}
+
+		//sum up of number of hospitalised cases (frail and non-frail)
+		inf_hosp += pops[from][14] + pops[from][15];
 	}
-	//sum up of number of hospitalised cases (frail and non-frail)
-	inf_hosp+= pops[from][14] + pops[from][15];
-  }
 
-  //sum up infectious pressure from each age group
-  for ( int to = 0; to < (n_agegroup); ++to) {
-	  for(int from = 0; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
-	  	lambda[to] += ( beta[to][from]*I_mat[from] );
-	  }
-  }
+	std::vector<double> lambda(n_agegroup);
+	
+	// Sum up infectious pressure from each age group
+	for (int to = 0; to < n_agegroup; ++to) {
+		// Assume perfect self isolation and regular testing of infected HCW if infected
+		for (int from = 0; from < (n_agegroup-1); ++from) {
+			lambda[to] += (beta[to][from] * I_mat[from]);
+		}
+	}
 
-  int tot_pop = accumulate(pops[n_agegroup-1].begin(), pops[n_agegroup-1].end(), 0);
-  //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
-  lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+	int tot_pop = accumulate(pops[n_agegroup - 1].begin(), pops[n_agegroup - 1].end(), 0);
+	lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+
+	return lambda;
 }
 
 void flow(gsl_rng * r, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
