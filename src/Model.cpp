@@ -62,8 +62,21 @@ static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Ob
  * @param vect_Max Storage for maximum values of ranges
  * @param vect_Min Storage for minimum values of ranges
  */
-static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
-	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min);
+static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
+	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
+	std::vector<double>& vect_Min);
+
+/**
+ * @brief Compute weight distribution
+ * 
+ * Create the discrete distribution of the weights for the "importance sampling" process
+ * 
+ * @param particleList List of previously accepted particles
+ * 
+ * @return Weight distribution
+ */
+static std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList);
 
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
@@ -181,7 +194,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	//declare vectors of outputs/inputs for ABC process
 	std::vector<particle > particleList, particleList1;
-	std::vector<double> weight_val;
+	
 
 	//declare intermediate vectors for ABC smc process
 	int pick_val;
@@ -219,13 +232,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				modelInputParameters.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
-		//create the discrete distribution of the weights for the "importance sampling" process
-		for (unsigned int i = 0; i < particleList.size(); ++i) {
-			weight_val.push_back(particleList[i].weight);
-		}
-		//weight_val = weight_val1;
-		std::discrete_distribution<int> weight_distr(weight_val.begin(), weight_val.end());
-		weight_val.clear();
+		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
 
 	/*---------------------------------------
 	 * simulate the infection data set
@@ -854,6 +861,17 @@ static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleL
 		
 		vlimitKernel[i] = kernelFactor * fabs(vect_Max[i] - vect_Min[i]);
 	}	
+}
+
+static std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList) {
+	
+	std::vector<double> weight_val;
+	for (auto particle : particleList) {
+		weight_val.push_back(particle.weight);
+	}
+	
+	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
 }
 
 } // namespace Model
