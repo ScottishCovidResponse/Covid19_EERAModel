@@ -448,29 +448,23 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status) {
 
-	int n_agegroup = waifw_norm.size();
-	int inLockdown = 0;
-	int n_comparts=18;
-
-	std::vector<std::vector<double>> parameter_fit(waifw_norm.size());	
-	for (unsigned int var = 0; var < parameter_fit.size(); ++var) {
-		parameter_fit[var] = parameter_set;
-	}
-    	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
+	std::vector<std::vector<double>> parameter_fit(waifw_norm.size(), parameter_set);	
+    parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 	//sets up an array for the population at each timestep in each age and disease category	
 	//also set up the age distribution of old ages as target for disease introduction
+	int n_agegroup = waifw_norm.size();
+	int n_comparts = 18;
 	std::vector<std::vector<int>> poparray(n_agegroup, std::vector<int>(n_comparts));	  
 	for ( int age = 0; age < (n_agegroup); ++age) {
 		for ( int st = 0; st < n_comparts; ++st) {
-			if(st ==0) {
-				poparray[age][st]=agenums[age]; //set up the starting population as fully susceptible
+			if(st == 0) {
+				poparray[age][st] = agenums[age]; //set up the starting population as fully susceptible
 			} else {
 				poparray[age][st] = 0;
 			}
 		}
 	}
-
 
 	//introduce disease at t=0. if seedmethod != "background"
 	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
@@ -478,71 +472,63 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		std::vector<int> startdist = {0,0,0,0,0,0};
 		startdist[(int) gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
 
-		for ( int age =1; age < (n_agegroup-1); ++age) {
-			poparray[age][0] -=  startdist[age-1];//take diseased out of S
-			poparray[age][3] +=  startdist[age-1];//put diseased in I	
+		for (int age = 1; age < (n_agegroup - 1); ++age) {
+			poparray[age][0] -=  startdist[age - 1]; //take diseased out of S
+			poparray[age][3] +=  startdist[age - 1]; //put diseased in I	
 		}	
 	}
-
 
   	//initialize saving of the detection for t=0
 	sim_status.push_back(0); 
 	death_status.push_back(0); 
 	deathH_status.push_back(0); 
+
 	//run the simulation
-	for (int tt = 1; tt < (int)ceil(duration/tau); ++tt) {
-		//initialize return value
-		int deaths=0;
-		int deathsH=0;
-		int detected=0;
-		std::vector<int> popcomp;
-		
+	for (int tt = 1; tt < (int)ceil(duration/tau); ++tt) {	
 		//identify the lock down
-		if(tt > day_shut)  inLockdown = 1;
-		
+		int inLockdown = tt > day_shut ? 1 : 0;
 		
 		//introduce disease from background infection until lockdown
-	    if(inLockdown<1){
+	    if(!inLockdown) {
 			if(seedlist.seedmethod == "background"){
 				double bkg_lambda = parameter_set[parameter_set.size()-1];
 				unsigned int startdz = gsl_ran_poisson(r, (double)Npop * bkg_lambda);	//how many diseased is introduced in each given day before lockdown
 		
 				std::vector<int> startdist = {0,0,0,0,0,0};
-				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
-				while(poparray[pickcomp][0]<1){
-					pickcomp = (int)gsl_ran_flat(r, 0, 6);
+				int pickcomp = (int) gsl_ran_flat(r, 0, 6);
+				while(poparray[pickcomp][0] < 1) {
+					pickcomp = (int) gsl_ran_flat(r, 0, 6);
 				} 
 				startdist[pickcomp] = startdz;
 
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-					int nseed = std::min(poparray[age][0], startdist[age-1]);
-					poparray[age][0] -=  nseed;//take diseased out of S
-					poparray[age][1] +=  nseed;//put diseased in E	
+				for (int age = 1; age < (n_agegroup - 1); ++age) {
+					int nseed = std::min(poparray[age][0], startdist[age - 1]);
+					poparray[age][0] -=  nseed; //take diseased out of S
+					poparray[age][1] +=  nseed; //put diseased in E	
 				}	
 			}
 	    }
 
-
-		//compute the forces of infection
+		// Compute the forces of infection
 		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, parameter_set,waifw_norm, waifw_sdist,waifw_home, poparray, inLockdown);	
+		Lambda(lambda, parameter_set, waifw_norm, waifw_sdist, waifw_home, poparray, inLockdown);	
 	
-		//step each agegroup through infections
-		for ( int age = 0; age < (n_agegroup); ++age) {	
+		// Step each agegroup through infections
+		int deaths = 0;
+		int deathsH = 0;
+		int detected = 0;
+		for (int age = 0; age < n_agegroup; ++age) {	
 			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_fit[age],
-				cfr_byage[age],pf_byage[age],lambda[age]);
+				cfr_byage[age], pf_byage[age], lambda[age]);
 		}
-
-		//cout << tt << " , " <<  detected << " , " << obsHosp[tt]<< " , "<< deaths << '\n';
 
 		sim_status.push_back(detected); 
 		death_status.push_back(deaths); 
 		deathH_status.push_back(deathsH);
     }	
-	//save the population in each epi compt for the last day
-	for ( int age = 0; age < n_agegroup; ++age) {
-		ends.push_back(poparray[age]);
-	}
+	
+	// save the population in each epi compt for the last day
+	ends = poparray;
 }
 
 static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, 
