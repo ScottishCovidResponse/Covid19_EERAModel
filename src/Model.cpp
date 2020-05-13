@@ -90,10 +90,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	clock_t startTime = clock();
 	clock_t time_taken1=0;
 
-	// declare vectors of inputs
-	std::vector<int > obsHosp;
-	std::vector<int > obsDeaths;
-
     std::cout << "[Settings]:\n";
 	std::cout<< "number of parameters tested: "<< modelInputParameters.nPar << std::endl;
     std::cout<< "seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
@@ -144,10 +140,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
 		observations.deaths, modelInputParameters.herd_id, time_back);
 
-	obsHosp = obsHosp_tmp;
-	obsDeaths = obsDeaths_tmp;
-	obsHosp_tmp.clear();	
-	obsDeaths_tmp.clear();	
+	std::vector<int> obsHosp(obsHosp_tmp);
+	std::vector<int> obsDeaths(obsDeaths_tmp);
 	
 	//define age structure and number of hcw of the population at risk
 	//compute the number of hcw in the shb
@@ -160,16 +154,16 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, Npop, N_hcw, observations);
 	
+	const std::vector<double> initialParams = ComputeInitialParameters(modelInputParameters, r);
+
     std::cout << "[Health Board settings]:\n";
 	std::cout << "    SHB id: " << modelInputParameters.herd_id <<'\n';
 	std::cout << "    Population size: " << Npop << '\n';
 	std::cout << "    Number of HCW: " << N_hcw << '\n';
 	std::cout << "    Simulation period: " << duration << "days\n";
 	std::cout << "    time step: " << modelInputParameters.tau << "days\n";
-	//declare vectors for priors
-	std::vector<double> flag1, flag2;
 	
-	flag1 = {
+	std::vector<double> flag1 = {
 		modelInputParameters.prior_pinf_shape1,
 	 	modelInputParameters.prior_phcw_shape1,
 		modelInputParameters.prior_chcw_mean, 
@@ -180,7 +174,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_rrdh_shape1,
 		modelInputParameters.prior_lambda_shape1
 	};	
-	flag2 = {
+	std::vector<double> flag2 = {
 		modelInputParameters.prior_pinf_shape2, 
 		modelInputParameters.prior_phcw_shape2, 
 		modelInputParameters.prior_chcw_mean, 
@@ -194,19 +188,14 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	//declare vectors of outputs/inputs for ABC process
 	std::vector<particle > particleList, particleList1;
-	
-
-	//declare intermediate vectors for ABC smc process
-	int pick_val;
 
 	//initialise the number of accepted particles
-	int Nparticle = 0;
-	int nsim_val = 0;
+	int prevAcceptedParticleCount = 0;
 
 	/*--------------------------------------
 	 * abc-smc loop
 	 *-------------------------------------*/
-	 std::cout << "[Simulations]:\n";
+	std::cout << "[Simulations]:\n";
 	for (int smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
 
 		//the abort statement for keeping the number of particles less than 1000
@@ -216,7 +205,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		int nsim_count = 0;
 
 		//initialise the number of accepted particles
-		int counter = 0;
+		int acceptedParticleCount = 0;
 
 		//initialise the weight and particle lists
 		std::vector<double> vect_Max(modelInputParameters.nPar, 0.0);
@@ -239,20 +228,20 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	 *---------------------------------------*/
 		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
 		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
-		for (int kk = 0; kk < modelInputParameters.nSim; ++kk) {//todo
+		for (int sim = 0; sim < modelInputParameters.nSim; ++sim) {//todo
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
 
 				//Update progress
-				if (counter >= (modelInputParameters.nParticalLimit)) {
+				if (acceptedParticleCount >= modelInputParameters.nParticalLimit) {
 					aborting = true;
 					//#pragma omp flush (aborting)
 				}
 
 				//declare and initialise output variables
 				particle outs_vec;
-				outs_vec.iter = kk;
+				outs_vec.iter = sim;
 				outs_vec.nsse_cases = 0.0;
 				outs_vec.nsse_deaths = 0.0;
 //				outs_vec.sum_sq = 1.e06;
@@ -266,45 +255,43 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 						r, modelInputParameters.nPar);
 				} else {
 					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
-				    pick_val = weight_distr(gen);
+				    int pick_val = weight_distr(gen);
 				    FittingProcess::parameter_select_nsteps(outs_vec.parameter_set,
 						modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
+
 				//run the model and compute the different measures for each potential parameters value
 				model_select(outs_vec, fixed_parameters, observations.cfr_byage,pf_byage,
 							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
 							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
 							modelInputParameters.day_shut, Npop, r, obsHosp, obsDeaths);
+
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
 					{
-					if (counter < modelInputParameters.nParticalLimit) ++nsim_count;
+					if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
 					}
 				//if the particle agrees with the different criteria defined for each ABC-smc step
-				//if(counter < nParticLimit && outs_vec.nsse_cases <= toleranceLimit[smc]){
-				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
 				if (
-					counter < modelInputParameters.nParticalLimit &&
+					acceptedParticleCount < modelInputParameters.nParticalLimit &&
 					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
 					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]*1.5
 					) {				
 						//#pragma omp critical
 						{
-							FittingProcess::weight_calc(smc,Nparticle, particleList, outs_vec, 
+							FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
 								vlimitKernel, modelInputParameters.nPar);
 							particleList1.push_back(outs_vec);
-							++counter;		//count the number of accepted particles
-							if(counter % 10 == 0) std::cout << "|" << std::flush;
-							//std::cout << counter << " " ;
+							++acceptedParticleCount;
+							if (acceptedParticleCount % 10 == 0) std::cout << "|" << std::flush;
+							//std::cout << acceptedParticleCount << " " ;
 						}
 					
 				}			
 			}
 		}
 
-
-		Nparticle = counter;
-		nsim_val = nsim_count;
+		prevAcceptedParticleCount = acceptedParticleCount;
 
 		//time taken per step
 		double time_taken;
@@ -322,14 +309,14 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		// Output on screen of the number of accepted particles, 
 		// the number of simulations and the computation time at each step
 		std::cout << "\nStep:" << smc
-			<< ", <number of accepted particles> " << Nparticle
-			<< "; <number of simulations> " << nsim_val
+			<< ", <number of accepted particles> " << prevAcceptedParticleCount
+			<< "; <number of simulations> " << nsim_count
 			<< "; <computation time> " <<  time_taken
 			<< " seconds.\n";
 
 		//break the ABC-smc at the step where no particles were accepted
-		if (Nparticle > 0) {
-			IO::WriteOutputsToFiles(smc, modelInputParameters.herd_id, Nparticle,
+		if (prevAcceptedParticleCount > 0) {
+			IO::WriteOutputsToFiles(smc, modelInputParameters.herd_id, prevAcceptedParticleCount,
 				modelInputParameters.nPar, particleList1, outDirPath);
 		}
 	}
