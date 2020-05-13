@@ -6,9 +6,12 @@
 namespace EERAModel {
 namespace FittingProcess {
 
-void parameter_select_first_step(std::vector<double> &selected_param, std::vector<double> flag1,
-	std::vector<double> flag2, gsl_rng * r,int nPar) {
- 	//pick randomly parameters' value from priors with gamma shape
+std::vector<double> parameter_select_initial(const std::vector<double>& flag1,
+	const std::vector<double>& flag2, gsl_rng * r,int nPar) {
+ 	
+	std::vector<double> selected_param(nPar, 0);
+
+	//pick randomly parameters' value from priors with gamma shape
     for (int xx = 0; xx < nPar; ++xx) {
         double tmpval = 0.0;
 		if(xx == 2 ){
@@ -23,16 +26,18 @@ void parameter_select_first_step(std::vector<double> &selected_param, std::vecto
     	//return a vector with all selection measures
     	selected_param[xx] = tmpval;
 	}
+
+	return selected_param;
 }
 
-void parameter_select_nsteps(std::vector<double> &selected_param, int nPar, gsl_rng * r,
-	std::vector<particle> particleList, int pick_val, double vlimitKernel[], double vect_min[],
-	double vect_Max[]) {
+std::vector<double> parameter_select(int nPar, gsl_rng * r,
+	std::vector<particle> particleList, int pick_val, const std::vector<double>& vlimitKernel, 
+	const std::vector<double>& vect_min, const std::vector<double>& vect_Max) {
 
-	particle perturbList;
+	std::vector<double> selected_param(nPar, 0);
 
     //define the elements of the chosen particle
-    perturbList = particleList[pick_val];
+    particle perturbList = particleList[pick_val];
 
 	//perturb all elements of the chosen particle with a kernel following a uniform distribution +/- kernelFactor
 
@@ -42,14 +47,15 @@ void parameter_select_nsteps(std::vector<double> &selected_param, int nPar, gsl_
         	tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
         }
 
-
     	//return a vector with all selection measures
     	selected_param[xx] = tmpval;
 	}
+
+	return selected_param;
 }
 
 void weight_calc(int smc,int pastNpart, std::vector<EERAModel::particle> pastPart,
-	EERAModel::particle &currentPart, double vlimitKernel[], int nPar) {
+	EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel, int nPar) {
 
 	//calculate the weight of the accepted particle here
 	if(smc == 0){
