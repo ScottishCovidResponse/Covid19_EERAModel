@@ -154,7 +154,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, Npop, N_hcw, observations);
 	
-	const std::vector<double> initialParams = ComputeInitialParameters(modelInputParameters, r);
 
     std::cout << "[Health Board settings]:\n";
 	std::cout << "    SHB id: " << modelInputParameters.herd_id <<'\n';
@@ -163,7 +162,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::cout << "    Simulation period: " << duration << "days\n";
 	std::cout << "    time step: " << modelInputParameters.tau << "days\n";
 	
-	std::vector<double> flag1 = {
+	const std::vector<double> flag1 = {
 		modelInputParameters.prior_pinf_shape1,
 	 	modelInputParameters.prior_phcw_shape1,
 		modelInputParameters.prior_chcw_mean, 
@@ -174,7 +173,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_rrdh_shape1,
 		modelInputParameters.prior_lambda_shape1
 	};	
-	std::vector<double> flag2 = {
+	const std::vector<double> flag2 = {
 		modelInputParameters.prior_pinf_shape2, 
 		modelInputParameters.prior_phcw_shape2, 
 		modelInputParameters.prior_chcw_mean, 
@@ -251,12 +250,13 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//pick the values of each particles
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
-					FittingProcess::parameter_select_first_step(outs_vec.parameter_set,flag1, flag2,
+					outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
 						r, modelInputParameters.nPar);
+					
 				} else {
 					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
 				    int pick_val = weight_distr(gen);
-				    FittingProcess::parameter_select_nsteps(outs_vec.parameter_set,
+				    outs_vec.parameter_set = FittingProcess::parameter_select(
 						modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 				}
 
@@ -269,7 +269,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
 					{
-					if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
+						if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
 					}
 				//if the particle agrees with the different criteria defined for each ABC-smc step
 				if (
@@ -325,8 +325,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
-void model_select(EERAModel::particle &outvec, std::vector<params> fixed_parameters,
-	std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage, 
+void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
+	std::vector<std::vector<double>> cfr_byage, const std::vector<double>& pf_byage, 
 	std::vector<std::vector<double>> waifw_norm, std::vector<std::vector<double>> waifw_sdist,
 	std::vector<std::vector<double>> waifw_home, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
@@ -854,8 +854,8 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList) {
 	
 	std::vector<double> weight_val;
-	for (auto particle : particleList) {
-		weight_val.push_back(particle.weight);
+	for (auto p : particleList) {
+		weight_val.push_back(p.weight);
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
