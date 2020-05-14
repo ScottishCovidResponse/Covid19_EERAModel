@@ -383,7 +383,7 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	for (unsigned int iv = 1; iv < data_tmp[0].size(); ++iv) {
 		if(data_tmp[herd_id][iv]>=0){
 			seqTime.push_back(data_tmp[0][iv]);
-			maxTime = ::EERAModel::Utilities::max_calc<int>(maxTime,(int)data_tmp[0][iv]);
+			maxTime = std::max(maxTime,static_cast<int>(data_tmp[0][iv]));
 			obsHosp_tmp.push_back(data_tmp[herd_id][iv]);
 			obsDeaths_tmp.push_back(death_tmp[herd_id][iv]);
 			if(data_tmp[herd_id][iv]>0 && t_index<0){
