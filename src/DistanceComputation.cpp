@@ -12,9 +12,7 @@ namespace DistanceComputation {
 double sse_calc_int(std::vector<int> simval, const std::vector<int>& obsval){
 	
 	//verify that the 2 vectors have the same size
-	if(simval.size() != obsval.size()){
-		std::cout << "Warning!!! Simulated and observed vectors of different sizes." << std::endl;
-	}
+	assert(simval.size() == obsval.size());
 
 	//compute the sum of squared errors
 	double sum_sq=0.0;
