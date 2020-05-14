@@ -12,6 +12,9 @@ jobs:
     - name: Install packages
       run: sudo apt-get update && sudo apt-get install -y libgsl-dev
 
+    - name: Install cppcheck
+      run: sudo apt-get install -y cppcheck
+
     - name: Compile
       run: |
         mkdir build
@@ -40,3 +43,14 @@ jobs:
           echo "Unit tests failed"
           exit 1
         fi
+    - name: Run Cpp Check with internal parser
+      run: |
+         echo "Running CppCheck on files in 'src' with internal parser"
+         for i in src/*.h src/*.cpp test/unit/*.cpp; do 
+           if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
+             continue
+           else
+             exit 1
+           fi
+         done
+
