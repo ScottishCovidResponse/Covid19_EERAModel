@@ -8,20 +8,6 @@
 namespace EERAModel {
 namespace DistanceComputation {
 
-double sse_calc(int Npop, std::vector<double> simHosp, const std::vector<int>& obsHosp){
-	double sum_sq=0.0;
-	//verify that the 2 vectors have the same size
-	if(simHosp.size() != obsHosp.size()){
-		std::cout<< "Warning!!! Simulated and observed vectors of different sizes." << std::endl;
-	}
-	//compute the sum of squared errors
-	for (unsigned int xx = 0; xx < obsHosp.size(); ++xx) {
-		double error = 0.0;
-		error = simHosp[xx]/Npop - obsHosp[xx]/Npop;
-		sum_sq += pow(error,2);
-	}
-	return sum_sq;
-}
 
 double sse_calc_int(std::vector<int> simval, const std::vector<int>& obsval){
 	
