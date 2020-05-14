@@ -45,24 +45,8 @@ jobs:
         fi
     - name: Run Cpp Check with internal parser
       run: |
-         echo "Running CppCheck on header files in 'src'"
-         for i in src/*.h; do 
-           if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
-         echo "Running CppCheck on source files in 'src'"
-         for i in src/*.cpp; do 
-           if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
-         echo "Running CppCheck on source files in 'test/unit'"
-         for i in test/unit/*.cpp; do 
+         echo "Running CppCheck on files in 'src' with internal parser"
+         for i in src/*.h src/*.cpp test/unit/*.cpp; do 
            if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
              continue
            else
@@ -72,24 +56,8 @@ jobs:
 
     - name: Run Cpp Check with Clang
       run: |
-         echo "Running CppCheck on header files in 'src'"
-         for i in src/*.h; do 
-           if cppcheck --clang --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
-         echo "Running CppCheck on source files in 'src'"
-         for i in src/*.cpp; do 
-           if cppcheck --clang --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
-         echo "Running CppCheck on source files in 'test/unit'"
-         for i in test/unit/*.cpp; do 
+         echo "Running CppCheck on header files in 'src' with clang"
+         for i in src/*.h src/*.cpp test/unit/*.cpp; do 
            if cppcheck --clang --language=c++ --std=c++11 --error-exitcode=1 $i; then
              continue
            else
