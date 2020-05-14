@@ -12,6 +12,9 @@ jobs:
     - name: Install packages
       run: sudo apt-get update && sudo apt-get install -y libgsl-dev
 
+    - name: Install cppcheck
+      run: sudo apt-get install -y cppcheck
+
     - name: Compile
       run: |
         mkdir build
@@ -40,3 +43,12 @@ jobs:
           echo "Unit tests failed"
           exit 1
         fi
+    - name: Run Cpp Check
+      run: |
+         echo "Running CppCheck on header files in 'src'"
+         for i in src/*.h; do cppcheck --language=c++ $i; done
+         echo "Running CppCheck on source files in 'src'"
+         for i in src/*.cpp; do cppcheck --language=c++ $i; done
+         echo "Running CppCheck on source files in 'test/unit'"
+         for i in test/unit/*.cpp; do cppcheck --language=c++ $i; done
+
