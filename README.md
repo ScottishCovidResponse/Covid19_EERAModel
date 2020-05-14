@@ -14,6 +14,7 @@ Simple COVID-19 simulation model with ABC-smc inference
  * GSL (GNU Scientific Library)
  * PkgConfig
  * Threads
+ * CppCheck
  
 ## Build
 The build follows the normal CMake procedure. From the root project directory:
@@ -46,5 +47,12 @@ The regression tests can be run automatically by running the script `scripts/Run
 The unit tests can be found in `test/unit`. They are built using the Google Test unit-testing framework. CMake automatically downloads and builds GTest as an external project, so it is not required to have GTest installed on the build system.
 
 Following build, the unit test executable is `build/bin/Covid19EERAModel-unit_tests`.
+
+### Check with CppCheck
+
+As part of the validation procedure source and header files are checked with CppCheck. It is recommended you run this on your code before
+pushing to the remote repository, from the repository root directory run:
+
+`cppcheck --language=c++ --std=c++11 <address-of-code-file(s)>`
 
 
