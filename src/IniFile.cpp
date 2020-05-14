@@ -49,7 +49,7 @@ bool CIniFile::Load(string FileName, vector<Record>& content)
 		Trim(s);															// Trim whitespace from the ends
 		if(!s.empty())														// Make sure its not a blank line
 		{
-			Record r;														// Define a new record
+			Record r{};														// Define a new record
 
 			if((s[0]=='#')||(s[0]==';'))									// Is this a commented line?
 			{
