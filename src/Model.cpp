@@ -619,6 +619,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	double K=fixed_parameters.K;
 	
 	double capacity = H/K;
+	capacity = std::min(1.0,capacity);
 	
 	double p_h= cfr_tab[0];
 //	double cfr= cfr_tab[1];	
@@ -633,11 +634,11 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
     // hospitalized  - non-frail
     unsigned int newdeathsH=0;
 //	std::cout << "newdeathH: " << p_d * (1 / T_hos) << "\n";
-	flow(r, H, D, p_d * (1 / T_hos), newdeathsH);
+	flow(r, H, D, p_d * (1.0 / T_hos), newdeathsH);
 	
     unsigned int recoverH=0;
 //	std::cout << "recoverH: " << (1 - p_d) * (1 / T_hos) << "\n";
-	flow(r, H, R, (1 - p_d) * (1 / T_hos), recoverH);
+	flow(r, H, R, (1.0 - p_d) * (1.0 / T_hos), recoverH);
 	
 	//hospitalize - frail
 //    unsigned int newdeathsH_f=0;
@@ -651,28 +652,28 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
     // symptomatic - non-frail
     unsigned int hospitalize=0;
 //	std::cout << "hospitalize: " << p_h * (4 / T_sym) << "\n";* (1 - capacity)
-	flow(r, I_s4, H, p_h  * (1-capacity) * (4 / T_sym), hospitalize);
+	flow(r, I_s4, H, p_h  * (1.0 - capacity) * (4.0 / T_sym), hospitalize);
 	
     unsigned int newdeathsI_s=0;
 //	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";* capacity
-	flow(r, I_s4, D, p_h  * capacity * ( 4 / T_sym), newdeathsI_s);
+	flow(r, I_s4, D, p_h  * capacity * ( 4.0 / T_sym), newdeathsI_s);
 	
     unsigned int recoverI_s=0;
 //	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";
-	flow(r, I_s4, R, (1 - p_h) * ( 4 / T_sym), recoverI_s);
+	flow(r, I_s4, R, (1.0 - p_h) * ( 4.0 / T_sym), recoverI_s);
 	
 
     unsigned int Is_from3_to_4=0;
 //	std::cout << "Is_from3_to_4: " << (4 / T_sym) << "\n";
-	flow(r, I_s3, I_s4, (4 / T_sym), Is_from3_to_4);
+	flow(r, I_s3, I_s4, (4.0 / T_sym), Is_from3_to_4);
 	
     unsigned int Is_from2_to_3=0;
 //	std::cout << "Is_from2_to_3: " << (4 / T_sym) << "\n";
-	flow(r, I_s2, I_s3, (4 / T_sym), Is_from2_to_3);
+	flow(r, I_s2, I_s3, (4.0 / T_sym), Is_from2_to_3);
 		
     unsigned int Is_from1_to_2=0;
 //	std::cout << "Is_from1_to_2: " << (4 / T_sym) << "\n";
-	flow(r, I_s1, I_s2, (4 / T_sym), Is_from1_to_2);
+	flow(r, I_s1, I_s2, (4.0 / T_sym), Is_from1_to_2);
 
 	// symptomatic -frail
 //   unsigned int hospitalize_f=0;
@@ -686,30 +687,30 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	// asymptomatic
     unsigned int recoverI=0;
 //	std::cout << "recoverI: " << ( 4/T_rec ) << "\n";
-	flow(r, I4, R, ( 4/T_rec ), recoverI);
+	flow(r, I4, R, ( 4.0 / T_rec ), recoverI);
 	
     unsigned int I_from3_to_4=0;
 //	std::cout << "I_from3_to_4: " << ( 4/T_rec ) << "\n";
-	flow(r, I3, I4, ( 4/T_rec ), I_from3_to_4);
+	flow(r, I3, I4, ( 4.0 / T_rec ), I_from3_to_4);
 	
     unsigned int I_from2_to_3=0;
 //	std::cout << "I_from2_to_3: " << ( 4/T_rec ) << "\n";
-	flow(r, I2, I3, ( 4/T_rec ), I_from2_to_3);
+	flow(r, I2, I3, ( 4.0 / T_rec ), I_from2_to_3);
  
     unsigned int I_from1_to_2=0;
 //	std::cout << "I_from1_to_2: " << ( 4/T_rec ) << "\n";
-	flow(r, I1, I2, ( 4/T_rec ), I_from1_to_2);
+	flow(r, I1, I2, ( 4.0 / T_rec ), I_from1_to_2);
 	
 	// infectious - pre-clinical
     unsigned int newasymptomatic=0;
 //	std::cout << "newasymptomatic: " << (1 - pf_val) * (1-p_s) * ( 1/T_inf )<< "\n";
-	flow(r, I_p, I1, (1-p_s) * ( 1/T_inf ), newasymptomatic);
+	flow(r, I_p, I1, (1.0 - p_s) * ( 1.0 / T_inf ), newasymptomatic);
 		
 //flow(r, I_p, I1, p_d * ( 1/T_sym ), newasymptomatic);
 
     unsigned int newsymptomatic=0;
 //	std::cout << "newsymptomatic: " << (1 - pf_val) * p_s * ( 1/T_inf ) << "\n";
-	flow(r, I_p, I_s1, p_s * ( 1/T_inf ), newsymptomatic);	
+	flow(r, I_p, I_s1, p_s * ( 1.0 / T_inf ), newsymptomatic);	
 	
 //    unsigned int newinffrail=0;
 //	std::cout << "newinffrail: " << pf_val * ( 1/T_inf ) << "\n";
@@ -718,11 +719,11 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
     // latent
     unsigned int infectious=0;
 //	std::cout << "infectious: " << 1/T_lat << "\n";
-	flow(r, E, I_p, ( 1/T_lat ), infectious);
+	flow(r, E, I_p, ( 1.0 / T_lat ), infectious);
 	
     unsigned int infectious_t=0;
 //	std::cout << "infectious_t: " << (1 / T_lat) << "\n";
-	flow(r, E_t, I_t, ( 1/T_lat ), infectious_t);
+	flow(r, E_t, I_t, ( 1.0 / T_lat ), infectious_t);
 	
     // susceptible
     unsigned int newinfection=0;
