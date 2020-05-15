@@ -1,7 +1,6 @@
 #include "Model.h"
 #include "IO.h"
 #include "ModelTypes.h"
-#include "DistanceComputation.h"
 #include "Utilities.h"
 #include "FittingProcess.h"
 
@@ -348,8 +347,8 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 	// Compute the  sum of squared errors
 	//---------------------------------------
-	double sum_sq_cases = DistanceComputation::sse_calc_int(sim_status, obsHosp);
-	double sum_sq_deaths= DistanceComputation::sse_calc_int(deathH_status, obsDeaths);
+	double sum_sq_cases = ::EERAModel::Utilities::sse_calc<int>(sim_status, obsHosp);
+	double sum_sq_deaths= ::EERAModel::Utilities::sse_calc<int>(deathH_status, obsDeaths);
 	
 	//---------------------------------------
 	// Compute the deviation of the fit expressed as % total number of cases
@@ -384,7 +383,7 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	for (unsigned int iv = 1; iv < data_tmp[0].size(); ++iv) {
 		if(data_tmp[herd_id][iv]>=0){
 			seqTime.push_back(data_tmp[0][iv]);
-			maxTime = ::EERAModel::Utilities::max_calc_int(maxTime,(int)data_tmp[0][iv]);
+			maxTime = std::max(maxTime,static_cast<int>(data_tmp[0][iv]));
 			obsHosp_tmp.push_back(data_tmp[herd_id][iv]);
 			obsDeaths_tmp.push_back(death_tmp[herd_id][iv]);
 			if(data_tmp[herd_id][iv]>0 && t_index<0){

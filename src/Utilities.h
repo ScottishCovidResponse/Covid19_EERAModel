@@ -1,29 +1,27 @@
 #pragma once
 
 #include <vector>
+#include <assert.h>
 
 namespace EERAModel {
 namespace Utilities {
 
-double mean_calc_double(std::vector<double> v);
+template<typename T>
+double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
+	
+	//verify that the 2 vectors have the same size
+	assert(simval.size() == obsval.size());
 
-void cumsum_calc(std::vector<double> v, std::vector<double>& r_val);
+	//compute the sum of squared errors
+	double sum_sq=0.0;
+	for (unsigned int xx = 0; xx < obsval.size(); ++xx) {
+		double error = 0.0;
+		error = static_cast<double>( obsval[xx] - simval[xx] ) ;
+		sum_sq += std::pow(error,2);
+	}
 
-double max_calc(double a,double b);
-
-double sum_calc(std::vector<double> v);
-
-double colsum_calc(std::vector<std::vector<double>> m, int colid);
-
-double mean_calc_int(std::vector<int> v);
-
-void cumsum_calc_int(std::vector<int> v, std::vector<int>& r_val);
-
-int max_calc_int(int a,int b);
-
-int sum_calc_int(std::vector<int> v);
-
-int colsum_calc_int(std::vector<std::vector<int>> m, int colid);
-
+	return sum_sq;
+	
+}
 } // namespace Utilities
 } // namespace EERAModel
