@@ -77,6 +77,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::cout<< "    symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
 	std::cout<< "    hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
 	std::cout<< "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
+	std::cout<< "    bed capacity at hospital (K): " << modelInputParameters.paramlist.K <<std::endl;
+	
 	
 	//keep information for the health board if interest
 	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
@@ -149,8 +151,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_d_shape1, 
 		modelInputParameters.prior_q_shape1,
 		modelInputParameters.prior_ps_shape1,
-		modelInputParameters.prior_phf_shape1, 
-		modelInputParameters.prior_rrdh_shape1,
 		modelInputParameters.prior_lambda_shape1
 	};	
 	flag2 = {
@@ -160,8 +160,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_d_shape2, 
 		modelInputParameters.prior_q_shape2,
 		modelInputParameters.prior_ps_shape2,
-		modelInputParameters.prior_phf_shape2,
-		modelInputParameters.prior_rrdh_shape2,
 		modelInputParameters.prior_lambda_shape2
 	};
 
@@ -618,7 +616,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	double T_rec= fixed_parameters.T_rec;
 	double T_sym= fixed_parameters.T_sym;
 	double T_hos= fixed_parameters.T_hos;
-	double K=3000;//fixed_parameters.K;
+	double K=fixed_parameters.K;
 	
 	double capacity = H/K;
 	

@@ -15,8 +15,8 @@ void parameter_select_first_step(std::vector<double> &selected_param, std::vecto
 			tmpval = (double)gsl_ran_poisson(r, flag1[xx]);
 		} else if( xx == (nPar-1)){
 			tmpval = gsl_ran_flat(r, flag1[xx], flag2[xx]);
-		} else if(xx > 6 && xx < (nPar-1) ){
-			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
+//		} else if(xx > 6 && xx < (nPar-1) ){
+//			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
 		} else {
 			tmpval = gsl_ran_beta(r, flag1[xx], flag2[xx]);
 		}
