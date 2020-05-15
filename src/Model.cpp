@@ -227,9 +227,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
 		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
 		for (int sim = 0; sim < modelInputParameters.nSim; ++sim) {//todo
-			//abort statement if number of accepted particles reached nParticLimit particles
-			//#pragma omp flush (aborting)
-			if (!aborting) {
 
 				//Update progress
 				if (acceptedParticleCount >= modelInputParameters.nParticalLimit) {
@@ -286,8 +283,12 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 							//std::cout << acceptedParticleCount << " " ;
 						}
 					
-				}			
-			}
+				}
+
+				//abort statement if number of accepted particles reached nParticLimit particles
+				//#pragma omp flush (aborting)
+
+				if(aborting) break;
 		}
 
 		prevAcceptedParticleCount = acceptedParticleCount;
