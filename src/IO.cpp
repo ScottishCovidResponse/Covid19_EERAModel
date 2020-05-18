@@ -5,6 +5,10 @@
 #include <fstream>
 #include <sstream>
 
+#ifndef ROOT_DIR
+#define ROOT_DIR
+#endif
+
 namespace EERAModel {
 namespace IO {
 
@@ -107,41 +111,42 @@ EERAModel::Observations ReadObservationsFromFiles()
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
-	EERAModel::CSV::read_csv_int(observations.cases,"./data/scot_data.csv",',');
+	
+	EERAModel::CSV::read_csv_int(observations.cases,std::string(ROOT_DIR)+"/data/scot_data.csv",',');
 	
 	//Uploading observed death data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
-	EERAModel::CSV::read_csv_int(observations.deaths,"./data/scot_deaths.csv",',');
+	EERAModel::CSV::read_csv_int(observations.deaths,std::string(ROOT_DIR)+"/data/scot_deaths.csv",',');
 	
 	//Uploading population per age group
 	//columns are for each individual Health Borad
 	//last column is for Scotland
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	EERAModel::CSV::read_csv_double(observations.age_pop,"./data/scot_age.csv",',');	
+	EERAModel::CSV::read_csv_double(observations.age_pop,std::string(ROOT_DIR)+"/data/scot_age.csv",',');	
 	
 	//mean number of daily contacts per age group (overall)	
-	EERAModel::CSV::read_csv_double(observations.waifw_norm,"./data/waifw_norm.csv",',');
+	EERAModel::CSV::read_csv_double(observations.waifw_norm,std::string(ROOT_DIR)+"/data/waifw_norm.csv",',');
 
 	//mean number of daily contacts per age group (home only)		
-	EERAModel::CSV::read_csv_double(observations.waifw_home,"./data/waifw_home.csv",',');
+	EERAModel::CSV::read_csv_double(observations.waifw_home,std::string(ROOT_DIR)+"/data/waifw_home.csv",',');
 	
 	//mean number of daily contacts per age group (not school, not work)			
-	EERAModel::CSV::read_csv_double(observations.waifw_sdist,"./data/waifw_sdist.csv",',');	
+	EERAModel::CSV::read_csv_double(observations.waifw_sdist,std::string(ROOT_DIR)+"/data/waifw_sdist.csv",',');	
 	
 	//Upload cfr by age group
 	//col0: p_h: probability of hospitalisation
 	//col1: cfr: case fatality ratio
 	//col2: p_d: probability of death, given hospitalisation
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	EERAModel::CSV::read_csv_double(observations.cfr_byage,"./data/cfr_byage.csv",',');	
+	EERAModel::CSV::read_csv_double(observations.cfr_byage,std::string(ROOT_DIR)+"/data/cfr_byage.csv",',');	
 		
 	//Upload frailty probability p_f by age group
 	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	//rows are for each individual Health Borad
 	//last row is for Scotland
-	EERAModel::CSV::read_csv_double(observations.pf_pop,"./data/scot_frail.csv",',');	
+	EERAModel::CSV::read_csv_double(observations.pf_pop,std::string(ROOT_DIR)+"/data/scot_frail.csv",',');	
 
 	return observations;
 }
