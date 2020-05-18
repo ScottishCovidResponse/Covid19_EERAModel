@@ -1,74 +1,52 @@
-name: CI
+name: Covid19EERAModel
 
 on: [push]
 
 jobs:
-  build_macOS_latest:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Brew
-        run : /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-
-      - name: Install GSL
-        run : brew update && brew install gsl
-
-      - name: Install cppcheck
-        run: brew install cppcheck
-
-      - name: Compile
-        run: |
-          mkdir build
-          cd build
-          cmake ..
-          make
-          
-      - name: Run regression tests
-        run: |
-          ./scripts/RunRegressionTests.sh
-          if [ $? -eq 0 ]; then
-            echo "Regression tests completed successfully"
-            exit 0
-          else
-            echo "Regression tests failed"
-            exit 1
-          fi
-
-      - name: Run unit tests
-        run: |
-          ./build/bin/Covid19EERAModel-unit_tests
-          if [ $? -eq 0 ]; then
-            echo "Unit tests completed successfully"
-            exit 0
-          else
-            echo "Unit tests failed"
-            exit 1
-          fi
-      - name: Run Cpp Check with internal parser
-        run: |
-           echo "Running CppCheck on files in 'src' with internal parser"
-           for i in src/*.h src/*.cpp test/unit/*.cpp; do 
-             if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
-               continue
-             else
-               exit 1
-             fi
-           done
-
-  build_Ubuntu_latest:
-    runs-on: ubuntu-latest
+  build:
+    name: ${{ matrix.os }} (${{ matrix.config.compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+        fail-fast: false
+        matrix:
+                os: ['ubuntu-latest', 'macos-latest']
+                config: [{
+                            compiler: gcc,
+                            compilerpp: g++
+                        },
+                        {
+                            compiler: clang,
+                            compilerpp: clang++
+                        }
+                        ]
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install packages
-      run: sudo apt-get update && sudo apt-get install -y libgsl-dev
+      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Install cppcheck
       run: sudo apt-get install -y cppcheck
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install Brew
+      run : /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      if: matrix.os == 'macos-latest'
+
+    - name: Install GSL
+      run : brew update && brew install gsl
+      if: matrix.os == 'macos-latest'
+
+    - name: Install cppcheck
+      run: brew install cppcheck
+      if: matrix.os == 'macos-latest'
 
     - name: Compile
+      env:
+              CC: ${{ matrix.config.compiler }}
+              CXX: ${{ matrix.config.compilerpp }}
       run: |
         mkdir build
         cd build
