@@ -74,6 +74,7 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	modelInputParameters.day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", filePath).c_str());
 	modelInputParameters.totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", filePath).c_str());
 	modelInputParameters.paramlist.K = atoi(parameters.GetValue("K", "Fixed parameters", filePath).c_str());
+	modelInputParameters.paramlist.inf_asym = atof(parameters.GetValue("inf_asym", "Fixed parameters", filePath).c_str());
 
 	//priors settings
 	modelInputParameters.nPar = atoi(parameters.GetValue("nPar", "Priors settings", filePath).c_str());
@@ -91,6 +92,8 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	
 	modelInputParameters.prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", filePath).c_str());
+	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", filePath).c_str());
+	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
 	return modelInputParameters;
 }
@@ -155,7 +158,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	std::ofstream output_ends (namefile_ends.str().c_str());
 	
 	//add the column names for each output list of particles
-	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,intro,weight\n";
+	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro,weight\n";
 
 	//add the column names for each output list of chosen simulations
 	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";

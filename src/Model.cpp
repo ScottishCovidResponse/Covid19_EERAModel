@@ -18,15 +18,16 @@
 namespace EERAModel {
 namespace Model {
 
-static void flow(gsl_rng * r, unsigned int& pop_from, unsigned& pop_to, double rate, unsigned int& outs);
-
-static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, 
+//static void flow(gsl_rng * r, unsigned int& pop_from, unsigned& pop_to, double rate, unsigned int& outs);
+static void flow(gsl_rng * r, std::vector<int> pops, std::vector<int>& pops_1, 
+				 int from_pos,  int to_pos, double rate, int& outs);
+static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, int totHosp, 
 				::EERAModel::params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab,
 				double pf_val, double lambda);
 
-static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
-				std::vector<std::vector<double>> waifw_sdist,std::vector<std::vector<double>> waifw_home, 
-				std::vector<std::vector<int>> pops, int shut);
+static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<double> parameter_set, double u_val,
+				std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
+				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut);
 
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
@@ -78,7 +79,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::cout<< "    hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
 	std::cout<< "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
 	std::cout<< "    bed capacity at hospital (K): " << modelInputParameters.paramlist.K <<std::endl;
-	
+	std::cout<< "    relative infectiousness of asymptomatic (u): " << modelInputParameters.paramlist.inf_asym <<std::endl;
+		
 	
 	//keep information for the health board if interest
 	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
@@ -151,6 +153,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_d_shape1, 
 		modelInputParameters.prior_q_shape1,
 		modelInputParameters.prior_ps_shape1,
+		modelInputParameters.prior_rrd_shape1,		
 		modelInputParameters.prior_lambda_shape1
 	};	
 	flag2 = {
@@ -160,6 +163,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_d_shape2, 
 		modelInputParameters.prior_q_shape2,
 		modelInputParameters.prior_ps_shape2,
+		modelInputParameters.prior_rrd_shape2,		
 		modelInputParameters.prior_lambda_shape2
 	};
 
@@ -266,7 +270,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//if(counter < nParticLimit && outs_vec.nsse_deaths <= toleranceLimit[smc]){
 				if (
 					counter < modelInputParameters.nParticalLimit &&
-					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc]*1.5 &&
+					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
 					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
 					) {				
 						//#pragma omp critical
@@ -534,6 +538,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		int deathsH=0;
 		int detected=0;
 		std::vector<int> popcomp;
+		int totHosp = 0;	
 		
 //		std::cout<< "top4..\n";
 		//identify the lock down
@@ -583,11 +588,12 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 //std::cout<< "top7..\n";
 		//compute the forces of infection
 		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, parameter_set,waifw_norm, waifw_sdist,waifw_home, poparray, inLockdown);	
+		Lambda(lambda, totHosp, parameter_set,fixed_parameters[0].inf_asym,waifw_norm, waifw_sdist,waifw_home, 
+				poparray, inLockdown);	
 
 		//step each agegroup through infections
 		for ( int age = 0; age < (n_agegroup); ++age) {	
-			infspread(r, poparray[age], deaths, deathsH, detected,fixed_parameters[age],parameter_fit[age],
+			infspread(r, poparray[age], deaths, deathsH, detected,totHosp,fixed_parameters[age],parameter_fit[age],
 				cfr_byage[age],pf_byage[age],lambda[age]);
 		}
 //std::cout<< "top9..\n";
@@ -603,13 +609,22 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	}
 }
 
-static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, 
+static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, int totHosp,
 	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda){
 		
-    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I_p=pop[3], I_t=pop[4],I1=pop[5],I2=pop[6],I3=pop[7],I4=pop[8];
+/*    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I_p=pop[3], I_t=pop[4],I1=pop[5],I2=pop[6],I3=pop[7],I4=pop[8];
 	unsigned int I_s1=pop[9], I_s2=pop[10], I_s3=pop[11], I_s4=pop[12];//, I_fs=pop[13]
 	unsigned int H=pop[13], R=pop[14], D=pop[15] ;//, H_f=pop[15]
+*/	
+	//define the vector of return values
+	std::vector<int> newpop = pop;
 	
+	//define the position of each compartment in pop
+    int S=0, E=1, E_t=2, I_p=3, I_t=4,I1=5,I2=6,I3=7,I4=8;
+	int I_s1=9, I_s2=10, I_s3=11, I_s4=12;//, I_fs=pop[13]
+	int H=13, R=14, D=15 ;//, H_f=pop[15]
+	
+	//fixed parameters
 	double T_lat= fixed_parameters.T_lat;
 //	double p_s= fixed_parameters.p_s;
 	double T_inf= fixed_parameters.T_inf;
@@ -618,7 +633,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	double T_hos= fixed_parameters.T_hos;
 	double K=fixed_parameters.K;
 	
-	double capacity = H/K;
+	double capacity = totHosp/K;
 	capacity = std::min(1.0,capacity);
 	
 	double p_h= cfr_tab[0];
@@ -627,18 +642,19 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	//double p_dc= cfr_tab[3];
 
 	double p_s= parameter_set[5];
+	double rrd= parameter_set[6];
 //	double T_hos= parameter_set[6];
 //	double p_hf = parameter_set[6];
 //	double rrdh = parameter_set[7];	
 
     // hospitalized  - non-frail
-    unsigned int newdeathsH=0;
+    int newdeathsH=0;
 //	std::cout << "newdeathH: " << p_d * (1 / T_hos) << "\n";
-	flow(r, H, D, p_d * (1.0 / T_hos), newdeathsH);
+	flow(r, pop, newpop, H, D, p_d * (1.0 / T_hos), newdeathsH);
 	
-    unsigned int recoverH=0;
+    int recoverH=0;
 //	std::cout << "recoverH: " << (1 - p_d) * (1 / T_hos) << "\n";
-	flow(r, H, R, (1.0 - p_d) * (1.0 / T_hos), recoverH);
+	flow(r, pop, newpop, H, R, (1.0 - p_d) * (1.0 / T_hos), recoverH);
 	
 	//hospitalize - frail
 //    unsigned int newdeathsH_f=0;
@@ -650,30 +666,30 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 //	flow(r, H_f, R, (1 - rrdh * p_d) * (1 / T_hos), recoverH_f);
 	
     // symptomatic - non-frail
-    unsigned int hospitalize=0;
+    int hospitalize=0;
 //	std::cout << "hospitalize: " << p_h * (4 / T_sym) << "\n";* (1 - capacity)
-	flow(r, I_s4, H, p_h  * (1.0 - capacity) * (4.0 / T_sym), hospitalize);
+	flow(r, pop, newpop, I_s4, H, p_h  * (1.0 - capacity) * (4.0 / T_sym), hospitalize);
 	
-    unsigned int newdeathsI_s=0;
+    int newdeathsI_s=0;
 //	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";* capacity
-	flow(r, I_s4, D, p_h  * capacity * ( 4.0 / T_sym), newdeathsI_s);
+	flow(r, pop, newpop, I_s4, D, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym), newdeathsI_s);
 	
-    unsigned int recoverI_s=0;
+    int recoverI_s=0;
 //	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";
-	flow(r, I_s4, R, (1.0 - p_h) * ( 4.0 / T_sym), recoverI_s);
+	flow(r, pop, newpop, I_s4, R, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym), recoverI_s);
 	
 
-    unsigned int Is_from3_to_4=0;
+    int Is_from3_to_4=0;
 //	std::cout << "Is_from3_to_4: " << (4 / T_sym) << "\n";
-	flow(r, I_s3, I_s4, (4.0 / T_sym), Is_from3_to_4);
+	flow(r, pop, newpop, I_s3, I_s4, (4.0 / T_sym), Is_from3_to_4);
 	
-    unsigned int Is_from2_to_3=0;
+    int Is_from2_to_3=0;
 //	std::cout << "Is_from2_to_3: " << (4 / T_sym) << "\n";
-	flow(r, I_s2, I_s3, (4.0 / T_sym), Is_from2_to_3);
+	flow(r, pop, newpop, I_s2, I_s3, (4.0 / T_sym), Is_from2_to_3);
 		
-    unsigned int Is_from1_to_2=0;
+    int Is_from1_to_2=0;
 //	std::cout << "Is_from1_to_2: " << (4 / T_sym) << "\n";
-	flow(r, I_s1, I_s2, (4.0 / T_sym), Is_from1_to_2);
+	flow(r, pop, newpop, I_s1, I_s2, (4.0 / T_sym), Is_from1_to_2);
 
 	// symptomatic -frail
 //   unsigned int hospitalize_f=0;
@@ -685,54 +701,54 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 //	flow(r, I_fs, D, ( 1 - p_hf ) * ( 1 / T_sym), newdeaths_f);
 	
 	// asymptomatic
-    unsigned int recoverI=0;
+    int recoverI=0;
 //	std::cout << "recoverI: " << ( 4/T_rec ) << "\n";
-	flow(r, I4, R, ( 4.0 / T_rec ), recoverI);
+	flow(r, pop, newpop, I4, R, ( 4.0 / T_rec ), recoverI);
 	
-    unsigned int I_from3_to_4=0;
+    int I_from3_to_4=0;
 //	std::cout << "I_from3_to_4: " << ( 4/T_rec ) << "\n";
-	flow(r, I3, I4, ( 4.0 / T_rec ), I_from3_to_4);
+	flow(r, pop, newpop, I3, I4, ( 4.0 / T_rec ), I_from3_to_4);
 	
-    unsigned int I_from2_to_3=0;
+    int I_from2_to_3=0;
 //	std::cout << "I_from2_to_3: " << ( 4/T_rec ) << "\n";
-	flow(r, I2, I3, ( 4.0 / T_rec ), I_from2_to_3);
+	flow(r, pop, newpop, I2, I3, ( 4.0 / T_rec ), I_from2_to_3);
  
-    unsigned int I_from1_to_2=0;
+    int I_from1_to_2=0;
 //	std::cout << "I_from1_to_2: " << ( 4/T_rec ) << "\n";
-	flow(r, I1, I2, ( 4.0 / T_rec ), I_from1_to_2);
+	flow(r, pop, newpop, I1, I2, ( 4.0 / T_rec ), I_from1_to_2);
 	
 	// infectious - pre-clinical
-    unsigned int newasymptomatic=0;
+    int newasymptomatic=0;
 //	std::cout << "newasymptomatic: " << (1 - pf_val) * (1-p_s) * ( 1/T_inf )<< "\n";
-	flow(r, I_p, I1, (1.0 - p_s) * ( 1.0 / T_inf ), newasymptomatic);
+	flow(r, pop, newpop, I_p, I1, (1.0 - p_s) * ( 1.0 / T_inf ), newasymptomatic);
 		
 //flow(r, I_p, I1, p_d * ( 1/T_sym ), newasymptomatic);
 
-    unsigned int newsymptomatic=0;
+    int newsymptomatic=0;
 //	std::cout << "newsymptomatic: " << (1 - pf_val) * p_s * ( 1/T_inf ) << "\n";
-	flow(r, I_p, I_s1, p_s * ( 1.0 / T_inf ), newsymptomatic);	
+	flow(r, pop, newpop, I_p, I_s1, p_s * ( 1.0 / T_inf ), newsymptomatic);	
 	
 //    unsigned int newinffrail=0;
 //	std::cout << "newinffrail: " << pf_val * ( 1/T_inf ) << "\n";
 //	flow(r, I_p, I_fs, pf_val * ( 1/T_inf ), newinffrail);		
 	
     // latent
-    unsigned int infectious=0;
+    int infectious=0;
 //	std::cout << "infectious: " << 1/T_lat << "\n";
-	flow(r, E, I_p, ( 1.0 / T_lat ), infectious);
+	flow(r, pop, newpop, E, I_p, ( 1.0 / T_lat ), infectious);
 	
-    unsigned int infectious_t=0;
+    int infectious_t=0;
 //	std::cout << "infectious_t: " << (1 / T_lat) << "\n";
-	flow(r, E_t, I_t, ( 1.0 / T_lat ), infectious_t);
+	flow(r, pop, newpop, E_t, I_t, ( 1.0 / T_lat ), infectious_t);
 	
     // susceptible
-    unsigned int newinfection=0;
+    int newinfection=0;
 //	std::cout << "newinfection: " << lambda << "\n";
-	flow(r, S, E, lambda, newinfection);
+	flow(r, pop, newpop, S, E, lambda, newinfection);
 	
-    // recover population
+    // update population
 //	std::vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)I_fs,(int)H,(int)H_f,(int)R,(int)D};
-	std::vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)H,(int)R,(int)D};
+//	std::vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)H,(int)R,(int)D};
 	
 //	std::cout << S<<","<<E<<","<<E_t<<","<<I_p<<","<<I_t<<","<<I1<<","<<I2<<","<<I3<<","<<I4<<","<<I_s1<<","<<I_s2<<","<<I_s3<<","<<I_s4<<","<<I_fs<<","<<H<<","<<H_f<<","<<R<<","<<D<<std::endl;
 		
@@ -742,20 +758,19 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	detected += (hospitalize + infectious_t);	
 }
 
-static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_set,std::vector<std::vector<double>> waifw_norm,
-			std::vector<std::vector<double>> waifw_sdist,std::vector<std::vector<double>> waifw_home, 
-			std::vector<std::vector<int>> pops, int shut) {
+static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double> parameter_set, double u_val, 
+			std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
+			std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut) {
 
   double p_i = parameter_set[0];	
   double p_hcw = parameter_set[1];	
   double c_hcw = parameter_set[2];	
   double d_val = parameter_set[3];					
-  double q_val = parameter_set[4];					
-	
+  double q_val = parameter_set[4];	
+  
   //lambda=rep(NA,nrow(pops))
   int n_agegroup = waifw_norm.size();
   double quarantined = 0.0;//mean proportion reduction in contacts due to quarantine
-  int inf_hosp=0;
   std::vector<double> I_mat(n_agegroup); 
   //contact matrix
   std::vector<std::vector<double>> waifw(n_agegroup, std::vector<double> (n_agegroup)); 
@@ -793,7 +808,7 @@ static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_se
 		int tot_asym = pops[from][3] + pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8];
 		int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12];
 		
-		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
+		I_mat[from] = u_val * (double)tot_asym + (1-quarantined) * (double)tot_sym;
 		//normalisation shouldnt account for dead individuals	
 		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
 		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
@@ -815,12 +830,23 @@ static void Lambda(std::vector<double> &lambda, std::vector<double> parameter_se
   lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
 }
 
-void flow(gsl_rng * r, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
+/*void flow(gsl_rng * r, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
     outs = gsl_ran_poisson(r, rate * (double)pop_from); //symptomatic become hospitalized
     outs = std::min(pop_from, outs);
 	pop_to += outs;
 	pop_from -= outs;
+}*/
+
+
+static void flow(gsl_rng * r, std::vector<int> pops, std::vector<int>& pops_1, int from_pos, int to_pos, double rate, int& outs){
+    outs = gsl_ran_poisson(r, rate * (double)pops[from_pos]); //symptomatic become hospitalized
+    outs = std::min(pops_1[from_pos], outs);
+	pops_1[to_pos] += outs;
+	pops_1[from_pos] -= outs;
 }
+
+
+
 
 //transform the timeseries of cummulative cases into incidence
 static void compute_incidence(std::vector<int> v, std::vector<int>& r_val){

@@ -30,6 +30,7 @@ struct params {
 	double T_sym;
 	double T_hos;
 	int K;
+	double inf_asym;
 };
 
 /**
@@ -72,8 +73,8 @@ struct ModelInputParameters
 	double prior_d_shape2;
 	double prior_q_shape1;
 	double prior_q_shape2;
-//	double prior_rrdh_shape1;
-//	double prior_rrdh_shape2;
+	double prior_rrd_shape1;
+	double prior_rrd_shape2;
 //	double prior_phf_shape1;
 //	double prior_phf_shape2;
 	double prior_lambda_shape1;
