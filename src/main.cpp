@@ -90,7 +90,7 @@ int main() {
 
 	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
-	Utilities::logging_stream* log = new Utilities::logging_stream(out_dir);
+	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
-	Model::Run(modelInputParameters, observations, r, gen, out_dir, log);
+	Model::Run(modelInputParameters, observations, r, gen, out_dir, logger);
 }

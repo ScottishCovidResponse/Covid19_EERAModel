@@ -81,7 +81,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		 gsl_rng* r,
 		 std::mt19937& gen,
 		 const std::string& outDirPath,
-		 EERAModel::Utilities::logging_stream* log) {
+		 EERAModel::Utilities::logging_stream::Sptr log) {
 	/*---------------------------------------
 	 * Model parameters and fitting settings
 	 *---------------------------------------*/
@@ -371,7 +371,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
 	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back, EERAModel::Utilities::logging_stream* log) {
+	int time_back, EERAModel::Utilities::logging_stream::Sptr log) {
 			
 	int maxTime=0;
 	std::vector<int> seqTime;
