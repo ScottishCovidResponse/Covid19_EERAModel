@@ -4,6 +4,10 @@
 
 #include <string>
 
+#ifndef ROOT_DIR
+#error Macro ROOT_DIR must be defined!
+#endif
+
 namespace EERAModel {
 namespace IO {
 

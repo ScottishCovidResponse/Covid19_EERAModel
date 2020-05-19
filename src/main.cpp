@@ -30,10 +30,6 @@
 #include <gsl/gsl_randist.h>
 #include <iostream>
 
-#ifndef ROOT_DIR
-#define ROOT_DIR
-#endif
-
 /* Created on: 01 05 2020
  * Authors: Thibaud Porphyre
  *

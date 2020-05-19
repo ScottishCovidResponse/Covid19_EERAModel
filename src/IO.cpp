@@ -5,10 +5,6 @@
 #include <fstream>
 #include <sstream>
 
-#ifndef ROOT_DIR
-#define ROOT_DIR
-#endif
-
 namespace EERAModel {
 namespace IO {
 
