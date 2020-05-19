@@ -1,7 +1,6 @@
 #include "Model.h"
 #include "IO.h"
 #include "ModelTypes.h"
-#include "Utilities.h"
 #include "FittingProcess.h"
 
 #include <algorithm>
@@ -81,7 +80,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
 		 gsl_rng* r,
 		 std::mt19937& gen,
-		 const std::string& outDirPath) {
+		 const std::string& outDirPath,
+		 EERAModel::Utilities::logging_stream::Sptr log) {
 	/*---------------------------------------
 	 * Model parameters and fitting settings
 	 *---------------------------------------*/
@@ -89,23 +89,23 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	clock_t startTime = clock();
 	clock_t time_taken1=0;
 
-    std::cout << "[Settings]:\n";
-	std::cout<< "number of parameters tested: "<< modelInputParameters.nPar << std::endl;
-    std::cout<< "seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
+    (*log) << "[Settings]:\n";
+	(*log)<< "number of parameters tested: "<< modelInputParameters.nPar << std::endl;
+    (*log)<< "seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
 	if(modelInputParameters.seedlist.seedmethod == "random"){
-		std::cout << "number of seed: " << modelInputParameters.seedlist.nseed << std::endl;
+		(*log) << "number of seed: " << modelInputParameters.seedlist.nseed << std::endl;
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		std::cout<< "duration of the high risk period: " << modelInputParameters.seedlist.hrp << std::endl;
+		(*log)<< "duration of the high risk period: " << modelInputParameters.seedlist.hrp << std::endl;
 	}
 
-    std::cout << "[Parameter Settings]:\n";
-    std::cout<< "parameter values: ";
-	std::cout<< "  latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
-	std::cout<< "  pre-clinical period (theta_i): " << modelInputParameters.paramlist.T_inf <<std::endl;
-	std::cout<< "  asymptomatic period (theta_r): " << modelInputParameters.paramlist.T_rec <<std::endl;
-	std::cout<< "  symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
-	std::cout<< "  hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
-	std::cout<< "  pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
+    (*log) << "[Parameter Settings]:\n";
+    (*log)<< "parameter values: ";
+	(*log)<< "  latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
+	(*log)<< "  pre-clinical period (theta_i): " << modelInputParameters.paramlist.T_inf <<std::endl;
+	(*log)<< "  asymptomatic period (theta_r): " << modelInputParameters.paramlist.T_rec <<std::endl;
+	(*log)<< "  symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
+	(*log)<< "  hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
+	(*log)<< "  pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
 	
 	//keep information for the health board if interest
 	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
@@ -131,13 +131,13 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
 		
 		if (modelInputParameters.seedlist.seedmethod != "random") {
-			std::cout << "Warning!! Unknown seeding method - applying _random_ seed method\n";
+			(*log) << "Warning!! Unknown seeding method - applying _random_ seed method\n";
 		}
 	}
 
 	select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
-		observations.deaths, modelInputParameters.herd_id, time_back);
+		observations.deaths, modelInputParameters.herd_id, time_back, log);
 
 	std::vector<int> obsHosp(obsHosp_tmp);
 	std::vector<int> obsDeaths(obsDeaths_tmp);
@@ -154,12 +154,12 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, Npop, N_hcw, observations);
 	
 
-    std::cout << "[Health Board settings]:\n";
-	std::cout << "    SHB id: " << modelInputParameters.herd_id <<'\n';
-	std::cout << "    Population size: " << Npop << '\n';
-	std::cout << "    Number of HCW: " << N_hcw << '\n';
-	std::cout << "    Simulation period: " << duration << "days\n";
-	std::cout << "    time step: " << modelInputParameters.tau << "days\n";
+    (*log) << "[Health Board settings]:\n";
+	(*log) << "    SHB id: " << modelInputParameters.herd_id <<'\n';
+	(*log) << "    Population size: " << Npop << '\n';
+	(*log) << "    Number of HCW: " << N_hcw << '\n';
+	(*log) << "    Simulation period: " << duration << "days\n";
+	(*log) << "    time step: " << modelInputParameters.tau << "days\n";
 	
 	const std::vector<double> flag1 = {
 		modelInputParameters.prior_pinf_shape1,
@@ -193,7 +193,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	/*--------------------------------------
 	 * abc-smc loop
 	 *-------------------------------------*/
-	std::cout << "[Simulations]:\n";
+	(*log) << "[Simulations]:\n";
 	for (int smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
 
 		//the abort statement for keeping the number of particles less than 1000
@@ -282,8 +282,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 								vlimitKernel, modelInputParameters.nPar);
 							particleList1.push_back(outs_vec);
 							++acceptedParticleCount;
-							if (acceptedParticleCount % 10 == 0) std::cout << "|" << std::flush;
-							//std::cout << acceptedParticleCount << " " ;
+							if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
+							//(*log) << acceptedParticleCount << " " ;
 						}
 					
 				}			
@@ -307,7 +307,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		 *---------------------------------------*/
 		// Output on screen of the number of accepted particles, 
 		// the number of simulations and the computation time at each step
-		std::cout << "\nStep:" << smc
+		(*log) << "\nStep:" << smc
 			<< ", <number of accepted particles> " << prevAcceptedParticleCount
 			<< "; <number of simulations> " << nsim_count
 			<< "; <computation time> " <<  time_taken
@@ -321,7 +321,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	}
 
 	//output on screen the overall computation time
-	std::cout << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
+	(*log) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
 void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
@@ -371,7 +371,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
 	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back) {
+	int time_back, EERAModel::Utilities::logging_stream::Sptr log) {
 			
 	int maxTime=0;
 	std::vector<int> seqTime;
@@ -422,8 +422,8 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 		extra_deaths.clear();	
 	}
 	
-	std::cout << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
-	std::cout << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
+	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
+	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
 	//transform  cumulative numbers into incident cases
 	std::vector<int> obsHosp_tmp2;
 	compute_incidence(obsHosp_tmp,obsHosp_tmp2);

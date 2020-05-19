@@ -61,10 +61,11 @@
 #include "Model.h"
 #include "ModelTypes.h"
 #include "IO.h"
+#include "Utilities.h"
 
 using namespace EERAModel;
 
-int main(int argc, char **argv) {
+int main() {
 
 	// Read in the model's input parameters
 	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
@@ -87,5 +88,9 @@ int main(int argc, char **argv) {
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
 
-	Model::Run(modelInputParameters, observations, r, gen, std::string(ROOT_DIR)+"/outputs");
+	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+
+	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+	Model::Run(modelInputParameters, observations, r, gen, out_dir, logger);
 }
