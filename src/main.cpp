@@ -88,7 +88,7 @@ int main() {
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
 
-	const std::string out_dir = std::string(ROOT_DIR)+"/output";
+	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
 	Utilities::logging_stream* log = new Utilities::logging_stream(out_dir);
 
