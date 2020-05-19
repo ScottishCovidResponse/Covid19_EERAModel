@@ -84,4 +84,7 @@ jobs:
              exit 1
            fi
          done
+
+    - name: Run GCov and LCov Code Coverage
+      run : make coverage
   
