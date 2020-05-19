@@ -28,6 +28,7 @@
 #include <time.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+#include <iostream>
 
 /* Created on: 01 05 2020
  * Authors: Thibaud Porphyre
@@ -66,7 +67,8 @@ using namespace EERAModel;
 int main(int argc, char **argv) {
 
 	// Read in the model's input parameters
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile("./data/parameters.ini");
+	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
+	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(std::string(ROOT_DIR)+"/data/parameters.ini");
 
 	// Read in the observations
 	Observations observations = IO::ReadObservationsFromFiles();
@@ -85,5 +87,5 @@ int main(int argc, char **argv) {
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
 
-	Model::Run(modelInputParameters, observations, r, gen, "./outputs");
+	Model::Run(modelInputParameters, observations, r, gen, std::string(ROOT_DIR)+"/outputs");
 }
