@@ -1,4 +1,6 @@
 # Covid19_EERAModel
+![Covid19EERAModel](https://github.com/ScottishCovidResponse/Covid19_EERAModel/workflows/Covid19EERAModel/badge.svg?branch=dev)
+
 Simple COVID-19 simulation model with ABC-smc inference
 
 ## Project structure
