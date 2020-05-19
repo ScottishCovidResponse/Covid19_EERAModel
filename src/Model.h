@@ -3,6 +3,7 @@
 #include "ModelTypes.h"
 #include <vector>
 #include <random>
+#include "Utilities.h"
 #include <gsl/gsl_rng.h>
 
 namespace EERAModel {
@@ -24,7 +25,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::Observations observations,
 		 gsl_rng* r,
 		 std::mt19937& gen,
-		 const std::string& outDirPath);
+		 const std::string& outDirPath,
+		 EERAModel::Utilities::logging_stream*);
 
 void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
@@ -36,7 +38,7 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
 	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back);
+	int time_back, EERAModel::Utilities::logging_stream*);
 
 } // namespace Model
 } // namespace EERAModel
