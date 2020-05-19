@@ -3,3 +3,4 @@ outputs/*.txt
 .vscode
 data/*.csv
 data/parameters.ini
+outputs/logs/
