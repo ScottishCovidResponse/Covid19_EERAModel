@@ -23,24 +23,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install packages
-      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang
+    - name: Install Dependencies (Ubuntu)
+      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang lcov cppcheck htmldoc poppler-utils
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Install cppcheck
-      run: sudo apt-get install -y cppcheck
-      if: matrix.os == 'ubuntu-latest'
-
-    - name: Install Brew
+    - name: Install Brew (Mac OS X)
       run : /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
       if: matrix.os == 'macos-latest'
 
-    - name: Install GSL
-      run : brew update && brew install gsl
-      if: matrix.os == 'macos-latest'
-
-    - name: Install cppcheck
-      run: brew install cppcheck
+    - name: Install Dependencies (Mac OS X)
+      run : brew update && brew install gsl cppcheck lcov poppler htmldoc
       if: matrix.os == 'macos-latest'
 
     - name: Compile
@@ -74,9 +66,8 @@ jobs:
           echo "Unit tests failed"
           exit 1
         fi
-    - name: Run Cpp Check with internal parser
+    - name: Run Cpp Check
       run: |
-         echo "Running CppCheck on files in 'src' with internal parser"
          for i in src/*.h src/*.cpp test/unit/*.cpp; do 
            if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
              continue
@@ -84,4 +75,21 @@ jobs:
              exit 1
            fi
          done
-  
+
+    - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
+      run : |
+            ./scripts/SetUpModelRun.sh ./data/ ./test/regression/run1/data/
+            cd build
+            make coverage
+            htmldoc --webpage -f coverage-src-output.pdf Covid19EERAModel_coverage/src/index-sort-l.html
+            htmldoc --webpage -f coverage-test-output.pdf Covid19EERAModel_coverage/test/unit/index-sort-l.html
+            pdfunite coverage-src-output.pdf coverage-test-output.pdf coverage-output.pdf
+            rm coverage-*-*.pdf
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
+
+    - name: Upload Coverage PDF (Ubuntu GCC Only)
+      uses: actions/upload-artifact@v1
+      with:
+              name: Coverage PDF
+              path: build/coverage-output.pdf
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'

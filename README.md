@@ -50,6 +50,9 @@ The unit tests can be found in `test/unit`. They are built using the Google Test
 
 Following build, the unit test executable is `build/bin/Covid19EERAModel-unit_tests`.
 
+### Code Coverage
+Code coverage is now checked by `lcov` as part of the GitHub actions Ubuntu GCC workflow, a summary of the coverage percentage being given in the output. In addition percentage coverage for each source file are depicted graphically within the file `coverage-output.pdf` which is generated as a downloadable [artifact](https://help.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts) available from within the GitHub action workflow window.
+
 ### Check with CppCheck
 
 As part of the validation procedure source and header files are checked with CppCheck. It is recommended you run this on your code before
