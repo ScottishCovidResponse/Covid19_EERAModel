@@ -23,24 +23,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install packages
-      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang
+    - name: Install Dependencies (Ubuntu)
+      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang lcov cppcheck
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Install cppcheck
-      run: sudo apt-get install -y cppcheck
-      if: matrix.os == 'ubuntu-latest'
-
-    - name: Install Brew
+    - name: Install Brew (Mac OS X)
       run : /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
       if: matrix.os == 'macos-latest'
 
-    - name: Install GSL
-      run : brew update && brew install gsl
-      if: matrix.os == 'macos-latest'
-
-    - name: Install cppcheck
-      run: brew install cppcheck
+    - name: Install Dependencies (Mac OS X)
+      run : brew update && brew install gsl cppcheck lcov
       if: matrix.os == 'macos-latest'
 
     - name: Compile
@@ -86,5 +78,7 @@ jobs:
          done
 
     - name: Run GCov and LCov Code Coverage
-      run : make coverage
+      run : |
+            cd build
+            make coverage
   
