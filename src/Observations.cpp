@@ -5,16 +5,16 @@
 namespace EERAModel {
 namespace Observations {
 
-void select_obs(int& duration,
+void SelectObservations(int& duration,
 	int& day_intro,
 	int& day_shut, 
-	std::vector<int>& obsHosp_tmp,
-	std::vector<int>& obsDeaths_tmp, 
+	std::vector<int>& obsHosp,
+	std::vector<int>& obsDeaths, 
 	const std::vector<int>& timeStamps,
 	const std::vector<int>& regionalCases,
 	const std::vector<int>& regionalDeaths,
-	int time_back) {
-			
+	int time_back) 
+{	
 	// Reference value of t_index for the first run through the loop - indicates that it hasn't
 	// been populated
 	int t_index = -1;
@@ -27,8 +27,8 @@ void select_obs(int& duration,
 		if (regionalCases[t] >= 0) {
 			maxTime = std::max(maxTime, t);
 			
-			obsHosp_tmp.push_back(regionalCases[t]);
-			obsDeaths_tmp.push_back(regionalDeaths[t]);
+			obsHosp.push_back(regionalCases[t]);
+			obsDeaths.push_back(regionalDeaths[t]);
 			
 			//identify when the first case is detected/hospitalised 
 			if (regionalCases[t] > 0 && t_index < 0) {
@@ -51,71 +51,78 @@ void select_obs(int& duration,
 	}
 		
 	// add the extra information on the observations
-	int timeSeriesLength = static_cast<int>(obsHosp_tmp.size());
+	int timeSeriesLength = static_cast<int>(obsHosp.size());
 	
 	// Pad the observations with zeroes up to the duration of the simulation
-	if(duration > timeSeriesLength){
+	if (duration > timeSeriesLength){
 		int extra_time = duration - timeSeriesLength;
-		obsHosp_tmp.insert(obsHosp_tmp.begin(), extra_time, 0);
-		obsDeaths_tmp.insert(obsDeaths_tmp.begin(), extra_time, 0);		
+		obsHosp.insert(obsHosp.begin(), extra_time, 0);
+		obsDeaths.insert(obsDeaths.begin(), extra_time, 0);		
 		day_shut = day_shut + extra_time;
 	}
 	
 	//transform  cumulative numbers into incident cases
-	std::vector<int> obsHosp_tmp2(obsHosp_tmp.size());
-	Observations::compute_incidence(obsHosp_tmp,obsHosp_tmp2);
-	Observations::correct_incidence(obsHosp_tmp2,obsHosp_tmp);	
-	obsHosp_tmp = obsHosp_tmp2;
+	std::vector<int> casesIncidence = ComputeIncidence(obsHosp);
+	obsHosp = CorrectIncidence(casesIncidence, obsHosp);	
 	
 	//transform  cumulative numbers into incident deaths
-	std::vector<int> obsDeaths_tmp2(obsDeaths_tmp.size());
-	Observations::compute_incidence(obsDeaths_tmp,obsDeaths_tmp2);
-	Observations::correct_incidence(obsDeaths_tmp2,obsDeaths_tmp);	
-	obsDeaths_tmp = obsDeaths_tmp2;
+	std::vector<int> deathsIncidence = ComputeIncidence(obsDeaths);
+	obsDeaths = CorrectIncidence(deathsIncidence, obsDeaths);	
 }
 
-void compute_incidence(const std::vector<int>& timeseries, std::vector<int>& incidence) {
+std::vector<int> ComputeIncidence(const std::vector<int>& timeseries) 
+{	
+	std::vector<int> incidence(timeseries.size());
 	std::adjacent_difference(timeseries.begin(), timeseries.end(), incidence.begin());
+
+	return incidence;
 }
 
-//correct the timeseries to avoid negative incidence records
-void correct_incidence(std::vector<int>& v, std::vector<int> cumv){
-	if ( std::any_of(v.begin(), v.end(), [](int i){return i<0;}) ){
-		for (unsigned int ii = 1; ii < v.size(); ++ii) {
-			if(v[ii]<0){
-				int case_bef = cumv[ii-1];//look next day number of cases
-				int case_aft = cumv[ii+1];//look at the previous number of cases	
+std::vector<int> CorrectIncidence(const std::vector<int>& originalIncidence, std::vector<int> timeseries)
+{
+	
+	std::vector<int> correctedIncidence = originalIncidence;
+
+	if ( std::any_of(originalIncidence.begin(), originalIncidence.end(), [](int i){ return i < 0; })) {
+		for (unsigned int ii = 1; ii < originalIncidence.size(); ++ii) {
+			if (originalIncidence[ii] < 0){
+				int case_bef = timeseries[ii - 1];//look next day number of cases
+				int case_aft = timeseries[ii + 1];//look at the previous number of cases	
 				
       		  	//check if the next tot cases is bigger than tot cases before
     			//if(bigger) compute difference and remove it from day before
-		        if(case_bef<case_aft){
-		          if(v[ii-1] >= abs(v[ii])){
-		            cumv[ii-1] += v[ii];
+		        if (case_bef < case_aft) {
+		          if (originalIncidence[ii - 1] >= abs(originalIncidence[ii])) {
+		            timeseries[ii - 1] += originalIncidence[ii];
 		          } else {
-		          	cumv[ii]=0;
+		          	timeseries[ii] = 0;
 		          }
-		        } else{
-		          //if smaller
-		          //check when the day prior today was smaller than the next day and remove extra cases to this day
+		        } else {
+		          // if smaller
+		          // check when the day prior today was smaller than the next day and remove 
+				  // extra cases to this day
 		          unsigned int counter_check = 1;
-		          while( cumv[ii-counter_check]>case_aft){
+		          while (timeseries[ii - counter_check] > case_aft){
 		            ++counter_check ;
 		          }
-		          if(v[ii-counter_check+1] >= abs(v[ii])){
-				  	for ( unsigned int jj = (ii-counter_check+1); jj < (ii); ++jj) {
-						cumv[jj] += v[ii];
+
+		          if (originalIncidence[ii - counter_check + 1] >= abs(originalIncidence[ii])) {
+				  	for ( unsigned int jj = (ii - counter_check + 1); jj < ii; ++jj) {
+						timeseries[jj] += originalIncidence[ii];
 					}			
 		          } else {
-		            cumv[ii]=0;
+		            timeseries[ii] = 0;
 		          }
 		        }
 			}
 
 		}
+		
 		//recompute the incident cases
-		v.clear();
-		compute_incidence(cumv,v);
+		correctedIncidence = ComputeIncidence(timeseries);
 	}
+
+	return correctedIncidence;
 }
 
 } // namespace Observations

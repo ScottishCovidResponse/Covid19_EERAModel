@@ -127,11 +127,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	}
 
 	//Separate case information for each herd_id
-	std::vector<int> obsHosp_tmp, obsDeaths_tmp;
 	modelInputParameters.seedlist.day_intro=0;
-	
 	int duration = 0;
-	
 	int time_back;
 	if(modelInputParameters.seedlist.seedmethod == "background") {
 		time_back = modelInputParameters.seedlist.hrp;
@@ -149,16 +146,14 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	const std::vector<int>& regionalDeaths = observations.deaths[modelInputParameters.herd_id];
 	const std::vector<int>& timeStamps = observations.cases[0];
 
-	Observations::select_obs(duration, modelInputParameters.seedlist.day_intro, 
-		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, timeStamps, regionalCases,
+	std::vector<int> obsHosp, obsDeaths;
+	Observations::SelectObservations(duration, modelInputParameters.seedlist.day_intro, 
+		modelInputParameters.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
 		regionalDeaths, time_back);
 
-	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
-	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
+	(*log) << "Number of days of obs cases: " << obsHosp.size() << std::endl;
+	(*log) << "Number of days of obs deaths: " << obsDeaths.size() << std::endl;
 
-	std::vector<int> obsHosp(obsHosp_tmp);
-	std::vector<int> obsDeaths(obsDeaths_tmp);
-	
 	//define age structure and number of hcw of the population at risk
 	//compute the number of hcw in the shb
 	int N_scot = 0;
