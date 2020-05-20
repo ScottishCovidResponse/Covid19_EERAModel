@@ -36,7 +36,18 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status);
 
-
+/**
+ * @brief Get the population of a region
+ * 
+ * Within the input cases data, the total population of the region is located in the first column
+ * of the row corresponding to the region
+ * 
+ * @param obs Input observations
+ * @param region_id Index of the region within the observation data set
+ * 
+ * @return The population of the region
+ */
+static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id);
 
 /**
  * @brief Compute the agenums 
@@ -117,7 +128,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	//Separate case information for each herd_id
 	std::vector<int> obsHosp_tmp, obsDeaths_tmp;
-	int Npop=0;
 	int t_index=-1;
 	modelInputParameters.seedlist.day_intro=0;
 	
@@ -134,7 +144,9 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		}
 	}
 
-	Observations::select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
+	int population = GetPopulationOfRegion(observations, modelInputParameters.herd_id);
+
+	Observations::select_obs(t_index, duration, modelInputParameters.seedlist.day_intro, 
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
 		observations.deaths, modelInputParameters.herd_id, time_back);
 
@@ -150,15 +162,14 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	for (unsigned int nn = 0; nn < observations.cases.size()-1; ++nn) {
 		N_scot += observations.cases[nn][0];  //compute number of scots in scotland
 	}
-	double prop_scot = (double)Npop / (double)N_scot;  //proportion of Scots in each shb
+	double prop_scot = (double)population / (double)N_scot;  //proportion of Scots in each shb
 	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
 
-	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, Npop, N_hcw, observations);
+	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, population, N_hcw, observations);
 	
-
     (*log) << "[Health Board settings]:\n";
 	(*log) << "    SHB id: " << modelInputParameters.herd_id <<'\n';
-	(*log) << "    Population size: " << Npop << '\n';
+	(*log) << "    Population size: " << population << '\n';
 	(*log) << "    Number of HCW: " << N_hcw << '\n';
 	(*log) << "    Simulation period: " << duration << "days\n";
 	(*log) << "    time step: " << modelInputParameters.tau << "days\n";
@@ -265,7 +276,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				model_select(outs_vec, fixed_parameters, observations.cfr_byage, pf_byage,
 							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
 							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
-							modelInputParameters.day_shut, Npop, r, obsHosp, obsDeaths);
+							modelInputParameters.day_shut, population, r, obsHosp, obsDeaths);
 
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
@@ -330,7 +341,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
+	int duration, seed seedlist, int day_shut, int population, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths) {
 
 	//---------------------------------------
@@ -343,7 +354,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	std::vector<std::vector<int>> ends;
 	
 	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist,
-		waifw_home,	duration, seedlist, day_shut, Npop,agenums, tau, r, sim_status, ends,
+		waifw_home,	duration, seedlist, day_shut, population,agenums, tau, r, sim_status, ends,
 		death_status, deathH_status);
 
 	//---------------------------------------
@@ -720,6 +731,11 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
+}
+
+static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id)
+{
+	return obs.cases[region_id][0];
 }
 
 } // namespace Model

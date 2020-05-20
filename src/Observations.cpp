@@ -5,16 +5,13 @@
 namespace EERAModel {
 namespace Observations {
 
-void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
+void select_obs(int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
-	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back) {
+	const std::vector<std::vector<int> >& data_tmp, const std::vector<std::vector<int> >& death_tmp,
+	int herd_id, int time_back) {
 			
 	int maxTime=0;
 	std::vector<int> seqTime;
-		
-	//define population size
-	Npop = data_tmp[herd_id][0];
 	
 	//create the vector of cases (cummulative) and define time of first detection (index)
 	for (unsigned int iv = 1; iv < data_tmp[0].size(); ++iv) {
