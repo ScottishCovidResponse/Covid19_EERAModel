@@ -99,3 +99,4 @@ jobs:
       with:
               name: CMake (with Clang Tidy) Build Warning Log
               path: build/clang_tidy_build_results.log
+      if: matrix.os == 'ubuntu-latest'
