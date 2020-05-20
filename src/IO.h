@@ -27,7 +27,7 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
  * 
  * @return Observations
  */
-EERAModel::Observations ReadObservationsFromFiles();
+EERAModel::InputObservations ReadObservationsFromFiles();
 
 /**
  * @brief  Write outputs to files

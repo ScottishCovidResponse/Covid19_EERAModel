@@ -72,7 +72,7 @@ int main() {
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(std::string(ROOT_DIR)+"/data/parameters.ini");
 
 	// Read in the observations
-	Observations observations = IO::ReadObservationsFromFiles();
+	InputObservations observations = IO::ReadObservationsFromFiles();
 
 	// Decide which kind of seed to use
 	unsigned long randomiser_seed;
