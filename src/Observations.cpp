@@ -11,7 +11,6 @@ void select_obs(int& duration, int& day_intro, int& day_shut,
 	int herd_id, int time_back) {
 			
 	int maxTime=0;
-	std::vector<int> seqTime;
 	
 	// Reference value of t_index for the first run through the loop - indicates that it hasn't
 	// been populated
@@ -19,7 +18,6 @@ void select_obs(int& duration, int& day_intro, int& day_shut,
 	//create the vector of cases (cummulative) and define time of first detection (index)
 	for (unsigned int iv = 1; iv < data_tmp[0].size(); ++iv) {
 		if(data_tmp[herd_id][iv]>=0){
-			seqTime.push_back(data_tmp[0][iv]);
 			maxTime = std::max(maxTime,static_cast<int>(data_tmp[0][iv]));
 			obsHosp_tmp.push_back(data_tmp[herd_id][iv]);
 			obsDeaths_tmp.push_back(death_tmp[herd_id][iv]);
