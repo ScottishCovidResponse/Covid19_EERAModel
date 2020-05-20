@@ -804,11 +804,11 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double
 	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
 	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
 		// asym are infectious pre-clinical and asymptomatic
-		// sym are infectious frail and not frail plus those that are tested positive
-		int tot_asym = pops[from][3] + pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8];
+		// sym are infectious plus those that are tested positive
+		int tot_asym = pops[from][3] + u_val * (pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8] );
 		int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12];
 		
-		I_mat[from] = u_val * (double)tot_asym + (1-quarantined) * (double)tot_sym;
+		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
 		//normalisation shouldnt account for dead individuals	
 		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
 		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
