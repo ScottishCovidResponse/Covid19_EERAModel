@@ -43,7 +43,7 @@ jobs:
         mkdir build
         cd build
         cmake ..
-        make
+        make 2>&1 | tee clang_tidy_build_results.log
         
     - name: Run regression tests
       run: |
@@ -93,3 +93,9 @@ jobs:
               name: Coverage PDF
               path: build/coverage-output.pdf
       if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
+
+    - name: Upload CMake build (Clang-Tidy) Log
+      uses: actions/upload-artifact@v1
+      with:
+              name: CMake (with Clang Tidy) Build Warning Log
+              path: build/clang_tidy_build_results.log
