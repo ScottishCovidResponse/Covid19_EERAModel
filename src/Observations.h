@@ -9,7 +9,7 @@ namespace Observations {
  * @brief Select observations to use from the input observations
  * 
  */
-void select_obs(int& t_index, int& duration, int& day_intro, int& day_shut, 
+void select_obs(int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
 	const std::vector<std::vector<int> >& data_tmp, const std::vector<std::vector<int> >& death_tmp,
 	int herd_id, int time_back);

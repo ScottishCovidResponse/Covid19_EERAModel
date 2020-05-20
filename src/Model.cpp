@@ -128,7 +128,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	//Separate case information for each herd_id
 	std::vector<int> obsHosp_tmp, obsDeaths_tmp;
-	int t_index=-1;
 	modelInputParameters.seedlist.day_intro=0;
 	
 	int duration = 0;
@@ -146,7 +145,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	int population = GetPopulationOfRegion(observations, modelInputParameters.herd_id);
 
-	Observations::select_obs(t_index, duration, modelInputParameters.seedlist.day_intro, 
+	Observations::select_obs(duration, modelInputParameters.seedlist.day_intro, 
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
 		observations.deaths, modelInputParameters.herd_id, time_back);
 
