@@ -136,7 +136,10 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 	Observations::select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
-		observations.deaths, modelInputParameters.herd_id, time_back, log);
+		observations.deaths, modelInputParameters.herd_id, time_back);
+
+	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
+	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
 
 	std::vector<int> obsHosp(obsHosp_tmp);
 	std::vector<int> obsDeaths(obsDeaths_tmp);

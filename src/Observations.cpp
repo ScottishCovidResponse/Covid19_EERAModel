@@ -8,7 +8,7 @@ namespace Observations {
 void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
 	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
 	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back, Utilities::logging_stream::Sptr log) {
+	int time_back) {
 			
 	int maxTime=0;
 	std::vector<int> seqTime;
@@ -59,8 +59,6 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 		extra_deaths.clear();	
 	}
 	
-	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
-	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
 	//transform  cumulative numbers into incident cases
 	std::vector<int> obsHosp_tmp2(obsHosp_tmp.size());
 	Observations::compute_incidence(obsHosp_tmp,obsHosp_tmp2);
