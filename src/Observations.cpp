@@ -37,34 +37,28 @@ void select_obs(int& duration,
 		}
 	}
 
-	//identify the first day of infectiousness for the index case, which will be the start of our simulation, and add days in the observation, and define duration of the disease process
-	int intro = (t_index+1)-(time_back);
+	// identify the first day of infectiousness for the index case, which will be the start of our
+	// simulation, and add days in the observation, and define duration of the disease process
+	int intro =  t_index + 1 - time_back;
 
-	//define the duration of the study period
-	if(intro < 0) duration = static_cast<int>(maxTime) - intro + 1;
-	else duration = maxTime + 1;
-
-	//define the day of the incursion
-	if(intro < 0 ) day_intro = 0;
-	else day_intro=intro;
+	// define the duration of the study period and day of the incursion
+	if (intro < 0) {
+		duration = static_cast<int>(maxTime) - intro + 1;
+		day_intro = 0;
+	} else {
+		duration = maxTime + 1;
+		day_intro = intro;
+	}
 		
-	//add the extra information on the observations
-	if(static_cast<unsigned int>(duration) > obsHosp_tmp.size()){
-		int extra_time = duration - obsHosp_tmp.size();
-		std::vector<int> extra_cases, extra_deaths;
-		for (int extra = 0; extra < extra_time; ++extra) {
-			extra_cases.push_back(0);
-			extra_deaths.push_back(0);
-		}		
-		for (unsigned int iv = 0; iv < obsHosp_tmp.size(); ++iv) {
-			extra_cases.push_back(obsHosp_tmp[iv]);
-			extra_deaths.push_back(obsDeaths_tmp[iv]);
-		}		
-		day_shut = day_shut+ extra_time;
-		obsHosp_tmp = extra_cases;
-		obsDeaths_tmp = extra_deaths;
-		extra_cases.clear();	
-		extra_deaths.clear();	
+	// add the extra information on the observations
+	int timeSeriesLength = static_cast<int>(obsHosp_tmp.size());
+	
+	// Pad the observations with zeroes up to the duration of the simulation
+	if(duration > timeSeriesLength){
+		int extra_time = duration - timeSeriesLength;
+		obsHosp_tmp.insert(obsHosp_tmp.begin(), extra_time, 0);
+		obsDeaths_tmp.insert(obsDeaths_tmp.begin(), extra_time, 0);		
+		day_shut = day_shut + extra_time;
 	}
 	
 	//transform  cumulative numbers into incident cases
@@ -72,14 +66,12 @@ void select_obs(int& duration,
 	Observations::compute_incidence(obsHosp_tmp,obsHosp_tmp2);
 	Observations::correct_incidence(obsHosp_tmp2,obsHosp_tmp);	
 	obsHosp_tmp = obsHosp_tmp2;
-	obsHosp_tmp2.clear();	
 	
 	//transform  cumulative numbers into incident deaths
 	std::vector<int> obsDeaths_tmp2(obsDeaths_tmp.size());
 	Observations::compute_incidence(obsDeaths_tmp,obsDeaths_tmp2);
 	Observations::correct_incidence(obsDeaths_tmp2,obsDeaths_tmp);	
 	obsDeaths_tmp = obsDeaths_tmp2;
-	obsDeaths_tmp2.clear();	
 }
 
 void compute_incidence(const std::vector<int>& timeseries, std::vector<int>& incidence) {
