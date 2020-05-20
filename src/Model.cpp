@@ -144,10 +144,14 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	}
 
 	int population = GetPopulationOfRegion(observations, modelInputParameters.herd_id);
+	
+	const std::vector<int>& regionalCases = observations.cases[modelInputParameters.herd_id];
+	const std::vector<int>& regionalDeaths = observations.deaths[modelInputParameters.herd_id];
+	const std::vector<int>& timeStamps = observations.cases[0];
 
 	Observations::select_obs(duration, modelInputParameters.seedlist.day_intro, 
-		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
-		observations.deaths, modelInputParameters.herd_id, time_back);
+		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, timeStamps, regionalCases,
+		regionalDeaths, time_back);
 
 	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
 	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;

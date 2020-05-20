@@ -5,24 +5,34 @@
 namespace EERAModel {
 namespace Observations {
 
-void select_obs(int& duration, int& day_intro, int& day_shut, 
-	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
-	const std::vector<std::vector<int> >& data_tmp, const std::vector<std::vector<int> >& death_tmp,
-	int herd_id, int time_back) {
+void select_obs(int& duration,
+	int& day_intro,
+	int& day_shut, 
+	std::vector<int>& obsHosp_tmp,
+	std::vector<int>& obsDeaths_tmp, 
+	const std::vector<int>& timeStamps,
+	const std::vector<int>& regionalCases,
+	const std::vector<int>& regionalDeaths,
+	int time_back) {
 			
-	int maxTime=0;
-	
 	// Reference value of t_index for the first run through the loop - indicates that it hasn't
 	// been populated
 	int t_index = -1;
+	unsigned int maxTime = 0;
 	//create the vector of cases (cummulative) and define time of first detection (index)
-	for (unsigned int iv = 1; iv < data_tmp[0].size(); ++iv) {
-		if(data_tmp[herd_id][iv]>=0){
-			maxTime = std::max(maxTime,static_cast<int>(data_tmp[0][iv]));
-			obsHosp_tmp.push_back(data_tmp[herd_id][iv]);
-			obsDeaths_tmp.push_back(death_tmp[herd_id][iv]);
-			if(data_tmp[herd_id][iv]>0 && t_index<0){
-				t_index = (int)data_tmp[0][iv];//identify when the first case is detected/hospitalised 
+	for (unsigned int t = 1; t < timeStamps.size(); ++t) {
+		
+		// This check is required because the input case timeseries may hve negative values - 
+		// this is a consequence of the way in which cases are re-allocated to health boards
+		if (regionalCases[t] >= 0) {
+			maxTime = std::max(maxTime, t);
+			
+			obsHosp_tmp.push_back(regionalCases[t]);
+			obsDeaths_tmp.push_back(regionalDeaths[t]);
+			
+			//identify when the first case is detected/hospitalised 
+			if (regionalCases[t] > 0 && t_index < 0) {
+				t_index = t;
 			}		
 		}
 	}
@@ -31,7 +41,7 @@ void select_obs(int& duration, int& day_intro, int& day_shut,
 	int intro = (t_index+1)-(time_back);
 
 	//define the duration of the study period
-	if(intro < 0) duration = maxTime - intro + 1;
+	if(intro < 0) duration = static_cast<int>(maxTime) - intro + 1;
 	else duration = maxTime + 1;
 
 	//define the day of the incursion
