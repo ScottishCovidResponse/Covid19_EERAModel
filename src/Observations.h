@@ -25,12 +25,12 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
  * number of cases at the preceding point. The incidence at the first point in the time series is
  * simply the cumulative number of cases at that first point.
  * 
- * @param v 
- * @param r_val
+ * @param timeseries Input timeseries of cumulative instances
+ * @param incidence Output computed incidence
  * 
  * @return Nothing
  */
-void compute_incidence(std::vector<int> v, std::vector<int>& r_val);
+void compute_incidence(const std::vector<int>& timeseries, std::vector<int>& incidence);
 
 /**
  * @brief To do

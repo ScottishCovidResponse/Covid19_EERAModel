@@ -1,6 +1,6 @@
 #include "Observations.h"
-
 #include <algorithm>
+#include <numeric>
 
 namespace EERAModel {
 namespace Observations {
@@ -62,27 +62,22 @@ void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day
 	(*log) << "Number of days of obs cases: " << obsHosp_tmp.size() << std::endl;
 	(*log) << "Number of days of obs deaths: " << obsDeaths_tmp.size() << std::endl;
 	//transform  cumulative numbers into incident cases
-	std::vector<int> obsHosp_tmp2;
+	std::vector<int> obsHosp_tmp2(obsHosp_tmp.size());
 	Observations::compute_incidence(obsHosp_tmp,obsHosp_tmp2);
 	Observations::correct_incidence(obsHosp_tmp2,obsHosp_tmp);	
 	obsHosp_tmp = obsHosp_tmp2;
 	obsHosp_tmp2.clear();	
 	
 	//transform  cumulative numbers into incident deaths
-	std::vector<int> obsDeaths_tmp2;
+	std::vector<int> obsDeaths_tmp2(obsDeaths_tmp.size());
 	Observations::compute_incidence(obsDeaths_tmp,obsDeaths_tmp2);
 	Observations::correct_incidence(obsDeaths_tmp2,obsDeaths_tmp);	
 	obsDeaths_tmp = obsDeaths_tmp2;
 	obsDeaths_tmp2.clear();	
 }
 
-//transform the timeseries of cummulative cases into incidence
-void compute_incidence(std::vector<int> v, std::vector<int>& r_val){
-	for (unsigned int xx = 0; xx < v.size(); ++xx) {
-		int tmp_inc = 0;
-		if(xx>0) tmp_inc = v[xx] - v[xx-1];
-		r_val.push_back(tmp_inc);
-	}	
+void compute_incidence(const std::vector<int>& timeseries, std::vector<int>& incidence) {
+	std::adjacent_difference(timeseries.begin(), timeseries.end(), incidence.begin());
 }
 
 //correct the timeseries to avoid negative incidence records

@@ -134,7 +134,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		}
 	}
 
-	select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
+	Observations::select_obs(Npop, t_index, duration, modelInputParameters.seedlist.day_intro, 
 		modelInputParameters.day_shut, obsHosp_tmp, obsDeaths_tmp, observations.cases,
 		observations.deaths, modelInputParameters.herd_id, time_back, log);
 
