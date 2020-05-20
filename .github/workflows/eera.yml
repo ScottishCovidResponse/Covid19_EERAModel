@@ -78,6 +78,7 @@ jobs:
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
       run : |
+            ./scripts/SetUpModelRun.sh ./data/ ./test/regression/run1/data/
             cd build
             make coverage
             htmldoc --webpage -f coverage-src-output.pdf Covid19EERAModel_coverage/src/index-sort-l.html
