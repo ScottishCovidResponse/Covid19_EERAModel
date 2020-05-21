@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <cmath>
 
 namespace EERAModel {
 namespace Utilities {

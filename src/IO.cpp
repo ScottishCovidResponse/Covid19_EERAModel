@@ -99,9 +99,9 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	return modelInputParameters;
 }
 
-EERAModel::Observations ReadObservationsFromFiles()
+EERAModel::InputObservations ReadObservationsFromFiles()
 {
-	EERAModel::Observations observations;
+	EERAModel::InputObservations observations;
 	
 	//Uploading observed disease data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd

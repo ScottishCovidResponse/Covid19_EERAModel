@@ -23,7 +23,7 @@ namespace Model {
  * @param log Pointer to the logger
  */
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
-         EERAModel::Observations observations,
+         EERAModel::InputObservations observations,
 		 gsl_rng* r,
 		 std::mt19937& gen,
 		 const std::string& outDirPath,
@@ -35,11 +35,6 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
-
-void select_obs(int& Npop, int& t_index, int& duration, int& day_intro, int& day_shut, 
-	std::vector<int>& obsHosp_tmp, std::vector<int>& obsDeaths_tmp, 
-	std::vector<std::vector<int> > data_tmp, std::vector<std::vector<int> > death_tmp, int herd_id, 
-	int time_back, EERAModel::Utilities::logging_stream::Sptr);
 
 } // namespace Model
 } // namespace EERAModel

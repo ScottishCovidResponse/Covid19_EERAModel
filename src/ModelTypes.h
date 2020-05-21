@@ -84,7 +84,7 @@ struct ModelInputParameters
 /**
  * @brief Model input observations
  */
-struct Observations {
+struct InputObservations {
 	std::vector<std::vector<int>> cases;
 	std::vector<std::vector<int>> deaths;
 	std::vector<std::vector<double>> age_pop;
