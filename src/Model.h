@@ -33,7 +33,7 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, int Npop, gsl_rng * r, const std::vector<int>& obsHosp,
+	int duration, seed seedlist, int day_shut, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
 
 } // namespace Model

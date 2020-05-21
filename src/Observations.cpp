@@ -13,7 +13,8 @@ void SelectObservations(int& duration,
 	const std::vector<int>& timeStamps,
 	const std::vector<int>& regionalCases,
 	const std::vector<int>& regionalDeaths,
-	int time_back) 
+	int time_back,
+	Utilities::logging_stream::Sptr log) 
 {	
 	// Reference value of t_index for the first run through the loop - indicates that it hasn't
 	// been populated
@@ -36,6 +37,9 @@ void SelectObservations(int& duration,
 			}		
 		}
 	}
+
+	(*log) << "[Observations]:\n";
+	(*log) << "    day first report (t_index): " << t_index << '\n';
 
 	// identify the first day of infectiousness for the index case, which will be the start of our
 	// simulation, and add days in the observation, and define duration of the disease process
@@ -61,6 +65,13 @@ void SelectObservations(int& duration,
 		day_shut = day_shut + extra_time;
 	}
 	
+	(*log) << "    Number of days of obs cases: " <<
+		obsHosp.size() << std::endl;
+	(*log) << "    Number of days of obs deaths: " <<
+		obsDeaths.size() << std::endl;
+	(*log) << "    Number of weeks of obs: " <<
+		static_cast<double>(obsDeaths.size()) / 7.0 << std::endl;
+
 	//transform  cumulative numbers into incident cases
 	std::vector<int> casesIncidence = ComputeIncidence(obsHosp);
 	obsHosp = CorrectIncidence(casesIncidence, obsHosp);	

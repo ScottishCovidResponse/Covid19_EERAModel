@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utilities.h"
 #include <vector>
 
 namespace EERAModel {
@@ -20,6 +21,7 @@ namespace Observations {
  * @param regionalCases Observed timeseries of cases in the region
  * @param regionalDeaths Observed timeseries of deaths in the region
  * @param time_back ?
+ * @param log Logger handle
  */
 void SelectObservations(
 	int& duration,
@@ -30,7 +32,8 @@ void SelectObservations(
 	const std::vector<int>& timeStamps,
 	const std::vector<int>& regionalCases,
 	const std::vector<int>& regionalDeaths,
-	int time_back);
+	int time_back,
+	Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Transform the timeseries of cummulative cases into incidence
