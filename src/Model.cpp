@@ -564,7 +564,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				//how many diseased is introduced in each given day before lockdown
 				//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
 				int startdz = gsl_ran_poisson(r, (double)n_susc * bkg_lambda);		
-				size_t k = sizeof(seed_pop);
+				size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
 				unsigned int startdist[k];
 			/*	std::vector<int> startdist = {0,0,0,0,0,0};
 				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
