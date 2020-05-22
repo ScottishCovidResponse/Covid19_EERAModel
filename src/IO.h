@@ -3,6 +3,7 @@
 #include "ModelTypes.h"
 
 #include <string>
+#include "Utilities.h"
 
 #ifndef ROOT_DIR
 #error Macro ROOT_DIR must be defined!
@@ -40,7 +41,8 @@ EERAModel::InputObservations ReadObservationsFromFiles();
  * @param outDirPath Path to the directory in which the output files should be placed
  */
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
-	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath);
+	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath,
+	EERAModel::Utilities::logging_stream::Sptr log);
 
 } // namespace IO
 } // namespace EERAModel
