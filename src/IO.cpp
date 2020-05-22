@@ -147,13 +147,13 @@ EERAModel::InputObservations ReadObservationsFromFiles()
 }
 
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
-	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath)
+	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath, EERAModel::Utilities::logging_stream::Sptr log)
 {
 	std::stringstream namefile, namefile_simu, namefile_ends;
-	namefile << (outDirPath + "/output_abc-smc_particles_step") << smc << "_shb"<< herd_id << ".txt";
-	namefile_simu << (outDirPath + "/output_abc-smc_simu_step") << smc << "_shb"<< herd_id << ".txt";
-	namefile_ends << (outDirPath + "/output_abc-smc_ends_step") << smc << "_shb"<< herd_id << ".txt";		
-	
+	namefile << (outDirPath + "/output_abc-smc_particles_step") << smc << "_shb"<< herd_id << "_" << log->getLoggerTime() << ".txt";
+	namefile_simu << (outDirPath + "/output_abc-smc_simu_step") << smc << "_shb"<< herd_id << "_" << log->getLoggerTime() << ".txt";
+	namefile_ends << (outDirPath + "/output_abc-smc_ends_step") << smc << "_shb"<< herd_id << "_" << log->getLoggerTime() << ".txt";		
+
 	std::ofstream output_step (namefile.str().c_str());
 	std::ofstream output_simu (namefile_simu.str().c_str());
 	std::ofstream output_ends (namefile_ends.str().c_str());
