@@ -51,9 +51,8 @@ class logging_stream
 	timeinfo = localtime(&rawtime);
 
 	strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H-%M-%S",timeinfo);
-	std::string str(buffer);
-
-	std::string _file_name = out_dir+"/logs/run_"+str+".log";
+	std::string _log_time = std::string(buffer);
+	std::string _file_name = out_dir+"/logs/run_"+_log_time+".log";
 
 	log_fstream = std::ofstream(_file_name);
 	};
@@ -74,8 +73,12 @@ class logging_stream
 	func(log_fstream);
 	return *this;
 	}
+
+	std::string getLoggerTime() const {return _log_time;}
+	
  private:
 	std::ofstream log_fstream;
+	std::string _log_time = "";
 };
 } // namespace Utilities
 } // namespace EERAModel

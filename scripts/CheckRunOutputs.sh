@@ -38,7 +38,10 @@ else
 	difference_count=0
 	for expected_filepath in $EXPECTED_OUTPUTS_DIR/*.txt
 	do
-	  actual_filepath=$ACTUAL_OUTPUTS_DIR/$(basename $expected_filepath)
+	  filename=$(basename $expected_filepath)
+	  filename="${filename%.*}"
+	  actual_filepath=$(find $ACTUAL_OUTPUTS_DIR -name "${filename}*")
+	  actual_filepath=${ACTUAL_OUTPUTS_DIR}/$(basename $actual_filepath)
 	  if [[ ! -f $actual_filepath ]]; then
 	    echo "ERROR: Failed to find expected file $actual_filepath"
 		missing_file_count=$((missing_file_count+1))

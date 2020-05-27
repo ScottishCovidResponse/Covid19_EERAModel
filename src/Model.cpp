@@ -329,7 +329,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		//break the ABC-smc at the step where no particles were accepted
 		if (prevAcceptedParticleCount > 0) {
 			IO::WriteOutputsToFiles(smc, modelInputParameters.herd_id, prevAcceptedParticleCount,
-				modelInputParameters.nPar, particleList1, outDirPath);
+				modelInputParameters.nPar, particleList1, outDirPath, log);
 		}
 	}
 
