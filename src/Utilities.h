@@ -51,12 +51,7 @@ class logging_stream
 	timeinfo = localtime(&rawtime);
 
 	strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H-%M-%S",timeinfo);
-	_log_time = std::string(buffer);
-
-	std::string _command = "mkdir -p "+out_dir+"/logs";
-
-	system(_command.c_str());
-
+	std::string _log_time = std::string(buffer);
 	std::string _file_name = out_dir+"/logs/run_"+_log_time+".log";
 
 	log_fstream = std::ofstream(_file_name);
