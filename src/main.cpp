@@ -67,9 +67,17 @@ using namespace EERAModel;
 
 int main() {
 
+	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+
+	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
 	// Read in the model's input parameters
 	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(std::string(ROOT_DIR)+"/data/parameters.ini");
+	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
+
+	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr);
+
+	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles();
@@ -81,16 +89,17 @@ int main() {
 	} else {
         randomiser_seed = time(NULL);
 	}
-		//initialise the gsl random number generator with a seed depending on the time of the run
+	//initialise the gsl random number generator with a seed depending on the time of the run
 	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937);
 	gsl_rng_set(r, randomiser_seed);
 
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
 
-	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
-	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+	(*logger) << "[Seed]:\n    Type: ";
+        (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
+	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
 	Model::Run(modelInputParameters, observations, r, gen, out_dir, logger);
 }
