@@ -75,12 +75,12 @@ int main() {
 	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr);
+	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
 	// Read in the observations
-	InputObservations observations = IO::ReadObservationsFromFiles();
+	InputObservations observations = IO::ReadObservationsFromFiles(logger);
 
 	// Decide which kind of seed to use
 	unsigned long randomiser_seed;

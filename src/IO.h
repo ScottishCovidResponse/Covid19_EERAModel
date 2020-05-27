@@ -19,7 +19,7 @@ namespace IO {
  * 
  * @return Model parameters
  */
-EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath);
+EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read in observations
@@ -28,7 +28,7 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
  * 
  * @return Observations
  */
-EERAModel::InputObservations ReadObservationsFromFiles();
+EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief  Write outputs to files
@@ -42,7 +42,7 @@ EERAModel::InputObservations ReadObservationsFromFiles();
  */
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
 	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath,
-	EERAModel::Utilities::logging_stream::Sptr log);
+	const Utilities::logging_stream::Sptr& log);
 
 } // namespace IO
 } // namespace EERAModel
