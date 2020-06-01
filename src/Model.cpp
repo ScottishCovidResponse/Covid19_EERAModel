@@ -259,24 +259,38 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				for (int i = 0; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
-				//pick the values of each particles
-				if (smc==0) {
-					//pick randomly and uniformly parameters' value from priors
-					outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
-						r, modelInputParameters.nPar);
-					
-				} else {
-					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
-				    int pick_val = weight_distr(gen);
-				    outs_vec.parameter_set = FittingProcess::parameter_select(
-						modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
-				}
+				if (modelInputParameters.run_type == "Inference")
+				{
+					//pick the values of each particles
+					if (smc==0) {
+						//pick randomly and uniformly parameters' value from priors
+						outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
+							r, modelInputParameters.nPar);
+						
+					} else {
+						//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
+						int pick_val = weight_distr(gen);
+						outs_vec.parameter_set = FittingProcess::parameter_select(
+							modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
+					}
 
-				//run the model and compute the different measures for each potential parameters value
-				model_select(outs_vec, fixed_parameters, observations.cfr_byage, pf_byage,
-							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
-							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
-							modelInputParameters.day_shut, r, obsHosp, obsDeaths);
+					EERAModel::InputParametersObservations input_parameters_obs;
+					input_parameters_obs.cfr_byage = observations.cfr_byage;
+					input_parameters_obs.pf_byage = pf_byage;
+					input_parameters_obs.waifw_norm = observations.waifw_norm;
+					input_parameters_obs.waifw_sdist = observations.waifw_sdist;
+					input_parameters_obs.waifw_home = observations.waifw_home;
+
+					//run the model and compute the different measures for each potential parameters value
+					model_select(outs_vec, fixed_parameters, input_parameters_obs,
+								agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
+								modelInputParameters.day_shut, r, obsHosp, obsDeaths);
+				}
+				// else if (modelInputParameters.run_type == "Prediction")
+				// {
+				// 	outs_vec.parameter_set = ReadFromFile;
+					
+				// }
 
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
@@ -337,10 +351,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	(*log) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
-void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
+void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters, 
+	EERAModel::InputParametersObservations& parameters_in, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths) {
 
@@ -352,8 +364,14 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	std::vector<int> death_status;
 	std::vector<int> deathH_status;
 	std::vector<std::vector<int>> ends;
-	
-	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist,
+
+	std::vector<std::vector<double>> cfr_byage = parameters_in.cfr_byage;
+	std::vector<double> pf_byage = parameters_in.pf_byage;
+	std::vector<std::vector<double>> waifw_norm = parameters_in.waifw_norm;
+	std::vector<std::vector<double>> waifw_home = parameters_in.waifw_home;
+	std::vector<std::vector<double>> waifw_sdist = parameters_in.waifw_sdist;
+
+	my_model(outvec.parameter_set	, fixed_parameters, cfr_byage, pf_byage, waifw_norm, waifw_sdist,
 		waifw_home,	duration, seedlist, day_shut, agenums, tau, r, sim_status, ends,
 		death_status, deathH_status);
 

@@ -95,6 +95,9 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
+	//modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
+	modelInputParameters.run_type = "Inference";
+
 	return modelInputParameters;
 }
 

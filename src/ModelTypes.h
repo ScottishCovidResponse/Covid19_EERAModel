@@ -81,6 +81,16 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
+	std::string run_type;
+};
+
+struct InputParametersObservations
+{
+	std::vector<std::vector<double>> cfr_byage;
+	std::vector<double> pf_byage;
+	std::vector<std::vector<double>> waifw_norm;
+	std::vector<std::vector<double>> waifw_sdist;
+	std::vector<std::vector<double>> waifw_home;
 };
 
 /**
