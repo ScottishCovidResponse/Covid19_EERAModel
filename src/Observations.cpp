@@ -20,11 +20,19 @@ void SelectObservations(int& duration,
 	// been populated
 	int t_index = -1;
 	unsigned int maxTime = 0;
-	//create the vector of cases (cummulative) and define time of first detection (index)
+	
+	// Create the vectors of observations based on the raw input observations
+	// This loop defines what data will be used for the rest of the model.
+	// It also define t_index, which is the time of the first detected cases within the health board
+	// of interest.
 	for (unsigned int t = 1; t < timeStamps.size(); ++t) {
 		
-		// This check is required because the input case timeseries may hve negative values - 
-		// this is a consequence of the way in which cases are re-allocated to health boards
+		// This check is required because the input case timeseries may hve negative valuesre.
+		// Negative incident events shouldn't occur (ever) but unfortunately it does because cases
+		// are re-allocated between health board but the data collated before the re-allocation is
+		// not modified to account for these changes. These changes create negative incident events.
+		// These only occur few times for a few health boards but it has massive impact on the
+		// future-proofing of the inferences.
 		if (regionalCases[t] >= 0) {
 			maxTime = std::max(maxTime, t);
 			
@@ -58,6 +66,11 @@ void SelectObservations(int& duration,
 	int timeSeriesLength = static_cast<int>(obsHosp.size());
 	
 	// Pad the observations with zeroes up to the duration of the simulation
+	// extra_time is the number of days prior the first detection (index cases) which are
+	// considered to show silent spread (spread of disease prior detection). The duration of this
+	// period is informed by the parameter hrp.
+	// Because we are modelling observed/detected cases and deaths (not true presence),
+	// we therefore pad the observation time series with an initial run of zeros.
 	if (duration > timeSeriesLength){
 		int extra_time = duration - timeSeriesLength;
 		obsHosp.insert(obsHosp.begin(), extra_time, 0);

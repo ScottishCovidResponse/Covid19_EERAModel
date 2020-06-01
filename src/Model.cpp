@@ -155,9 +155,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
 		regionalDeaths, time_back, log);
 
-	(*log) << "Number of days of obs cases: " << obsHosp.size() << std::endl;
-	(*log) << "Number of days of obs deaths: " << obsDeaths.size() << std::endl;
-
 	//define age structure and number of hcw of the population at risk
 	//compute the number of hcw in the shb
 	int N_scot = 0;

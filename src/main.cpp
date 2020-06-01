@@ -1,35 +1,3 @@
-/* Created on: 17 04 2020
- * Authors: Thibaud Porphyre
- *
- *
- *version 0.3.2
- *
- * version report: 
- *		  - fix the transmission flow between Is,H, D and R relative to %frail
- * 
- *  
- * fitting procedure: ABS-SMC
- * model to fit: spread, SEIIsHRD
- * number of herd: single
- * model type: stochastic, age-structured population, tau-leap
- *
- * time-step = 1 day
- *
- * selection measures: normalise sum squared error 
- *
- * fitted parameters: p_i, p_hcw, c_hcw, q and d
- *
- * main.cpp
- *
- *
- */
-
-#include <random>
-#include <time.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <iostream>
-
 /* Created on: 01 05 2020
  * Authors: Thibaud Porphyre
  *
@@ -57,6 +25,12 @@
  *
  *
  */
+
+#include <random>
+#include <time.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <iostream>
 
 #include "Model.h"
 #include "ModelTypes.h"
@@ -95,7 +69,6 @@ int main() {
 
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
-
 
 	(*logger) << "[Seed]:\n    Type: ";
         (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
