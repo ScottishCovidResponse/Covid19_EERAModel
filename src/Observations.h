@@ -10,9 +10,9 @@ namespace Observations {
  * @brief Select observations to use from the regional input observations
  * 
  * Bsaed on the regional cases and deaths timeseries, this function computes the incidence of cases
- * and deaths, correcting for nrgative incidence records.
+ * and deaths, correcting for negative incidence records.
  * 
- * @param duration ?
+ * @param duration Duration of the simulation
  * @param day_into Determined first day of infection
  * @param day_shut ?
  * @param obsHosp Case incidence timeseries, corrected for negative incidences
