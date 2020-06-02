@@ -402,11 +402,26 @@ std::vector<double> build_population_seed(const std::vector<int>& age_nums)
 	return _temp;
 }
 
-std::vector<Compartments> build_population_array(const std::vector<int>& age_nums)
+std::vector<Compartments> build_population_array(gsl_rng* r, const std::vector<int>& age_nums, const seed& seedlist)
 {
 	std::vector<Compartments> _temp(age_nums.size(), Compartments());
 	for ( int age = 0; age < age_nums.size(); ++age) {
 		_temp[age].S = age_nums[age]; //set up the starting population as fully susceptible
+	}
+
+	//introduce disease at t=0. if seedmethod != "background"
+	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
+	if(seedlist.seedmethod != "background"){
+		//	size_t k = sizeof(seed_pop);
+		//	unsigned int startdist[k];
+		std::vector<int> startdist(6,0);
+		startdist[(int) gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
+		//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
+
+		for ( int age{1}; age < age_nums.size()-1; ++age) {
+			_temp[age].S -=  startdist[age-1];	// take diseased out of S
+			_temp[age].I_p +=  startdist[age-1];	// put diseased in I	
+		}	
 	}
 
 	return _temp;
@@ -434,24 +449,10 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
-	std::vector<Compartments> poparray = build_population_array(agenums);
+	std::vector<Compartments> poparray = build_population_array(r, agenums, seedlist);
 	
 
 //	std::cout<< "top2..\n";
-	//introduce disease at t=0. if seedmethod != "background"
-	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
-	if(seedlist.seedmethod != "background"){
-	//	size_t k = sizeof(seed_pop);
-	//	unsigned int startdist[k];
-		std::vector<int> startdist(6,0);
-		startdist[(int) gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
-	//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
-
-		for ( int age{1}; age < n_agegroup-1; ++age) {
-			poparray[age].S -=  startdist[age-1];	// take diseased out of S
-			poparray[age].I_p +=  startdist[age-1];	// put diseased in I	
-		}	
-	}
 
 //	std::cout<< "top3..\n";
 	

@@ -171,11 +171,13 @@ std::vector<double> build_population_seed(const std::vector<int>& age_nums);
  * Sets up an array for the population at each timestep in each age and disease category	
  * also set up the age distribution of old ages as target for disease introduction.
  * 
+ * @param r GSL RNG pointer
  * @param age_nums Vector containing the number of people in each age group
+ * @param seedlist Seed object
  * 
  * @return Vector of vectors containing compartment populations
  */ 
-std::vector<Compartments> build_population_array(const std::vector<int>& age_nums);
+std::vector<Compartments> build_population_array(gsl_rng* r, const std::vector<int>& age_nums, const seed& seedlist);
 
 /**
  * @brief Randomly assign movement of individuals between compartments
