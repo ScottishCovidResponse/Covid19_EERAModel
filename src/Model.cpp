@@ -27,7 +27,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 
 static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<double> parameter_set, double u_val,
 				std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
-				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut);
+				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, bool shut);
 
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
@@ -412,17 +412,18 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 ///	std::cout<< "top0..\n";
 
 	const int n_agegroup = per_age_data.waifw_norm.size();
-	int inLockdown = 0;
+
+	// Start without lockdown
+	bool inLockdown = false;
 
 	// Assumes that the number of age groups matches the size of the 'agenums' vector
 	std::vector<double> seed_pop = build_population_seed(agenums);
-	int n_comparts=16;
 
-	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size());	
-	for (unsigned int var = 0; var < parameter_fit.size(); ++var) {
-		parameter_fit[var] = parameter_set;
-	}
-    	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
+	// Set number of compartments
+	const int n_comparts=16;
+
+	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
+	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
 	//sets up an array for the population at each timestep in each age and disease category	
@@ -471,11 +472,11 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		
 //		std::cout<< "top4..\n";
 		//identify the lock down
-		if(tt > day_shut)  inLockdown = 1;
+		if(tt > day_shut){ inLockdown = true; }
 		
 	
 		//introduce disease from background infection until lockdown
-	    if(inLockdown<1){
+	    if(!inLockdown){
 //			std::cout<< "top5..\n";
 			if(seedlist.seedmethod == "background"){
 				double bkg_lambda = parameter_set[parameter_set.size()-1];
@@ -689,7 +690,7 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 }
 static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double> parameter_set, double u_val, 
 			std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
-			std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut) {
+			std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, bool shut) {
 
   double p_i = parameter_set[0];	
   double p_hcw = parameter_set[1];	
@@ -708,7 +709,7 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double
   
   for ( int from = 0; from < n_agegroup; ++from) {
 	  for ( int to = 0; to < n_agegroup; ++to) {
-		  if(shut==0){
+		  if(!shut){
 		  	//contact network during normal period
 		    waifw[from][to]  = waifw_norm[from][to] ;
 		  } else {
