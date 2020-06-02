@@ -30,10 +30,7 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<doubl
 				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut);
 
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
-				std::vector<std::vector<double>> waifw_norm,
-				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
+				AgeGroupData per_age_data, int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
 				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status);
 
@@ -352,10 +349,11 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	std::vector<int> death_status;
 	std::vector<int> deathH_status;
 	std::vector<std::vector<int>> ends;
+
+	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
 	
-	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist,
-		waifw_home,	duration, seedlist, day_shut, agenums, tau, r, sim_status, ends,
-		death_status, deathH_status);
+	my_model(outvec.parameter_set, fixed_parameters, per_age_data, duration, seedlist, day_shut,
+			agenums, tau, r, sim_status, ends, death_status, deathH_status);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
@@ -395,22 +393,19 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 }
  
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
-				std::vector<std::vector<double>> waifw_norm,
-				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
+				AgeGroupData per_age_data, int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
 				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status) {
 
 
 ///	std::cout<< "top0..\n";
 
-	int n_agegroup = waifw_norm.size();
+	int n_agegroup = per_age_data.waifw_norm.size();
 	int inLockdown = 0;
 	double seed_pop[6];
 	int n_comparts=16;
 
-	std::vector<std::vector<double>> parameter_fit(waifw_norm.size());	
+	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size());	
 	for (unsigned int var = 0; var < parameter_fit.size(); ++var) {
 		parameter_fit[var] = parameter_set;
 	}
@@ -512,13 +507,14 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 //std::cout<< "top7..\n";
 		//compute the forces of infection
 		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, totHosp, parameter_set,fixed_parameters[0].inf_asym,waifw_norm, waifw_sdist,waifw_home, 
+		Lambda(lambda, totHosp, parameter_set,fixed_parameters[0].inf_asym, per_age_data.waifw_norm, 
+				per_age_data.waifw_sdist, per_age_data.waifw_home, 
 				poparray, inLockdown);	
 
 		//step each agegroup through infections
 		for ( int age = 0; age < (n_agegroup); ++age) {	
 			infspread(r, poparray[age], deaths, deathsH, detected,totHosp,fixed_parameters[age],parameter_fit[age],
-				cfr_byage[age],pf_byage[age],lambda[age]);
+				per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
 		}
 //std::cout<< "top9..\n";
 //		std::cout << tt << " , " <<  detected << " , " << deaths << " , " << deathsH << '\n';

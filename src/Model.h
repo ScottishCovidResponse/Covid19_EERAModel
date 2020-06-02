@@ -10,6 +10,21 @@ namespace EERAModel {
 namespace Model {
 
 /**
+ * @brief Structure to hold per-age group data vectors
+ * 
+ * Includes probabilities and mean number of contacts per age group information
+ */
+struct AgeGroupData
+{
+	
+	std::vector<std::vector<double>> waifw_norm;	/*!< mean number of daily contacts per age group (overall). */	
+	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts per age group (home only). */
+	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts per age group (not school, not work). */
+	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
+	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
+};
+
+/**
  * @brief Run the model and inference framework
  * 
  * Runs the model based on the given input parameters, observations and seeded random number generator.
