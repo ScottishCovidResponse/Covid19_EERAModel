@@ -98,7 +98,7 @@ int main() {
 
 
 	(*logger) << "[Seed]:\n    Type: ";
-        (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
+    (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
 	Model::Run(modelInputParameters, observations, r, gen, out_dir, logger);
