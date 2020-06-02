@@ -3,6 +3,7 @@
 #include "ModelTypes.h"
 #include "FittingProcess.h"
 #include "Observations.h"
+#include "InferenceParameters.h"
 
 #include <algorithm>
 #include <iostream>
@@ -194,6 +195,9 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.prior_lambda_shape2
 	};
 
+    Inference::InferenceParameterGenerator inferenceParameterGenerator(
+        modelInputParameters.nPar, r, flag1, flag2);
+
 	//declare vectors of outputs/inputs for ABC process
 	std::vector<particle > particleList, particleList1;
 
@@ -259,8 +263,11 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//pick the values of each particles
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
-					outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
+					#if 0
+                    outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
 						r, modelInputParameters.nPar);
+                    #endif
+                    outs_vec.parameter_set = inferenceParameterGenerator.GenerateInitial();
 					
 				} else {
 					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
