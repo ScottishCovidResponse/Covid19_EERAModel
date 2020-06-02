@@ -194,5 +194,17 @@ std::vector<Compartments> build_population_array(gsl_rng* r, const std::vector<i
  */
 int flow(gsl_rng*r, const int& pops_from_val, const int& pops_new_from_val, const double& rate);
 
+/**
+ * @brief Introduced diseased to the population
+ * 
+ * Compute the total number of susceptible and the number of susceptible per age class
+ * 
+ * @param gsl_rng GSL RNG pointer
+ * @param poparray Population array to be manipulated
+ * @param seedarray Population seed array to be manipulated
+ * @param bkg_lambda Lambda for generating number of diseased individuals
+ */
+void generate_diseased(gsl_rng* r, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
+
 } // namespace Model
 } // namespace EERAModel

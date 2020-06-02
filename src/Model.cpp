@@ -427,6 +427,41 @@ std::vector<Compartments> build_population_array(gsl_rng* r, const std::vector<i
 	return _temp;
 }
 
+void generate_diseased(gsl_rng* r, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda)
+{
+	int n_susc = 0;
+
+	for ( int age{1}; age < poparray.size()-1; ++age) 
+	{
+		seedarray[age-1] = static_cast<double>(poparray[age].S);
+		n_susc += poparray[age].S;	
+	}
+
+	//how many diseased is introduced in each given day before lockdown
+	//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
+	int startdz = gsl_ran_poisson(r, (double)n_susc * bkg_lambda);
+
+	//size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
+
+	unsigned int startdist[seedarray.size()];
+
+/*	std::vector<int> startdist = {0,0,0,0,0,0};
+	int pickcomp = (int)gsl_ran_flat(r, 0, 6);
+	while(poparray[pickcomp][0]<1){
+		pickcomp = (int)gsl_ran_flat(r, 0, 6);
+	} 
+	startdist[pickcomp] = startdz;
+*/				
+	gsl_ran_multinomial(r, seedarray.size(), startdz, &seedarray[0], startdist); //distribute the diseased across the older age categories
+
+	for ( int age{1}; age < poparray.size()-1; ++age) {
+		int nseed = startdist[age-1];
+		//std::min(poparray[age][0], startdist[age-1]);
+		poparray[age].S -=  nseed;	// take diseased out of S
+		poparray[age].E +=  nseed;	// put diseased in E	
+	}
+}
+
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, gsl_rng * r, Status& status) {
@@ -471,44 +506,14 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		
 	
 		//introduce disease from background infection until lockdown
-	    if(!inLockdown){
-//			std::cout<< "top5..\n";
-			if(seedlist.seedmethod == "background"){
-				double bkg_lambda = parameter_set[parameter_set.size()-1];
-//				std::cout<< "top5.0..: " << bkg_lambda << std::endl;
-				
-				//compute the total number of susceptible and the number of susceptible per age class
-				int n_susc = 0;
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-					seed_pop[age-1] = (double)poparray[age].S;
-					n_susc+=poparray[age].S;
-					
-//					std::cout <<"pop to seed: " << poparray[age][0] << "," << seed_pop[age-1] << "," << n_susc <<"\n";
-				}
-				
-				//how many diseased is introduced in each given day before lockdown
-				//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
-				int startdz = gsl_ran_poisson(r, (double)n_susc * bkg_lambda);		
-				//size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
-				unsigned int startdist[seed_pop.size()];
-			/*	std::vector<int> startdist = {0,0,0,0,0,0};
-				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
-				while(poparray[pickcomp][0]<1){
-					pickcomp = (int)gsl_ran_flat(r, 0, 6);
-				} 
-				startdist[pickcomp] = startdz;
-			*/				
-				gsl_ran_multinomial(r, seed_pop.size(), startdz, &seed_pop[0], startdist); //distribute the diseased across the older age categories
+		if(!inLockdown && seedlist.seedmethod == "background")
+		{
+			const double bkg_lambda = parameter_set[parameter_set.size()-1];
 
-				for ( int age{1}; age < (n_agegroup-1); ++age) {
-//					std::cout <<"seed: " << startdist[age-1] <<"\n";
-					int nseed = startdist[age-1];//std::min(poparray[age][0], startdist[age-1]);
-					poparray[age].S -=  nseed;//take diseased out of S
-					poparray[age].E +=  nseed;//put diseased in E	
-				}	
-			}
+			//compute the total number of susceptible and the number of susceptible per age class			
+			generate_diseased(r, poparray, seed_pop, bkg_lambda);
+		}
 //			std::cout<< "top6..\n";
-	    }
 
 //std::cout<< "top7..\n";
 		//compute the forces of infection
