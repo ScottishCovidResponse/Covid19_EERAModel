@@ -25,10 +25,25 @@ struct AgeGroupData
 };
 
 /**
+ * @brief Structure to hold status objects
+ * 
+ * Contains vectors containing information on the status of the simulation itself, 
+ * population and deaths for each simulation step.
+ */
+struct Status
+{
+	std::vector<int> simulation;		/*!< Status of the simulation. */
+	std::vector<int> deaths;			/*!< Number of deaths. */
+	std::vector<int> hospital_deaths;	/*!< Number of deaths in hospitals. */
+	std::vector<std::vector<int>> ends;	/*!< Population per age group on last day. */
+};
+
+/**
  * @brief Calculate number of simulation steps
  * 
  * Calculates the time steps for the simulation based on the duration time
  * and the step duration.
+ * 
  * @param duration Duration of the simulation
  * @param tau Duration of a single time step
  * 

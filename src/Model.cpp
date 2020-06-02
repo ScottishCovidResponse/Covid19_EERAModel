@@ -31,8 +31,7 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<doubl
 
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
-				std::vector<int> &death_status,std::vector<int> &deathH_status);
+				int n_sim_steps, gsl_rng * r, Status& status);
 
 /**
  * @brief Get the population of a region
@@ -344,22 +343,19 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 	// the root model
 	//---------------------------------------
-	std::vector<int> sim_status;
-	/**@todo death_status is unused anywhere (although it is populated in my_model) */
-	std::vector<int> death_status;
-	std::vector<int> deathH_status;
-	std::vector<std::vector<int>> ends;
+	Status status = {};
+	/**@todo status.deaths is unused anywhere (although it is populated in my_model) */
 
 	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
 	const int n_sim_steps = get_n_simulation_steps(duration, tau);
 	
 	my_model(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-			agenums, n_sim_steps, r, sim_status, ends, death_status, deathH_status);
+			agenums, n_sim_steps, r, status);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
 	//---------------------------------------
-	double sum_sq_cases = Utilities::sse_calc<int>(sim_status, obsHosp);
+	double sum_sq_cases = Utilities::sse_calc<int>(status.simulation, obsHosp);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for weekly observations
@@ -368,7 +364,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	// due to reporting process creating uncertaincies within weeks
 	std::vector<int> obs_death_red, sim_death_red;
 	weekly(obs_death_red, obsDeaths);
-	weekly(sim_death_red, deathH_status);
+	weekly(sim_death_red, status.hospital_deaths);
 	
 	double sum_sq_deaths = Utilities::sse_calc<int>(sim_death_red, obs_death_red);
 
@@ -388,15 +384,14 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 	// Return all selection measures
 	//---------------------------------------
-	outvec.simu_outs = sim_status;
-	outvec.death_outs = deathH_status;
-	outvec.end_comps = ends;
+	outvec.simu_outs = status.simulation;
+	outvec.death_outs = status.hospital_deaths;
+	outvec.end_comps = status.ends;
 }
  
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
-				std::vector<int> &death_status,std::vector<int> &deathH_status) {
+				int n_sim_steps, gsl_rng * r, Status& status) {
 
 
 ///	std::cout<< "top0..\n";
@@ -448,9 +443,9 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 //	std::cout<< "top3..\n";
 	
   	//initialize saving of the detection for t=0
-	sim_status.push_back(0); 
-	death_status.push_back(0); 
-	deathH_status.push_back(0); 
+	status.simulation.push_back(0); 
+	status.deaths.push_back(0); 
+	status.hospital_deaths.push_back(0); 
 	//run the simulation
 	for (int tt = 1; tt < n_sim_steps; ++tt) {
 		//initialize return value
@@ -520,13 +515,13 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 //std::cout<< "top9..\n";
 //		std::cout << tt << " , " <<  detected << " , " << deaths << " , " << deathsH << '\n';
 
-		sim_status.push_back(detected); 
-		death_status.push_back(deaths); 
-		deathH_status.push_back(deathsH);
+		status.simulation.push_back(detected); 
+		status.deaths.push_back(deaths); 
+		status.hospital_deaths.push_back(deathsH);
     }	
 	//save the population in each epi compt for the last day
 	for ( int age = 0; age < n_agegroup; ++age) {
-		ends.push_back(poparray[age]);
+		status.ends.push_back(poparray[age]);
 	}
 }
 
