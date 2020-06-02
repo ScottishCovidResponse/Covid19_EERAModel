@@ -6,54 +6,6 @@
 namespace EERAModel {
 namespace FittingProcess {
 
-std::vector<double> parameter_select_initial(const std::vector<double>& flag1,
-	const std::vector<double>& flag2, gsl_rng * r,int nPar) {
- 	
-	std::vector<double> selected_param(nPar, 0);
-
-	//pick randomly parameters' value from priors with gamma shape
-    for (int xx = 0; xx < nPar; ++xx) {
-        double tmpval = 0.0;
-		if(xx == 2 ){
-			tmpval = (double)gsl_ran_poisson(r, flag1[xx]);
-		} else if( xx == (nPar-1)){
-			tmpval = gsl_ran_flat(r, flag1[xx], flag2[xx]);
-		} else if(xx == 6 ){
-			tmpval = gsl_ran_gamma(r, flag1[xx], flag2[xx]);
-		} else {
-			tmpval = gsl_ran_beta(r, flag1[xx], flag2[xx]);
-		}
-    	//return a vector with all selection measures
-    	selected_param[xx] = tmpval;
-	}
-
-	return selected_param;
-}
-
-std::vector<double> parameter_select(int nPar, gsl_rng * r,
-	std::vector<particle> particleList, int pick_val, const std::vector<double>& vlimitKernel, 
-	const std::vector<double>& vect_min, const std::vector<double>& vect_Max) {
-
-	std::vector<double> selected_param(nPar, 0);
-
-    //define the elements of the chosen particle
-    particle perturbList = particleList[pick_val];
-
-	//perturb all elements of the chosen particle with a kernel following a uniform distribution +/- kernelFactor
-
-    for (int xx = 0; xx < nPar; ++xx) {
-        double tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        while(std::isnan(tmpval) || tmpval<=vect_min[xx] || tmpval>=vect_Max[xx]){
-        	tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        }
-
-    	//return a vector with all selection measures
-    	selected_param[xx] = tmpval;
-	}
-
-	return selected_param;
-}
-
 void weight_calc(int smc,int pastNpart, std::vector<EERAModel::particle> pastPart,
 	EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel, int nPar) {
 

@@ -17,7 +17,7 @@ namespace Inference {
  * epidemiological model within the inference framework. The parameter sets control the behaviour
  * of the epidemiological model. Repeated runs of the model with different sets of inference 
  * parameters result in different model outputs. If the outputs closely match the observations
- * of disese spread in the world, then the corresponding inference parameter set is retained as 
+ * of disease spread in the world, then the corresponding inference parameter set is retained as 
  * part of the output from the inference framework.
  * 
  * Inference parameter sets can be generated in one of two ways:
