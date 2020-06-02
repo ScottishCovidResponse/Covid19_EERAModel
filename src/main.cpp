@@ -36,6 +36,7 @@
 #include "ModelTypes.h"
 #include "IO.h"
 #include "Utilities.h"
+#include "Random.h"
 
 using namespace EERAModel;
 
@@ -63,6 +64,9 @@ int main() {
 	} else {
         randomiser_seed = time(NULL);
 	}
+    
+    Random::GSLRNG rng(randomiser_seed);
+
 	//initialise the gsl random number generator with a seed depending on the time of the run
 	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937);
 	gsl_rng_set(r, randomiser_seed);
