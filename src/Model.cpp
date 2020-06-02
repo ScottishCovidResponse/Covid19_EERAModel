@@ -404,7 +404,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 
 	int n_agegroup = waifw_norm.size();
 	int inLockdown = 0;
-	double seed_pop[6];
+	double seed_pop[n_agegroup-1];
 	int n_comparts=16;
 
 	std::vector<std::vector<double>> parameter_fit(waifw_norm.size());	
@@ -425,8 +425,8 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				poparray[age][st] = 0;
 			}
 		}
-		if((age > 0) && (age < (n_agegroup - 1))) { //seed only occurs in >20yo and not in HCW
-			seed_pop[age-1] = (double)agenums[age];
+		if(age < (n_agegroup - 1) ) { //seed  not occur in HCW
+			seed_pop[age] = (double)agenums[age];
 		}
 	}
 
@@ -436,11 +436,11 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	if(seedlist.seedmethod != "background"){
 	//	size_t k = sizeof(seed_pop);
 	//	unsigned int startdist[k];
-		std::vector<int> startdist = {0,0,0,0,0,0};
-		startdist[(int) gsl_ran_flat(r, 0, 6)] = seedlist.nseed;
+		std::vector<int> startdist = {0,0,0,0,0,0,0};
+		startdist[(int) gsl_ran_flat(r, 0, n_agegroup-1 )] = seedlist.nseed;
 	//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
 
-		for ( int age =1; age < (n_agegroup-1); ++age) {
+		for ( int age =0; age < (n_agegroup-1); ++age) {
 			poparray[age][0] -=  startdist[age-1];//take diseased out of S
 			poparray[age][3] +=  startdist[age-1];//put diseased in I	
 		}	
@@ -475,8 +475,8 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				
 				//compute the total number of susceptible and the number of susceptible per age class
 				int n_susc = 0;
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-					seed_pop[age-1] = (double)poparray[age][0];
+				for ( int age = 0; age < (n_agegroup-1); ++age) {
+					seed_pop[age] = (double)poparray[age][0];
 					n_susc+=poparray[age][0];
 					
 //					std::cout <<"pop to seed: " << poparray[age][0] << "," << seed_pop[age-1] << "," << n_susc <<"\n";
@@ -496,9 +496,9 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 			*/				
 				gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
 
-				for ( int age =1; age < (n_agegroup-1); ++age) {
+				for ( int age =0; age < (n_agegroup-1); ++age) {
 //					std::cout <<"seed: " << startdist[age-1] <<"\n";
-					int nseed = startdist[age-1];//std::min(poparray[age][0], startdist[age-1]);
+					int nseed = startdist[age];//std::min(poparray[age][0], startdist[age-1]);
 					poparray[age][0] -=  nseed;//take diseased out of S
 					poparray[age][1] +=  nseed;//put diseased in E	
 				}	
@@ -588,29 +588,30 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	
     // symptomatic - non-frail
     int hospitalize=0;
-//	std::cout << "hospitalize: " << p_h * (4 / T_sym) << "\n";* (1 - capacity)
 	flow(r, pop, newpop, I_s4, H, p_h  * (1.0 - capacity) * (4.0 / T_sym), hospitalize);
 	
     int newdeathsI_s=0;
-//	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";* capacity
 	flow(r, pop, newpop, I_s4, D, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym), newdeathsI_s);
 	
     int recoverI_s=0;
-//	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";
 	flow(r, pop, newpop, I_s4, R, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym), recoverI_s);
 	
 
     int Is_from3_to_4=0;
-//	std::cout << "Is_from3_to_4: " << (4 / T_sym) << "\n";
 	flow(r, pop, newpop, I_s3, I_s4, (4.0 / T_sym), Is_from3_to_4);
 	
     int Is_from2_to_3=0;
-//	std::cout << "Is_from2_to_3: " << (4 / T_sym) << "\n";
 	flow(r, pop, newpop, I_s2, I_s3, (4.0 / T_sym), Is_from2_to_3);
 		
     int Is_from1_to_2=0;
-//	std::cout << "Is_from1_to_2: " << (4 / T_sym) << "\n";
 	flow(r, pop, newpop, I_s1, I_s2, (4.0 / T_sym), Is_from1_to_2);
+
+	//pre-clinical
+    int showsymptoms=0;
+	flow(r, pop, newpop, I_p, I_s1, ( 1.0 / T_inf ), showsymptoms);	
+	
+
+
 
 	// symptomatic -frail
 //   unsigned int hospitalize_f=0;
@@ -623,40 +624,27 @@ static void infspread(gsl_rng * r, std::vector<int>& pop, int& deaths, int& deat
 	
 	// asymptomatic
     int recoverI=0;
-//	std::cout << "recoverI: " << ( 4/T_rec ) << "\n";
 	flow(r, pop, newpop, I4, R, ( 4.0 / T_rec ), recoverI);
 	
     int I_from3_to_4=0;
-//	std::cout << "I_from3_to_4: " << ( 4/T_rec ) << "\n";
 	flow(r, pop, newpop, I3, I4, ( 4.0 / T_rec ), I_from3_to_4);
 	
     int I_from2_to_3=0;
-//	std::cout << "I_from2_to_3: " << ( 4/T_rec ) << "\n";
 	flow(r, pop, newpop, I2, I3, ( 4.0 / T_rec ), I_from2_to_3);
  
     int I_from1_to_2=0;
-//	std::cout << "I_from1_to_2: " << ( 4/T_rec ) << "\n";
 	flow(r, pop, newpop, I1, I2, ( 4.0 / T_rec ), I_from1_to_2);
-	
-	// infectious - pre-clinical
-    int newasymptomatic=0;
-//	std::cout << "newasymptomatic: " << (1 - pf_val) * (1-p_s) * ( 1/T_inf )<< "\n";
-	flow(r, pop, newpop, I_p, I1, (1.0 - p_s) * ( 1.0 / T_inf ), newasymptomatic);
-		
-//flow(r, I_p, I1, p_d * ( 1/T_sym ), newasymptomatic);
 
+	// latent
     int newsymptomatic=0;
-//	std::cout << "newsymptomatic: " << (1 - pf_val) * p_s * ( 1/T_inf ) << "\n";
-	flow(r, pop, newpop, I_p, I_s1, p_s * ( 1.0 / T_inf ), newsymptomatic);	
+	flow(r, pop, newpop, E, I_p, p_s * ( 1.0 / T_lat ), newsymptomatic);
 	
+    int newasymptomatic=0;
+	flow(r, pop, newpop, E, I1, (1.0 - p_s) * ( 1.0 / T_lat ), newasymptomatic);
+
 //    unsigned int newinffrail=0;
 //	std::cout << "newinffrail: " << pf_val * ( 1/T_inf ) << "\n";
 //	flow(r, I_p, I_fs, pf_val * ( 1/T_inf ), newinffrail);		
-	
-    // latent
-    int infectious=0;
-//	std::cout << "infectious: " << 1/T_lat << "\n";
-	flow(r, pop, newpop, E, I_p, ( 1.0 / T_lat ), infectious);
 	
     int infectious_t=0;
 //	std::cout << "infectious_t: " << (1 / T_lat) << "\n";
