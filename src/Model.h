@@ -92,5 +92,19 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
  */
 std::vector<double> build_population_seed(const std::vector<int>& age_nums);
 
+/**
+ * @brief Construct the population array
+ * 
+ * Sets up an array for the population at each timestep in each age and disease category	
+ * also set up the age distribution of old ages as target for disease introduction.
+ * 
+ * @param age_nums Vector containing the number of people in each age group
+ * @param n_compartments Number of compartments
+ * 
+ * @return Vector of vectors containing per compartment populations
+ */ 
+std::vector<std::vector<int>> build_population_array(const std::vector<int>& age_nums, const int& n_compartments);
+
+
 } // namespace Model
 } // namespace EERAModel

@@ -404,6 +404,24 @@ std::vector<double> build_population_seed(const std::vector<int>& age_nums)
 	return _temp;
 }
 
+std::vector<std::vector<int>> build_population_array(const std::vector<int>& age_nums, const int& n_compartments)
+{
+	std::vector<std::vector<int>> _temp(age_nums.size(), std::vector<int>(n_compartments));
+
+	for ( int age{0}; age < age_nums.size(); ++age) {
+		for ( int st{0}; st < n_compartments; ++st) {
+			if(st ==0) {
+				_temp[age][st] = age_nums[age]; //set up the starting population as fully susceptible
+			} else {
+				_temp[age][st] = 0;
+			}
+		}
+	}
+
+	return _temp;
+
+}
+
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, gsl_rng * r, Status& status) {
@@ -426,18 +444,8 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
-	//sets up an array for the population at each timestep in each age and disease category	
-	//also set up the age distribution of old ages as target for disease introduction
-	std::vector<std::vector<int>> poparray(n_agegroup, std::vector<int>(n_comparts));	  
-	for ( int age = 0; age < (n_agegroup); ++age) {
-		for ( int st = 0; st < n_comparts; ++st) {
-			if(st ==0) {
-				poparray[age][st]=agenums[age]; //set up the starting population as fully susceptible
-			} else {
-				poparray[age][st] = 0;
-			}
-		}
-	}
+	std::vector<std::vector<int>> poparray = build_population_array(agenums, n_comparts);
+	
 
 //	std::cout<< "top2..\n";
 	//introduce disease at t=0. if seedmethod != "background"
