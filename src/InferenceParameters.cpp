@@ -1,4 +1,5 @@
 #include "InferenceParameters.h"
+#include <cmath>
 #include <gsl/gsl_randist.h>
 
 namespace EERAModel {
@@ -41,36 +42,36 @@ std::vector<double> InferenceParameterGenerator::GenerateInitial()
 	return parameterSet;
 }
 
-#if 0
 std::vector<double> InferenceParameterGenerator::GenerateWeighted(
-    std::vector<particle> particleList,
-    int pick_val, 
+    const std::vector<double>& existingSet,
     const std::vector<double>& vlimitKernel,
-    const std::vector<double>& vect_min,
-    const std::vector<double>& vect_Max) 
+    const std::vector<double>& vect_Max,
+    const std::vector<double>& vect_Min) 
 {
-	std::vector<particle> particleList, int pick_val, const std::vector<double>& vlimitKernel, 
-	const std::vector<double>& vect_min, const std::vector<double>& vect_Max) {
+    std::vector<double> parameterSet(nParameters_, 0.0);
+    
+    for (size_t i = 0; i < nParameters_; ++i) 
+    {
+        parameterSet[i] = PerturbParameter(
+            existingSet[i], vlimitKernel[i], vect_Max[i], vect_Min[i]
+        );
+    }
 
-	std::vector<double> selected_param(nPar, 0);
-
-    //define the elements of the chosen particle
-    particle perturbList = particleList[pick_val];
-
-	//perturb all elements of the chosen particle with a kernel following a uniform distribution +/- kernelFactor
-
-    for (int xx = 0; xx < nPar; ++xx) {
-        double tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        while(std::isnan(tmpval) || tmpval<=vect_min[xx] || tmpval>=vect_Max[xx]){
-        	tmpval = perturbList.parameter_set[xx]+vlimitKernel[xx]*gsl_ran_flat(r, -1, 1);
-        }
-
-    	//return a vector with all selection measures
-    	selected_param[xx] = tmpval;
-	}
-
-	return selected_param;
+    return parameterSet;
 }
-#endif
+
+double InferenceParameterGenerator::PerturbParameter(double oldParam, double kernel, double max, double min)
+{
+    double parameter;
+    
+    do
+    {
+        parameter = oldParam + kernel * gsl_ran_flat(r_, -1, 1);
+    } 
+    while (std::isnan(parameter) || parameter <= min || parameter >= max);
+    
+    return parameter;
+}
+
 } // namespace Inference
 } // namespace EERAModel

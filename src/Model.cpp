@@ -263,17 +263,15 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				//pick the values of each particles
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
-					#if 0
-                    outs_vec.parameter_set = FittingProcess::parameter_select_initial(flag1, flag2,
-						r, modelInputParameters.nPar);
-                    #endif
+
                     outs_vec.parameter_set = inferenceParameterGenerator.GenerateInitial();
 					
 				} else {
-					//sample 1 particle from the previously accepted particles and given their weight (also named "importance sampling")
+					// sample 1 particle from the previously accepted particles
+                    // and given their weight (also named "importance sampling")
 				    int pick_val = weight_distr(gen);
-				    outs_vec.parameter_set = FittingProcess::parameter_select(
-						modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
+				    outs_vec.parameter_set = inferenceParameterGenerator.GenerateWeighted(
+                        particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
 				}
 
 				//run the model and compute the different measures for each potential parameters value
