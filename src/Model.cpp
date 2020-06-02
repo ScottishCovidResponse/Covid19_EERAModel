@@ -546,9 +546,6 @@ static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH,
 	//define the position of each compartment in pop
 	// I_fs = pop.H;
 	// H_f  = pop.D;
-    int S=0, E=1, E_t=2, I_p=3, I_t=4,I1=5,I2=6,I3=7,I4=8;
-	int I_s1=9, I_s2=10, I_s3=11, I_s4=12;//, I_fs=pop[13]
-	int H=13, R=14, D=15 ;//, H_f=pop[15]
 	
 	//fixed parameters
 	double T_lat= fixed_parameters.T_lat;

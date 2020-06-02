@@ -26,10 +26,16 @@ struct AgeGroupData
 	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
 };
 
+/**
+ * @brief Structure containing counters for different population categories
+ * 
+ * Integers to count the number of people within the different compartments within the model 
+ * TODO: Name all the container types here
+ */
 struct Compartments
 {
 	int S = 0;
-	int E = 0;
+	int E = 0;	
 	int E_t = 0;
 	int I_p = 0;
 	int I_t = 0;
