@@ -206,5 +206,20 @@ int flow(gsl_rng*r, const int& pops_from_val, const int& pops_new_from_val, cons
  */
 void generate_diseased(gsl_rng* r, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
 
+/**
+ * @brief Generate vector of lambda values for the age groups
+ * 
+ * Creates lambda values based on compartment occupancy for each age group
+ * 
+ * @param inf_hosp Number of hospitalised infected
+ * @param parameter_set Set of model parameters
+ * @param u_val
+ * @param age_data Age group data set
+ * @param pops Population array containing compartments for each age group
+ * @param shut State of lockdown
+ */
+std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
+
 } // namespace Model
 } // namespace EERAModel

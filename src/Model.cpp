@@ -513,12 +513,9 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 			//compute the total number of susceptible and the number of susceptible per age class			
 			generate_diseased(r, poparray, seed_pop, bkg_lambda);
 		}
-//			std::cout<< "top6..\n";
 
-//std::cout<< "top7..\n";
 		//compute the forces of infection
-		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, totHosp, parameter_set,fixed_parameters[0].inf_asym, per_age_data,
+		std::vector<double> lambda = generate_lambda_vector(totHosp, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
 				poparray, inLockdown);	
 
 		//step each agegroup through infections
@@ -685,40 +682,58 @@ static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH,
 	deathsH += newdeathsH ;
 	detected += (hospitalize + infectious_t);	
 }
-static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double> parameter_set, double u_val, 
-			AgeGroupData age_data, std::vector<Compartments> pops, bool shut) {
 
-  double p_i = parameter_set[0];	
-  double p_hcw = parameter_set[1];	
-  double c_hcw = parameter_set[2];	
-  double d_val = parameter_set[3];					
-  double q_val = parameter_set[4];	
-  
-  //lambda=rep(NA,nrow(pops))
-  int n_agegroup = age_data.waifw_norm.size();
-  double quarantined = 0.0;//mean proportion reduction in contacts due to quarantine
-  std::vector<double> I_mat(n_agegroup); 
-  //contact matrix
-  std::vector<std::vector<double>> waifw(n_agegroup, std::vector<double> (n_agegroup)); 
-  //age-dependent transmission rate
-  std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup)); 
+std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut) 
+{
+
+	double p_i = parameter_set[0];	
+	double p_hcw = parameter_set[1];	
+	double c_hcw = parameter_set[2];	
+	double d_val = parameter_set[3];					
+	double q_val = parameter_set[4];
+	
+	//lambda=rep(NA,nrow(pops))
+	int n_agegroup = age_data.waifw_norm.size();
+
+	std::vector<double> lambda(n_agegroup);
+
+	double quarantined = 0.0;	// mean proportion reduction in contacts due to quarantine
+
+	std::vector<double> I_mat(n_agegroup); 
+
+	//contact matrix
+	std::vector<std::vector<double>> waifw = (shut) ? std::vector<std::vector<double>>(n_agegroup, std::vector<double> (n_agegroup)) : age_data.waifw_norm; 
+
+	//age-dependent transmission rate
+	std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup));
+
+  if(shut)
+  {
+    for ( int from = 0; from < n_agegroup; ++from) 
+    {
+      for ( int to = 0; to < n_agegroup; ++to) 
+      {
+        //contact network during shutdown period, assuming a proportion d will properly do it
+        waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
+      }
+    }
+  }
   
   for ( int from = 0; from < n_agegroup; ++from) {
-	  for ( int to = 0; to < n_agegroup; ++to) {
-		  if(!shut){
-		  	//contact network during normal period
-		    waifw[from][to]  = age_data.waifw_norm[from][to] ;
-		  } else {
-			//contact network during shutdown period, assuming a proportion d will properly do it
-		  	waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
-		  }
-		  beta[from][to] = waifw[from][to] * p_i ;
-		  if(waifw[from][to]>0) {
-			  quarantined += age_data.waifw_home[from][to]/waifw[from][to];
-		  } else {
-			  quarantined += 0;
-		  }
-	  }
+    for ( int to = 0; to < n_agegroup; ++to) 
+    {
+      if(waifw[from][to]>0)
+      {
+        quarantined += age_data.waifw_home[from][to]/waifw[from][to];
+      } 
+			
+      else
+      {
+         quarantined += 0;
+      }
+      beta[from][to] = waifw[from][to] * p_i ;
+	}
   } 
   
   //mean proportion reduction in contacts due to quarantine accounting for compliance
@@ -754,6 +769,8 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double
   const int tot_pop = accumulate_compartments(pops[n_agegroup-1]);
   //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
   lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+
+  return lambda;
 }
 
 /*void flow(gsl_rng * r, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
