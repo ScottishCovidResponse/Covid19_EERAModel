@@ -7,10 +7,10 @@ namespace Inference {
 
 InferenceParameterGenerator::InferenceParameterGenerator(
     std::size_t nParameters,
-    gsl_rng* r,
+    Random::RNGInterface::Sptr rng,
     const std::vector<double>& flag1,
     const std::vector<double>& flag2) 
-     : nParameters_(nParameters), r_(r), flag1_(flag1), flag2_(flag2) {}
+     : nParameters_(nParameters), rng_(rng), flag1_(flag1), flag2_(flag2) {}
 
 std::vector<double> InferenceParameterGenerator::GenerateInitial()
 {
@@ -21,19 +21,19 @@ std::vector<double> InferenceParameterGenerator::GenerateInitial()
 
         if (i == 2) 
         {
-            tmpval = (double) gsl_ran_poisson(r_, flag1_[i]);
+            tmpval = (double) rng_->Poisson(flag1_[i]);
         }
         else if (i == (nParameters_ - 1)) 
         {
-            tmpval = gsl_ran_flat(r_, flag1_[i], flag2_[i]);
+            tmpval = rng_->Flat(flag1_[i], flag2_[i]);
         } 
         else if (i == 6)
         {
-            tmpval = gsl_ran_gamma(r_, flag1_[i], flag2_[i]);
+            tmpval = rng_->Gamma(flag1_[i], flag2_[i]);
         }
         else
         {
-            tmpval = gsl_ran_beta(r_, flag1_[i], flag2_[i]);
+            tmpval = rng_->Beta(flag1_[i], flag2_[i]);
         }
         
         parameterSet[i] = tmpval;
@@ -66,7 +66,7 @@ double InferenceParameterGenerator::PerturbParameter(double oldParam, double ker
     
     do
     {
-        parameter = oldParam + kernel * gsl_ran_flat(r_, -1, 1);
+        parameter = oldParam + kernel * rng_->Flat(-1, 1);
     } 
     while (std::isnan(parameter) || parameter <= min || parameter >= max);
     

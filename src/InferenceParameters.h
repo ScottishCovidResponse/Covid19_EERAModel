@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <gsl/gsl_rng.h>
 #include "ModelTypes.h"
+#include "Random.h"
 
 namespace EERAModel {
 namespace Inference {
@@ -35,12 +36,13 @@ public:
      * @brief Constructor
      * 
      * @param nParameters Number of inference parameters to generate in each set
+     * @param rng Random number generator
      * @param flag1 First data set of priors 
      * @param flag2 Second data set of priors
      */
     InferenceParameterGenerator(
         std::size_t nParameters,
-        gsl_rng* r, 
+        Random::RNGInterface::Sptr rng, 
         const std::vector<double>& flag1,
         const std::vector<double>& flag2
     );
@@ -102,7 +104,7 @@ private:
      * @private
      * @brief Local random number generator
      */
-    gsl_rng* r_;
+    Random::RNGInterface::Sptr rng_;
 
     /**
      * @private

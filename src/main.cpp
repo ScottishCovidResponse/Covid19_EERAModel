@@ -65,18 +65,14 @@ int main() {
         randomiser_seed = time(NULL);
 	}
     
-    Random::GSLRNG rng(randomiser_seed);
-
-	//initialise the gsl random number generator with a seed depending on the time of the run
-	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937);
-	gsl_rng_set(r, randomiser_seed);
+    Random::GSLRNG::Sptr rng = std::make_shared<Random::GSLRNG>(randomiser_seed);
 
 	//initialise the random number generator for importance sampling
 	std::mt19937 gen(randomiser_seed);
 
 	(*logger) << "[Seed]:\n    Type: ";
-        (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
+    (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
-	Model::Run(modelInputParameters, observations, r, gen, out_dir, logger);
+	Model::Run(modelInputParameters, observations, rng, gen, out_dir, logger);
 }
