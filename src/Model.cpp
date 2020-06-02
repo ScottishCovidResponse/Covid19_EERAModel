@@ -30,8 +30,8 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<doubl
 				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut);
 
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				AgeGroupData per_age_data, int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
-				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
+				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
+				int n_sim_steps, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status);
 
 /**
@@ -351,9 +351,10 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	std::vector<std::vector<int>> ends;
 
 	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
+	const int n_sim_steps = get_n_simulation_steps(duration, tau);
 	
-	my_model(outvec.parameter_set, fixed_parameters, per_age_data, duration, seedlist, day_shut,
-			agenums, tau, r, sim_status, ends, death_status, deathH_status);
+	my_model(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
+			agenums, n_sim_steps, r, sim_status, ends, death_status, deathH_status);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
@@ -393,8 +394,8 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 }
  
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				AgeGroupData per_age_data, int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
-				double tau, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
+				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
+				int n_sim_steps, gsl_rng * r, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
 				std::vector<int> &death_status,std::vector<int> &deathH_status) {
 
 
@@ -451,7 +452,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	death_status.push_back(0); 
 	deathH_status.push_back(0); 
 	//run the simulation
-	for (int tt = 1; tt < (int)ceil(duration/tau); ++tt) {
+	for (int tt = 1; tt < n_sim_steps; ++tt) {
 		//initialize return value
 		int deaths=0;
 		int deathsH=0;
