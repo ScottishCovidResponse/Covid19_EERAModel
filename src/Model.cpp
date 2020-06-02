@@ -389,6 +389,21 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	outvec.end_comps = status.ends;
 }
  
+std::vector<double> build_population_seed(const std::vector<int>& age_nums)
+{
+	std::vector<double> _temp = {};
+	for ( int age = 0; age < age_nums.size(); ++age)
+	{
+		// seed only occurs in >20yo and not in HCW
+		if( age > 0 && age < age_nums.size()-1 ) 
+		{
+			_temp.push_back(static_cast<double>(age_nums[age]));
+		}
+	}
+
+	return _temp;
+}
+
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, gsl_rng * r, Status& status) {
@@ -396,9 +411,11 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 
 ///	std::cout<< "top0..\n";
 
-	int n_agegroup = per_age_data.waifw_norm.size();
+	const int n_agegroup = per_age_data.waifw_norm.size();
 	int inLockdown = 0;
-	double seed_pop[6];
+
+	// Assumes that the number of age groups matches the size of the 'agenums' vector
+	std::vector<double> seed_pop = build_population_seed(agenums);
 	int n_comparts=16;
 
 	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size());	
@@ -418,9 +435,6 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 			} else {
 				poparray[age][st] = 0;
 			}
-		}
-		if((age > 0) && (age < (n_agegroup - 1))) { //seed only occurs in >20yo and not in HCW
-			seed_pop[age-1] = (double)agenums[age];
 		}
 	}
 
@@ -479,8 +493,8 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				//how many diseased is introduced in each given day before lockdown
 				//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
 				int startdz = gsl_ran_poisson(r, (double)n_susc * bkg_lambda);		
-				size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
-				unsigned int startdist[k];
+				//size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
+				unsigned int startdist[seed_pop.size()];
 			/*	std::vector<int> startdist = {0,0,0,0,0,0};
 				int pickcomp = (int)gsl_ran_flat(r, 0, 6);
 				while(poparray[pickcomp][0]<1){
@@ -488,7 +502,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 				} 
 				startdist[pickcomp] = startdz;
 			*/				
-				gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
+				gsl_ran_multinomial(r, seed_pop.size(), startdz, &seed_pop[0], startdist); //distribute the diseased across the older age categories
 
 				for ( int age =1; age < (n_agegroup-1); ++age) {
 //					std::cout <<"seed: " << startdist[age-1] <<"\n";

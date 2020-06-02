@@ -81,5 +81,16 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	int duration, seed seedlist, int day_shut, gsl_rng * r, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
 
+/**
+ * @brief Construct the population seed
+ * 
+ * Builds a vector of integers based on the input.
+ * 
+ * @param age_nums Vector containing the number of people in each age group
+ * 
+ * @return Vector containing populations
+ */
+std::vector<double> build_population_seed(const std::vector<int>& age_nums);
+
 } // namespace Model
 } // namespace EERAModel
