@@ -273,24 +273,24 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 						outs_vec.parameter_set = FittingProcess::parameter_select(
 							modelInputParameters.nPar, r, particleList, pick_val, vlimitKernel,vect_min,vect_Max);
 					}
-
-					EERAModel::InputParametersObservations input_parameters_obs;
-					input_parameters_obs.cfr_byage = observations.cfr_byage;
-					input_parameters_obs.pf_byage = pf_byage;
-					input_parameters_obs.waifw_norm = observations.waifw_norm;
-					input_parameters_obs.waifw_sdist = observations.waifw_sdist;
-					input_parameters_obs.waifw_home = observations.waifw_home;
-
-					//run the model and compute the different measures for each potential parameters value
-					model_select(outs_vec, fixed_parameters, input_parameters_obs,
-								agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
-								modelInputParameters.day_shut, r, obsHosp, obsDeaths);
 				}
-				// else if (modelInputParameters.run_type == "Prediction")
-				// {
-				// 	outs_vec.parameter_set = ReadFromFile;
-					
-				// }
+				else if (modelInputParameters.run_type == "Prediction")
+				{
+					outs_vec.parameter_set = modelInputParameters.prior_param_list;  // Read from file
+				}
+
+				EERAModel::InputParametersObservations input_parameters_obs;
+				input_parameters_obs.cfr_byage = observations.cfr_byage;
+				input_parameters_obs.pf_byage = pf_byage;
+				input_parameters_obs.waifw_norm = observations.waifw_norm;
+				input_parameters_obs.waifw_sdist = observations.waifw_sdist;
+				input_parameters_obs.waifw_home = observations.waifw_home;
+
+				//run the model and compute the different measures for each potential parameters value
+				model_select(outs_vec, fixed_parameters, input_parameters_obs,
+							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
+							modelInputParameters.day_shut, r, obsHosp, obsDeaths);
+				
 
 				//count the number of simulations that were used to reach the maximum number of accepted particles
 				//#pragma omp critical
@@ -371,7 +371,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	std::vector<std::vector<double>> waifw_home = parameters_in.waifw_home;
 	std::vector<std::vector<double>> waifw_sdist = parameters_in.waifw_sdist;
 
-	my_model(outvec.parameter_set	, fixed_parameters, cfr_byage, pf_byage, waifw_norm, waifw_sdist,
+	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage, waifw_norm, waifw_sdist,
 		waifw_home,	duration, seedlist, day_shut, agenums, tau, r, sim_status, ends,
 		death_status, deathH_status);
 
