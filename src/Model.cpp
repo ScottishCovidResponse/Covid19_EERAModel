@@ -383,7 +383,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 std::vector<double> build_population_seed(const std::vector<int>& age_nums)
 {
 	std::vector<double> _temp = {};
-	for ( int age = 0; age < age_nums.size(); ++age)
+	for ( int age{0}; age < age_nums.size(); ++age)
 	{
 		// seed only occurs in >20yo and not in HCW
 		if( age > 0 && age < age_nums.size()-1 ) 
@@ -398,7 +398,7 @@ std::vector<double> build_population_seed(const std::vector<int>& age_nums)
 std::vector<Compartments> build_population_array(gsl_rng* r, const std::vector<int>& age_nums, const seed& seedlist)
 {
 	std::vector<Compartments> _temp(age_nums.size(), Compartments());
-	for ( int age = 0; age < age_nums.size(); ++age) {
+	for ( int age{0}; age < age_nums.size(); ++age) {
 		_temp[age].S = age_nums[age]; //set up the starting population as fully susceptible
 	}
 
@@ -470,9 +470,6 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	// Assumes that the number of age groups matches the size of the 'agenums' vector
 	std::vector<double> seed_pop = build_population_seed(agenums);
 
-	// Set number of compartments
-	const int n_comparts=16;
-
 	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
@@ -485,7 +482,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 //	std::cout<< "top3..\n";
 	
 	//run the simulation
-	for (int tt = 1; tt < n_sim_steps; ++tt) {
+	for (int tt{1}; tt < n_sim_steps; ++tt) {
 		//initialize return value
 		InfectionState infection_state;	
 		
@@ -509,7 +506,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 
 		//step each agegroup through infections
 		for ( int age{0}; age < (n_agegroup); ++age) {	
-			const InfectionState new_spread = infspread(r, poparray[age], infection_state.hospitalised, fixed_parameters[age],parameter_fit[age],
+			const InfectionState new_spread = infection_spread(r, poparray[age], infection_state.hospitalised, fixed_parameters[age],parameter_fit[age],
 															per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
 
 			infection_state.deaths += new_spread.deaths;
@@ -524,12 +521,12 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		status.hospital_deaths.push_back(infection_state.hospital_deaths);
     }	
 	//save the population in each epi compt for the last day
-	for ( int age = 0; age < n_agegroup; ++age) {
+	for ( int age{0}; age < n_agegroup; ++age) {
 		status.ends.push_back(poparray[age]);
 	}
 }
 
-InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalised,
+InfectionState infection_spread(gsl_rng * r, Compartments& pop, const int& n_hospitalised,
 	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda)
 {
 		

@@ -234,7 +234,7 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
  * @param pf_val Frailty Probability
  * @param lambda Rate of spread
  */
-InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+InfectionState infection_spread(gsl_rng * r, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
 						std::vector<double> parameter_set, std::vector<double> cfr_tab,
 						double pf_val, double lambda);
 
