@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <random>
 #include <gsl/gsl_rng.h>
 
 namespace EERAModel {
@@ -69,26 +70,35 @@ public:
      * @return Random number
      */
     virtual double Beta(double a, double b) = 0;
+
+    /**
+     * @brief MT19937 generator
+     * 
+     * Returns a reference to a std::mt19937 object
+     * 
+     * @return mt19937 reference
+     */
+    virtual std::mt19937& MT19937() = 0;
 };
 
 /**
- * @class GSLRNG 
+ * @class RNG 
  * @brief Wrapper for the GNU Scientific Library random number generator
  */
-class GSLRNG : public RNGInterface
+class RNG : public RNGInterface
 {
 public:
-    using Sptr = std::shared_ptr<GSLRNG>;
+    using Sptr = std::shared_ptr<RNG>;
 
     /**
      * @brief Contructor
      * 
-     * Sets up a handle for the underlying GSL random number generator. Seeds the randomiser
+     * Sets up a handle for the underlying GSL and STL random number generator. Seeds the randomiser
      * with the supplied seed
      * 
      * @param seed Seed value
      */
-    GSLRNG(unsigned long int seed);
+    RNG(unsigned long int seed);
 
     /** @brief Flat distribution override */
     virtual double Flat(double a, double b) override;
@@ -105,12 +115,21 @@ public:
     /** @brief Beta distribution override */
     virtual double Beta(double a, double b) override;
 
+    /** @brief MT19937 override */
+    virtual std::mt19937& MT19937() override;
+    
 private:
     /**
      * @private
      * @brief Handle for the GSL random number generator
      */
     gsl_rng* r_;
+
+    /**
+     * @private
+     * @brief Mersenne twister generator
+     */
+    std::mt19937 gen_;
 };
 
 } // namespace Random

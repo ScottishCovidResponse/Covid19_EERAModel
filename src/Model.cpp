@@ -91,7 +91,6 @@ static void weekly(std::vector<int>& reduced, const std::vector<int>& original);
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::InputObservations observations,
 		 Random::RNGInterface::Sptr rng,
-		 std::mt19937& gen,
 		 const std::string& outDirPath,
 		 EERAModel::Utilities::logging_stream::Sptr log) {
 	/*---------------------------------------
@@ -267,7 +266,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				} else {
 					// sample 1 particle from the previously accepted particles
                     // and given their weight (also named "importance sampling")
-				    int pick_val = weight_distr(gen);
+				    int pick_val = weight_distr(rng->MT19937());
 				    outs_vec.parameter_set = inferenceParameterGenerator.GenerateWeighted(
                         particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
 				}

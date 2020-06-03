@@ -31,6 +31,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <iostream>
+#include <random>
 
 #include "Model.h"
 #include "ModelTypes.h"
@@ -57,22 +58,18 @@ int main() {
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
 
-	// Decide which kind of seed to use
+	// Set up the random number generator, deciding what kind of seed to use
 	unsigned long randomiser_seed;
 	if (modelInputParameters.seedlist.use_fixed_seed) {
 		randomiser_seed = modelInputParameters.seedlist.seed_value;
 	} else {
         randomiser_seed = time(NULL);
 	}
-    
-    Random::GSLRNG::Sptr rng = std::make_shared<Random::GSLRNG>(randomiser_seed);
-
-	//initialise the random number generator for importance sampling
-	std::mt19937 gen(randomiser_seed);
+    Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
 
 	(*logger) << "[Seed]:\n    Type: ";
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
-	Model::Run(modelInputParameters, observations, rng, gen, out_dir, logger);
+	Model::Run(modelInputParameters, observations, rng, out_dir, logger);
 }

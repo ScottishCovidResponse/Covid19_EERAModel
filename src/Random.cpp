@@ -4,35 +4,41 @@
 namespace EERAModel {
 namespace Random {
 
-GSLRNG::GSLRNG(unsigned long int seed)
+RNG::RNG(unsigned long int seed)
+ : gen_(seed)
 {
     r_ = gsl_rng_alloc (gsl_rng_mt19937);
 	gsl_rng_set(r_, seed);
 }
 
-double GSLRNG::Flat(double a, double b)
+double RNG::Flat(double a, double b)
 {
     return gsl_ran_flat(r_, a, b);
 }
 
-void GSLRNG::Multinomial(size_t K, unsigned int N, const double p[], unsigned int n[])
+void RNG::Multinomial(size_t K, unsigned int N, const double p[], unsigned int n[])
 {
     gsl_ran_multinomial(r_, K, N, p, n);
 }
 
-double GSLRNG::Poisson(double mu)
+double RNG::Poisson(double mu)
 {
     return gsl_ran_poisson(r_, mu);
 }
 
-double GSLRNG::Gamma(double a, double b)
+double RNG::Gamma(double a, double b)
 {
     return gsl_ran_gamma(r_, a, b);
 }
 
-double GSLRNG::Beta(double a, double b)
+double RNG::Beta(double a, double b)
 {
     return gsl_ran_beta(r_, a, b);
+}
+
+std::mt19937& RNG::MT19937()
+{
+    return gen_;
 }
 
 } // namespace Random

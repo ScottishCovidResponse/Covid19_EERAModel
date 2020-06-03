@@ -25,7 +25,6 @@ namespace Model {
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::InputObservations observations,
 		 Random::RNGInterface::Sptr rng,
-		 std::mt19937& gen,
 		 const std::string& outDirPath,
 		 EERAModel::Utilities::logging_stream::Sptr log);
 
