@@ -63,7 +63,7 @@ int main() {
 	if (modelInputParameters.seedlist.use_fixed_seed) {
 		randomiser_seed = modelInputParameters.seedlist.seed_value;
 	} else {
-        randomiser_seed = time(NULL);
+        randomiser_seed = time(nullptr);
 	}
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
 

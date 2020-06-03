@@ -17,25 +17,6 @@
 namespace EERAModel {
 namespace Model {
 
-//static void flow(gsl_rng * rng, unsigned int& pop_from, unsigned& pop_to, double rate, unsigned int& outs);
-static void flow(Random::RNGInterface::Sptr rng, std::vector<int> pops, std::vector<int>& pops_1, 
-				 int from_pos,  int to_pos, double rate, int& outs);
-static void infspread(Random::RNGInterface::Sptr rng, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, int totHosp, 
-				::EERAModel::params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab,
-				double pf_val, double lambda);
-
-static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<double> parameter_set, double u_val,
-				std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
-				std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut);
-
-static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
-				std::vector<std::vector<double>> waifw_norm,
-				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
-				double tau, Random::RNGInterface::Sptr rng, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
-				std::vector<int> &death_status,std::vector<int> &deathH_status);
-
 /**
  * @brief Get the population of a region
  * 
@@ -254,7 +235,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				outs_vec.nsse_cases = 0.0;
 				outs_vec.nsse_deaths = 0.0;
 //				outs_vec.sum_sq = 1.e06;
-				for (int i = 0; i < modelInputParameters.nPar; ++i) {
+				for (int i{0}; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
 				//pick the values of each particles
@@ -346,20 +327,17 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 	// the root model
 	//---------------------------------------
-	std::vector<int> sim_status;
-	/**@todo death_status is unused anywhere (although it is populated in my_model) */
-	std::vector<int> death_status;
-	std::vector<int> deathH_status;
-	std::vector<std::vector<int>> ends;
+
+	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
+	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
-	my_model(outvec.parameter_set, fixed_parameters, cfr_byage, pf_byage,waifw_norm, waifw_sdist,
-		waifw_home,	duration, seedlist, day_shut, agenums, tau, rng, sim_status, ends,
-		death_status, deathH_status);
+	Status status = RunModel(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
+							agenums, n_sim_steps, rng);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
 	//---------------------------------------
-	double sum_sq_cases = Utilities::sse_calc<int>(sim_status, obsHosp);
+	double sum_sq_cases = Utilities::sse_calc<int>(status.simulation, obsHosp);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for weekly observations
@@ -368,7 +346,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	// due to reporting process creating uncertaincies within weeks
 	std::vector<int> obs_death_red, sim_death_red;
 	weekly(obs_death_red, obsDeaths);
-	weekly(sim_death_red, deathH_status);
+	weekly(sim_death_red, status.hospital_deaths);
 	
 	double sum_sq_deaths = Utilities::sse_calc<int>(sim_death_red, obs_death_red);
 
@@ -388,333 +366,367 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 	// Return all selection measures
 	//---------------------------------------
-	outvec.simu_outs = sim_status;
-	outvec.death_outs = deathH_status;
-	outvec.end_comps = ends;
+	outvec.simu_outs = status.simulation;
+	outvec.death_outs = status.hospital_deaths;
+	outvec.end_comps = compartments_to_vector(status.ends);
 }
  
-static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				std::vector<std::vector<double>> cfr_byage, std::vector<double> pf_byage,
-				std::vector<std::vector<double>> waifw_norm,
-				std::vector<std::vector<double>> waifw_sdist, std::vector<std::vector<double>> waifw_home,
-				int duration, seed seedlist, int day_shut, std::vector<int> agenums, 
-				double tau, Random::RNGInterface::Sptr rng, std::vector<int> &sim_status,std::vector<std::vector<int>> &ends,
-				std::vector<int> &death_status,std::vector<int> &deathH_status) {
+std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums)
+{
+	std::vector<double> _temp = {};
+	for ( int age{0}; age < age_nums.size(); ++age)
+	{
+		// seed only occurs in >20yo and not in HCW
+		if( age > 0 && age < age_nums.size()-1 ) 
+		{
+			_temp.push_back(static_cast<double>(age_nums[age]));
+		}
+	}
+
+	return _temp;
+}
+
+std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng, const std::vector<int>& age_nums, const seed& seedlist)
+{
+	std::vector<Compartments> _temp(age_nums.size(), Compartments());
+	for ( int age{0}; age < age_nums.size(); ++age) {
+		_temp[age].S = age_nums[age]; //set up the starting population as fully susceptible
+	}
+
+	//introduce disease at t=0. if seedmethod != "background"
+	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
+	if(seedlist.seedmethod != "background"){
+		//	size_t k = sizeof(seed_pop);
+		//	unsigned int startdist[k];
+		std::vector<int> startdist(6,0);
+		startdist[static_cast<int>(rng->Flat(0, 6))] = seedlist.nseed;
+		//	gsl_ran_multinomial(r, k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
+
+		for ( int age{1}; age < age_nums.size()-1; ++age) {
+			_temp[age].S -=  startdist[age-1];	// take diseased out of S
+			_temp[age].I_p +=  startdist[age-1];	// put diseased in I	
+		}	
+	}
+
+	return _temp;
+}
+
+void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda)
+{
+	int n_susc = 0;
+
+	for ( int age{1}; age < poparray.size()-1; ++age) 
+	{
+		seedarray[age-1] = static_cast<double>(poparray[age].S);
+		n_susc += poparray[age].S;	
+	}
+
+	//how many diseased is introduced in each given day before lockdown
+	//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
+	int startdz = rng->Poisson(static_cast<double>(n_susc) * bkg_lambda);
+
+	//size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
+
+	unsigned int startdist[seedarray.size()];
+
+/*	std::vector<int> startdist = {0,0,0,0,0,0};
+	int pickcomp = (int)gsl_ran_flat(r, 0, 6);
+	while(poparray[pickcomp][0]<1){
+		pickcomp = (int)gsl_ran_flat(r, 0, 6);
+	} 
+	startdist[pickcomp] = startdz;
+*/				
+	rng->Multinomial(seedarray.size(), startdz, &seedarray[0], startdist); //distribute the diseased across the older age categories
+
+	for ( int age{1}; age < poparray.size()-1; ++age) {
+		int nseed = startdist[age-1];
+		//std::min(poparray[age][0], startdist[age-1]);
+		poparray[age].S -=  nseed;	// take diseased out of S
+		poparray[age].E +=  nseed;	// put diseased in E
+	}
+}
+
+Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
+				int n_sim_steps, Random::RNGInterface::Sptr rng) {
 
 
 ///	std::cout<< "top0..\n";
 
-	int n_agegroup = waifw_norm.size();
-	int inLockdown = 0;
-	double seed_pop[6];
-	int n_comparts=16;
+	//initialize saving of the detection for t=0 in simulations, deaths, hospital deaths
+	/**@todo status.deaths is unused anywhere (although it is populated in RunModel) */
+	Status status = {{0}, {0}, {0}, {}};
 
-	std::vector<std::vector<double>> parameter_fit(waifw_norm.size());	
-	for (unsigned int var = 0; var < parameter_fit.size(); ++var) {
-		parameter_fit[var] = parameter_set;
-	}
-    	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
+	const int n_agegroup = per_age_data.waifw_norm.size();
+
+	// Start without lockdown
+	bool inLockdown = false;
+
+	// Assumes that the number of age groups matches the size of the 'agenums' vector
+	std::vector<double> seed_pop = BuildPopulationSeed(agenums);
+
+	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
+	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
-	//sets up an array for the population at each timestep in each age and disease category	
-	//also set up the age distribution of old ages as target for disease introduction
-	std::vector<std::vector<int>> poparray(n_agegroup, std::vector<int>(n_comparts));	  
-	for ( int age = 0; age < (n_agegroup); ++age) {
-		for ( int st = 0; st < n_comparts; ++st) {
-			if(st ==0) {
-				poparray[age][st]=agenums[age]; //set up the starting population as fully susceptible
-			} else {
-				poparray[age][st] = 0;
-			}
-		}
-		if((age > 0) && (age < (n_agegroup - 1))) { //seed only occurs in >20yo and not in HCW
-			seed_pop[age-1] = (double)agenums[age];
-		}
-	}
+	std::vector<Compartments> poparray = BuildPopulationArray(rng, agenums, seedlist);
+	
 
 //	std::cout<< "top2..\n";
-	//introduce disease at t=0. if seedmethod != "background"
-	//WARNING!! MINOR BUG HERE: gsl multinomial sometimes freeze for unknown reasons. replaced by random flat, picking a value where to seed infection. will only works because seed=1.
-	if(seedlist.seedmethod != "background"){
-	//	size_t k = sizeof(seed_pop);
-	//	unsigned int startdist[k];
-		std::vector<int> startdist = {0,0,0,0,0,0};
-		startdist[(int) rng->Flat(0, 6)] = seedlist.nseed;
-	//	rng->Multinomial(k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
-
-		for ( int age =1; age < (n_agegroup-1); ++age) {
-			poparray[age][0] -=  startdist[age-1];//take diseased out of S
-			poparray[age][3] +=  startdist[age-1];//put diseased in I	
-		}	
-	}
 
 //	std::cout<< "top3..\n";
 	
-  	//initialize saving of the detection for t=0
-	sim_status.push_back(0); 
-	death_status.push_back(0); 
-	deathH_status.push_back(0); 
 	//run the simulation
-	for (int tt = 1; tt < (int)ceil(duration/tau); ++tt) {
+	for (int tt{1}; tt < n_sim_steps; ++tt) {
 		//initialize return value
-		int deaths=0;
-		int deathsH=0;
-		int detected=0;
-		std::vector<int> popcomp;
-		int totHosp = 0;	
+		InfectionState infection_state;	
 		
 //		std::cout<< "top4..\n";
 		//identify the lock down
-		if(tt > day_shut)  inLockdown = 1;
+		if(tt > day_shut){ inLockdown = true; }
 		
 	
 		//introduce disease from background infection until lockdown
-	    if(inLockdown<1){
-//			std::cout<< "top5..\n";
-			if(seedlist.seedmethod == "background"){
-				double bkg_lambda = parameter_set[parameter_set.size()-1];
-//				std::cout<< "top5.0..: " << bkg_lambda << std::endl;
-				
-				//compute the total number of susceptible and the number of susceptible per age class
-				int n_susc = 0;
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-					seed_pop[age-1] = (double)poparray[age][0];
-					n_susc+=poparray[age][0];
-					
-//					std::cout <<"pop to seed: " << poparray[age][0] << "," << seed_pop[age-1] << "," << n_susc <<"\n";
-				}
-				
-				//how many diseased is introduced in each given day before lockdown
-				//as a proportion of number of Susceptible available for background infection (not total population, only 20-70 individuals)
-				int startdz = rng->Poisson((double)n_susc * bkg_lambda);		
-				size_t k = sizeof(seed_pop) / sizeof(seed_pop[0]);
-				unsigned int startdist[k];
-			/*	std::vector<int> startdist = {0,0,0,0,0,0};
-				int pickcomp = (int)rng->flat(0, 6);
-				while(poparray[pickcomp][0]<1){
-					pickcomp = (int)rng->Flat(0, 6);
-				} 
-				startdist[pickcomp] = startdz;
-			*/				
-				rng->Multinomial(k, startdz, seed_pop,startdist); //distribute the diseased across the older age categories
+		if(!inLockdown && seedlist.seedmethod == "background")
+		{
+			const double bkg_lambda = parameter_set[parameter_set.size()-1];
 
-				for ( int age =1; age < (n_agegroup-1); ++age) {
-//					std::cout <<"seed: " << startdist[age-1] <<"\n";
-					int nseed = startdist[age-1];//std::min(poparray[age][0], startdist[age-1]);
-					poparray[age][0] -=  nseed;//take diseased out of S
-					poparray[age][1] +=  nseed;//put diseased in E	
-				}	
-			}
-//			std::cout<< "top6..\n";
-	    }
+			//compute the total number of susceptible and the number of susceptible per age class			
+			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda);
+		}
 
-//std::cout<< "top7..\n";
 		//compute the forces of infection
-		std::vector<double> lambda(n_agegroup);
-		Lambda(lambda, totHosp, parameter_set,fixed_parameters[0].inf_asym,waifw_norm, waifw_sdist,waifw_home, 
+		std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
 				poparray, inLockdown);	
 
 		//step each agegroup through infections
-		for ( int age = 0; age < (n_agegroup); ++age) {	
-			infspread(rng, poparray[age], deaths, deathsH, detected,totHosp,fixed_parameters[age],parameter_fit[age],
-				cfr_byage[age],pf_byage[age],lambda[age]);
+		for ( int age{0}; age < (n_agegroup); ++age) {	
+			const InfectionState new_spread = GenerateInfectionSpread(rng, poparray[age], infection_state.hospitalised, fixed_parameters[age],parameter_fit[age],
+															per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+
+			infection_state.deaths += new_spread.deaths;
+			infection_state.hospital_deaths += new_spread.hospital_deaths;
+			infection_state.detected += new_spread.detected;
 		}
 //std::cout<< "top9..\n";
 //		std::cout << tt << " , " <<  detected << " , " << deaths << " , " << deathsH << '\n';
 
-		sim_status.push_back(detected); 
-		death_status.push_back(deaths); 
-		deathH_status.push_back(deathsH);
+		status.simulation.push_back(infection_state.detected); 
+		status.deaths.push_back(infection_state.deaths); 
+		status.hospital_deaths.push_back(infection_state.hospital_deaths);
     }	
 	//save the population in each epi compt for the last day
-	for ( int age = 0; age < n_agegroup; ++age) {
-		ends.push_back(poparray[age]);
+	for ( int age{0}; age < n_agegroup; ++age) {
+		status.ends.push_back(poparray[age]);
 	}
+
+	return status;
 }
 
-static void infspread(Random::RNGInterface::Sptr rng, std::vector<int>& pop, int& deaths, int& deathsH, int& detected, int totHosp,
-	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda){
+InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop, const int& n_hospitalised,
+	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda)
+{
 		
 /*    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I_p=pop[3], I_t=pop[4],I1=pop[5],I2=pop[6],I3=pop[7],I4=pop[8];
 	unsigned int I_s1=pop[9], I_s2=pop[10], I_s3=pop[11], I_s4=pop[12];//, I_fs=pop[13]
 	unsigned int H=pop[13], R=pop[14], D=pop[15] ;//, H_f=pop[15]
 */	
 	//define the vector of return values
-	std::vector<int> newpop = pop;
+	Compartments newpop(pop);
+
+	//Define infection state for this spread
+	InfectionState infection_state;
 	
 	//define the position of each compartment in pop
-    int S=0, E=1, E_t=2, I_p=3, I_t=4,I1=5,I2=6,I3=7,I4=8;
-	int I_s1=9, I_s2=10, I_s3=11, I_s4=12;//, I_fs=pop[13]
-	int H=13, R=14, D=15 ;//, H_f=pop[15]
+	// I_fs = pop.H;
+	// H_f  = pop.D;
 	
 	//fixed parameters
-	double T_lat= fixed_parameters.T_lat;
+	const double T_lat= fixed_parameters.T_lat;
 //	double p_s= fixed_parameters.p_s;
-	double T_inf= fixed_parameters.T_inf;
-	double T_rec= fixed_parameters.T_rec;
-	double T_sym= fixed_parameters.T_sym;
-	double T_hos= fixed_parameters.T_hos;
-	double K=fixed_parameters.K;
+	const double T_inf= fixed_parameters.T_inf;
+	const double T_rec= fixed_parameters.T_rec;
+	const double T_sym= fixed_parameters.T_sym;
+	const double T_hos= fixed_parameters.T_hos;
+	const double K=fixed_parameters.K;
 	
-	double capacity = totHosp/K;
+	double capacity = n_hospitalised/K;
 	capacity = std::min(1.0,capacity);
 	
-	double p_h= cfr_tab[0];
+	const double p_h= cfr_tab[0];
 //	double cfr= cfr_tab[1];	
-	double p_d= cfr_tab[2];	
+	const double p_d= cfr_tab[2];	
 	//double p_dc= cfr_tab[3];
 
-	double p_s= parameter_set[5];
-	double rrd= parameter_set[6];
+	const double p_s= parameter_set[5];
+	const double rrd= parameter_set[6];
 //	double T_hos= parameter_set[6];
 //	double p_hf = parameter_set[6];
 //	double rrdh = parameter_set[7];	
 
     // hospitalized  - non-frail
-    int newdeathsH=0;
-//	std::cout << "newdeathH: " << p_d * (1 / T_hos) << "\n";
-	flow(rng, pop, newpop, H, D, p_d * (1.0 / T_hos), newdeathsH);
+    const int newdeathsH= Flow(rng, pop.H, newpop.H, p_d * (1.0 / T_hos));
+	newpop.H -= newdeathsH;
+	newpop.D += newdeathsH;
 	
-    int recoverH=0;
-//	std::cout << "recoverH: " << (1 - p_d) * (1 / T_hos) << "\n";
-	flow(rng, pop, newpop, H, R, (1.0 - p_d) * (1.0 / T_hos), recoverH);
+    const int recoverH = Flow(rng, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
+	newpop.H -= recoverH;
+	newpop.R += recoverH;
 	
 	//hospitalize - frail
 //    unsigned int newdeathsH_f=0;
 //	std::cout << "newdeathsH_f: " << rrdh * p_d * (1 / T_hos) << "\n";
-//	flow(rng, H_f, D, rrdh * p_d * (1 / T_hos), newdeathsH_f);
+//	Flow(rng, H_f, D, rrdh * p_d * (1 / T_hos), newdeathsH_f);
 	
 //    unsigned int recoverH_f=0;
 //	std::cout << "recoverH_f: " << (1 - rrdh * p_d) * (1 / T_hos) << "\n";
-//	flow(rng, H_f, R, (1 - rrdh * p_d) * (1 / T_hos), recoverH_f);
+//	Flow(rng, H_f, R, (1 - rrdh * p_d) * (1 / T_hos), recoverH_f);
 	
     // symptomatic - non-frail
-    int hospitalize=0;
-//	std::cout << "hospitalize: " << p_h * (4 / T_sym) << "\n";* (1 - capacity)
-	flow(rng, pop, newpop, I_s4, H, p_h  * (1.0 - capacity) * (4.0 / T_sym), hospitalize);
+    const int hospitalize = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
+	newpop.I_s4 -= hospitalize;
+	newpop.H += hospitalize;
 	
-    int newdeathsI_s=0;
-//	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";* capacity
-	flow(rng, pop, newpop, I_s4, D, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym), newdeathsI_s);
+    const int newdeathsI_s = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
+	newpop.I_s4 -= newdeathsI_s;
+	newpop.D += newdeathsI_s;
 	
-    int recoverI_s=0;
-//	std::cout << "recoverI_s: " << (1 - p_h) * ( 4 / T_sym) << "\n";
-	flow(rng, pop, newpop, I_s4, R, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym), recoverI_s);
+    const int recoverI_s = Flow(rng, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
+	newpop.I_s4 -= recoverI_s;
+	newpop.R += recoverI_s;
 	
 
-    int Is_from3_to_4=0;
-//	std::cout << "Is_from3_to_4: " << (4 / T_sym) << "\n";
-	flow(rng, pop, newpop, I_s3, I_s4, (4.0 / T_sym), Is_from3_to_4);
+    const int Is_from3_to_4 = Flow(rng, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
+	newpop.I_s3 -= Is_from3_to_4;
+	newpop.I_s4 += Is_from3_to_4;
 	
-    int Is_from2_to_3=0;
-//	std::cout << "Is_from2_to_3: " << (4 / T_sym) << "\n";
-	flow(rng, pop, newpop, I_s2, I_s3, (4.0 / T_sym), Is_from2_to_3);
+    const int Is_from2_to_3 = Flow(rng, pop.I_s2, newpop.I_s2, (4.0 / T_sym));
+	newpop.I_s2 -= Is_from2_to_3;
+	newpop.I_s3 += Is_from2_to_3;
 		
-    int Is_from1_to_2=0;
-//	std::cout << "Is_from1_to_2: " << (4 / T_sym) << "\n";
-	flow(rng, pop, newpop, I_s1, I_s2, (4.0 / T_sym), Is_from1_to_2);
+    const int Is_from1_to_2 = Flow(rng, pop.I_s1, newpop.I_s1, (4.0 / T_sym));
+	newpop.I_s1 -= Is_from1_to_2;
+	newpop.I_s2 += Is_from1_to_2;
 
 	// symptomatic -frail
 //   unsigned int hospitalize_f=0;
 //	std::cout << "hospitalize_f: " << p_hf * (2 / T_sym) << "\n";
-//	flow(rng, I_fs, H_f, p_hf * (1 / T_sym), hospitalize_f);	
+//	Flow(rng, I_fs, H_f, p_hf * (1 / T_sym), hospitalize_f);	
 	
 //   unsigned int newdeaths_f=0;
 //	std::cout << "newdeaths_f: " << ( 1 - p_hf ) * ( 2 / T_sym) << "\n";
-//	flow(rng, I_fs, D, ( 1 - p_hf ) * ( 1 / T_sym), newdeaths_f);
+//	Flow(rng, I_fs, D, ( 1 - p_hf ) * ( 1 / T_sym), newdeaths_f);
 	
 	// asymptomatic
-    int recoverI=0;
-//	std::cout << "recoverI: " << ( 4/T_rec ) << "\n";
-	flow(rng, pop, newpop, I4, R, ( 4.0 / T_rec ), recoverI);
+    const int recoverI = Flow(rng, pop.I4, newpop.I4, ( 4.0 / T_rec ));
+	newpop.I4 -= recoverI;
+	newpop.R += recoverI;
 	
-    int I_from3_to_4=0;
-//	std::cout << "I_from3_to_4: " << ( 4/T_rec ) << "\n";
-	flow(rng, pop, newpop, I3, I4, ( 4.0 / T_rec ), I_from3_to_4);
+    const int I_from3_to_4 = Flow(rng, pop.I3, newpop.I3, ( 4.0 / T_rec ));
+	newpop.I3 -= I_from3_to_4;
+	newpop.I4 += I_from3_to_4;
 	
-    int I_from2_to_3=0;
-//	std::cout << "I_from2_to_3: " << ( 4/T_rec ) << "\n";
-	flow(rng, pop, newpop, I2, I3, ( 4.0 / T_rec ), I_from2_to_3);
+    const int I_from2_to_3=Flow(rng, pop.I2, newpop.I2, ( 4.0 / T_rec ));
+	newpop.I2 -= I_from2_to_3;
+	newpop.I3 += I_from2_to_3;
  
-    int I_from1_to_2=0;
-//	std::cout << "I_from1_to_2: " << ( 4/T_rec ) << "\n";
-	flow(rng, pop, newpop, I1, I2, ( 4.0 / T_rec ), I_from1_to_2);
+    const int I_from1_to_2 = Flow(rng, pop.I1, newpop.I1, ( 4.0 / T_rec ));
+	newpop.I1 -= I_from1_to_2;
+	newpop.I2 += I_from1_to_2;
 	
 	// infectious - pre-clinical
-    int newasymptomatic=0;
-//	std::cout << "newasymptomatic: " << (1 - pf_val) * (1-p_s) * ( 1/T_inf )<< "\n";
-	flow(rng, pop, newpop, I_p, I1, (1.0 - p_s) * ( 1.0 / T_inf ), newasymptomatic);
+    const int newasymptomatic = Flow(rng, pop.I_p, newpop.I_p, (1.0 - p_s) * ( 1.0 / T_inf ));
+	newpop.I_p -= newasymptomatic;
+	newpop.I1 += newasymptomatic;
 		
-//flow(rng, I_p, I1, p_d * ( 1/T_sym ), newasymptomatic);
+//Flow(rng, I_p, I1, p_d * ( 1/T_sym ), newasymptomatic);
 
-    int newsymptomatic=0;
-//	std::cout << "newsymptomatic: " << (1 - pf_val) * p_s * ( 1/T_inf ) << "\n";
-	flow(rng, pop, newpop, I_p, I_s1, p_s * ( 1.0 / T_inf ), newsymptomatic);	
+    const int newsymptomatic = Flow(rng, pop.I_p, newpop.I_p, p_s * ( 1.0 / T_inf ));
+	newpop.I_p -= newsymptomatic;
+	newpop.I_s1 += newsymptomatic;
 	
 //    unsigned int newinffrail=0;
 //	std::cout << "newinffrail: " << pf_val * ( 1/T_inf ) << "\n";
-//	flow(rng, I_p, I_fs, pf_val * ( 1/T_inf ), newinffrail);		
+//	Flow(rng, I_p, I_fs, pf_val * ( 1/T_inf ), newinffrail);		
 	
     // latent
-    int infectious=0;
-//	std::cout << "infectious: " << 1/T_lat << "\n";
-	flow(rng, pop, newpop, E, I_p, ( 1.0 / T_lat ), infectious);
+    const int infectious = Flow(rng, pop.E, newpop.E, ( 1.0 / T_lat ));
+	newpop.E -= infectious;
+	newpop.I_p += infectious;
 	
-    int infectious_t=0;
-//	std::cout << "infectious_t: " << (1 / T_lat) << "\n";
-	flow(rng, pop, newpop, E_t, I_t, ( 1.0 / T_lat ), infectious_t);
+    const int infectious_t = Flow(rng, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
+	newpop.E_t -= infectious_t;
+	newpop.I_t += infectious_t;
 	
     // susceptible
-    int newinfection=0;
-//	std::cout << "newinfection: " << lambda << "\n";
-	flow(rng, pop, newpop, S, E, lambda, newinfection);
+    const int newinfection = Flow(rng, pop.S, newpop.S, lambda);
+	newpop.S -= newinfection;
+	newpop.E += newinfection;
 	
     // update population
 //	std::vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)I_fs,(int)H,(int)H_f,(int)R,(int)D};
 //	std::vector<int> newpop= {(int)S,(int)E,(int)E_t,(int)I_p,(int)I_t, (int)I1,(int)I2,(int)I3,(int)I4,(int)I_s1,(int)I_s2,(int)I_s3,(int)I_s4,(int)H,(int)R,(int)D};
 	
 //	std::cout << S<<","<<E<<","<<E_t<<","<<I_p<<","<<I_t<<","<<I1<<","<<I2<<","<<I3<<","<<I4<<","<<I_s1<<","<<I_s2<<","<<I_s3<<","<<I_s4<<","<<I_fs<<","<<H<<","<<H_f<<","<<R<<","<<D<<std::endl;
-		
 	pop = newpop;
-	deaths += (newdeathsH + newdeathsI_s) ;
-	deathsH += newdeathsH ;
-	detected += (hospitalize + infectious_t);	
-}
-static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double> parameter_set, double u_val, 
-			std::vector<std::vector<double>> waifw_norm,std::vector<std::vector<double>> waifw_sdist,
-			std::vector<std::vector<double>> waifw_home, std::vector<std::vector<int>> pops, int shut) {
+	infection_state.deaths += (newdeathsH + newdeathsI_s) ;
+	infection_state.hospital_deaths += newdeathsH ;
+	infection_state.detected += (hospitalize + infectious_t);	
 
-  double p_i = parameter_set[0];	
-  double p_hcw = parameter_set[1];	
-  double c_hcw = parameter_set[2];	
-  double d_val = parameter_set[3];					
-  double q_val = parameter_set[4];	
+	return infection_state;
+}
+
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut) 
+{
+
+	double p_i = parameter_set[0];	
+	double p_hcw = parameter_set[1];	
+	double c_hcw = parameter_set[2];	
+	double d_val = parameter_set[3];					
+	double q_val = parameter_set[4];
+	
+	//lambda=rep(NA,nrow(pops))
+	int n_agegroup = age_data.waifw_norm.size();
+
+	std::vector<double> lambda(n_agegroup);
+
+	double quarantined = 0.0;	// mean proportion reduction in contacts due to quarantine
+
+	std::vector<double> I_mat(n_agegroup); 
+
+	//contact matrix
+	std::vector<std::vector<double>> waifw = (shut) ? std::vector<std::vector<double>>(n_agegroup, std::vector<double> (n_agegroup)) : age_data.waifw_norm; 
+
+	//age-dependent transmission rate
+	std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup));
+
+  if(shut)
+  {
+    for ( int from{0}; from < n_agegroup; ++from) 
+    {
+      for ( int to{0}; to < n_agegroup; ++to) 
+      {
+        //contact network during shutdown period, assuming a proportion d will properly do it
+        waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
+      }
+    }
+  }
   
-  //lambda=rep(NA,nrow(pops))
-  int n_agegroup = waifw_norm.size();
-  double quarantined = 0.0;//mean proportion reduction in contacts due to quarantine
-  std::vector<double> I_mat(n_agegroup); 
-  //contact matrix
-  std::vector<std::vector<double>> waifw(n_agegroup, std::vector<double> (n_agegroup)); 
-  //age-dependent transmission rate
-  std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup)); 
-  
-  for ( int from = 0; from < n_agegroup; ++from) {
-	  for ( int to = 0; to < n_agegroup; ++to) {
-		  if(shut==0){
-		  	//contact network during normal period
-		    waifw[from][to]  = waifw_norm[from][to] ;
-		  } else {
-			//contact network during shutdown period, assuming a proportion d will properly do it
-		  	waifw[from][to] = (1.0-d_val) * waifw_sdist[from][to] + (d_val) * waifw_home[from][to];
-		  }
-		  beta[from][to] = waifw[from][to] * p_i ;
-		  if(waifw[from][to]>0) {
-			  quarantined += waifw_home[from][to]/waifw[from][to];
-		  } else {
-			  quarantined += 0;
-		  }
-	  }
+  for ( int from{0}; from < n_agegroup; ++from) {
+    for ( int to{0}; to < n_agegroup; ++to) 
+    {
+      if(waifw[from][to]>0)
+      {
+        quarantined += age_data.waifw_home[from][to]/waifw[from][to];
+      } 
+			
+      else
+      {
+         quarantined += 0;
+      }
+      beta[from][to] = waifw[from][to] * p_i ;
+	}
   } 
   
   //mean proportion reduction in contacts due to quarantine accounting for compliance
@@ -722,49 +734,50 @@ static void Lambda(std::vector<double> &lambda, int& inf_hosp,std::vector<double
   
   //compute the pressure from infectious groups, normalizes by group size
   //compute the pressure from hospitalised
-  for ( int from = 0; from < n_agegroup; ++from) {
+  for ( int from{0}; from < n_agegroup; ++from) {
 	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
 	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
 		// asym are infectious pre-clinical and asymptomatic
 		// sym are infectious plus those that are tested positive
-		int tot_asym = pops[from][3] + u_val * (pops[from][5] + pops[from][6] + pops[from][7] + pops[from][8] );
-		int tot_sym = pops[from][4] + pops[from][9] + pops[from][10] + pops[from][11] + pops[from][12];
+		int tot_asym = pops[from].I_p + u_val * (pops[from].I1 + pops[from].I2 + pops[from].I3 + pops[from].I4 );
+		int tot_sym = pops[from].I_t + pops[from].I_s1 + pops[from].I_s2 + pops[from].I_s3 + pops[from].I_s4;
 		
 		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
 		//normalisation shouldnt account for dead individuals	
-		int tot_pop = accumulate(pops[from].begin(), pops[from].end(), 0);
+		const int tot_pop = accumulate_compartments(pops[from]);
 		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
 				
 	}
 	//sum up of number of hospitalised cases (frail and non-frail)
-	inf_hosp+= pops[from][13] ;
+	inf_hosp+= pops[from].H ;
   }
 
   //sum up infectious pressure from each age group
-  for ( int to = 0; to < (n_agegroup); ++to) {
-	  for(int from = 0; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
+  for ( int to{0}; to < (n_agegroup); ++to) {
+	  for(int from{0}; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
 	  	lambda[to] += ( beta[to][from]*I_mat[from] );
 	  }
   }
 
-  int tot_pop = accumulate(pops[n_agegroup-1].begin(), pops[n_agegroup-1].end(), 0);
+  const int tot_pop = accumulate_compartments(pops[n_agegroup-1]);
   //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
   lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+
+  return lambda;
 }
 
-/*void flow(Random::RNGInterface::Sptr rng, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
+/*void Flow(Random::RNGInterface::Sptr rng, unsigned int& pop_from, unsigned int& pop_to, double rate, unsigned int& outs){
     outs = rng->Poisson(rate * (double)pop_from); //symptomatic become hospitalized
     outs = std::min(pop_from, outs);
 	pop_to += outs;
 	pop_from -= outs;
 }*/
 
-
-static void flow(Random::RNGInterface::Sptr rng, std::vector<int> pops, std::vector<int>& pops_1, int from_pos, int to_pos, double rate, int& outs){
-    outs = rng->Poisson(rate * (double)pops[from_pos]); //symptomatic become hospitalized
-    outs = std::min(pops_1[from_pos], outs);
-	pops_1[to_pos] += outs;
-	pops_1[from_pos] -= outs;
+int Flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate)
+{
+	int outs = rng->Poisson(rate * static_cast<double>(pops_from_val)); //symptomatic become hospitalized
+	outs = std::min(pops_new_from_val, outs);
+	return outs;
 }
 
 static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
@@ -788,7 +801,7 @@ static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleL
 	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
 
 	//compute the kernel window
-	for (int i = 0; i < nPar; ++i) {
+	for (int i{0}; i < nPar; ++i) {
 		
 		std::function<bool(particle, particle)> compare = 
 			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
