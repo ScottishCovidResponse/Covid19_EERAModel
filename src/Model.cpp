@@ -241,7 +241,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 				outs_vec.nsse_cases = 0.0;
 				outs_vec.nsse_deaths = 0.0;
 //				outs_vec.sum_sq = 1.e06;
-				for (int i = 0; i < modelInputParameters.nPar; ++i) {
+				for (int i{0}; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
 				//pick the values of each particles
@@ -709,9 +709,9 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
 
   if(shut)
   {
-    for ( int from = 0; from < n_agegroup; ++from) 
+    for ( int from{0}; from < n_agegroup; ++from) 
     {
-      for ( int to = 0; to < n_agegroup; ++to) 
+      for ( int to{0}; to < n_agegroup; ++to) 
       {
         //contact network during shutdown period, assuming a proportion d will properly do it
         waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
@@ -719,8 +719,8 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
     }
   }
   
-  for ( int from = 0; from < n_agegroup; ++from) {
-    for ( int to = 0; to < n_agegroup; ++to) 
+  for ( int from{0}; from < n_agegroup; ++from) {
+    for ( int to{0}; to < n_agegroup; ++to) 
     {
       if(waifw[from][to]>0)
       {
@@ -740,7 +740,7 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
   
   //compute the pressure from infectious groups, normalizes by group size
   //compute the pressure from hospitalised
-  for ( int from = 0; from < n_agegroup; ++from) {
+  for ( int from{0}; from < n_agegroup; ++from) {
 	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
 	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
 		// asym are infectious pre-clinical and asymptomatic
@@ -759,8 +759,8 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
   }
 
   //sum up infectious pressure from each age group
-  for ( int to = 0; to < (n_agegroup); ++to) {
-	  for(int from = 0; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
+  for ( int to{0}; to < (n_agegroup); ++to) {
+	  for(int from{0}; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
 	  	lambda[to] += ( beta[to][from]*I_mat[from] );
 	  }
   }
@@ -807,7 +807,7 @@ static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleL
 	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
 
 	//compute the kernel window
-	for (int i = 0; i < nPar; ++i) {
+	for (int i{0}; i < nPar; ++i) {
 		
 		std::function<bool(particle, particle)> compare = 
 			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
