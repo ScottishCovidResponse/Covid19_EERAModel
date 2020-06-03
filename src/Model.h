@@ -10,6 +10,120 @@ namespace EERAModel {
 namespace Model {
 
 /**
+ * @brief Structure to hold per-age group data vectors
+ * 
+ * Includes probabilities and mean number of contacts per age group information
+ */
+struct AgeGroupData
+{
+	
+	std::vector<std::vector<double>> waifw_norm;	/*!< mean number of daily contacts per age group (overall). */	
+	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts per age group (home only). */
+	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts per age group (not school, not work). */
+	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
+	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
+};
+
+/**
+ * @brief Structure containing counters for different population categories
+ * 
+ * Integers to count the number of people within the different compartments within the model 
+ * TODO: Name all the container types here
+ */
+struct Compartments
+{
+	int S = 0;
+	int E = 0;	
+	int E_t = 0;
+	int I_p = 0;
+	int I_t = 0;
+	int I1 = 0;
+	int I2 = 0;
+	int I3 = 0;
+	int I4 = 0;
+	int I_s1 = 0;
+	int I_s2 = 0;
+	int I_s3 = 0;
+	int I_s4 = 0;
+	int H = 0;
+	int R = 0;
+	int D = 0;
+};
+
+/**
+ * @brief Structure to hold status objects
+ * 
+ * Contains vectors containing information on the status of the simulation itself, 
+ * population and deaths for each simulation step.
+ */
+struct Status
+{
+	std::vector<int> simulation;				/*!< Status of the simulation. */
+	std::vector<int> deaths;					/*!< Number of deaths. */
+	std::vector<int> hospital_deaths;			/*!< Number of deaths in hospitals. */
+	std::vector<Compartments> ends;				/*!< Population per Category per age group on last day. */
+};
+
+/**
+ * @brief Structure containing population counters after infection
+ * 
+ * Contains counters for the number of detected cases, deaths and hospitalisations
+ * after infection.
+ */
+struct InfectionState
+{
+	int detected = 0;
+	int hospitalised = 0;
+	int deaths = 0;
+	int hospital_deaths = 0;
+};
+
+/**
+ * @brief Accumulate total across all compartments
+ * 
+ * Totals all counters within every compartment in a Compartments struct
+ * 
+ * @param comp Compartments object
+ * 
+ * @return Total across all compartments
+ */
+int accumulate_compartments(const Compartments& comp)
+{
+	int _total = 0;
+	_total += comp.S + comp.E + comp.E_t + comp.I_p;
+	_total += comp.I_t + comp.I1 + comp.I2 + comp.I3;
+	_total += comp.I4 + comp.I_s1 + comp.I_s2 + comp.I_s3;
+	_total += comp.I_s4 + comp.H + comp.R + comp.D;
+
+	return _total;
+}
+
+/**
+ * @brief Convert Vector of Compartments struct to a vector of integers
+ * 
+ * NOTE: This is a temporary function to allow compatibility
+ * converts the Compartments struct to a vector of integers
+ * 
+ * @param cmps_vec Vector of compartments struct containing population per category
+ * 
+ * @return Vector of population counters
+ */
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
+}
+
+/**
  * @brief Run the model and inference framework
  * 
  * Runs the model based on the given input parameters, observations and seeded random number generator.
@@ -34,6 +148,92 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
+
+/**
+ * @brief Construct the population seed
+ * 
+ * Builds a vector of integers based on the input.
+ * 
+ * @param age_nums Vector containing the number of people in each age group
+ * 
+ * @return Vector containing populations
+ */
+std::vector<double> build_population_seed(const std::vector<int>& age_nums);
+
+/**
+ * @brief Construct the population array
+ * 
+ * Sets up an array for the population at each timestep in each age and disease category	
+ * also set up the age distribution of old ages as target for disease introduction.
+ * 
+ * @param rng Seeded random number generator
+ * @param age_nums Vector containing the number of people in each age group
+ * @param seedlist Seed object
+ * 
+ * @return Vector of vectors containing compartment populations
+ */ 
+std::vector<Compartments> build_population_array(Random::RNGInterface::Sptr rng, const std::vector<int>& age_nums, const seed& seedlist);
+
+/**
+ * @brief Randomly assign movement of individuals between compartments
+ * 
+ * Uses a Poisson distribution for a given rate to deduce number of individuals
+ * passing from one compartment to another. Also compares current value prior to flow with that after to ensure
+ * flow is positive.
+ * 
+ * @param pops_from_val Number of individuals in starting compartment within prior compartments struct
+ * @param pops_new_from_val Number of individuals in starting compartment within the compartments struct currently being modified
+ * @param rate The rate of flow 
+ * 
+ * @return Number of individuals moving/flowing from one compartment to the other
+ */
+int flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate);
+
+/**
+ * @brief Introduced diseased to the population
+ * 
+ * Compute the total number of susceptible and the number of susceptible per age class
+ * 
+ * @param rng Seeded random number generator
+ * @param poparray Population array to be manipulated
+ * @param seedarray Population seed array to be manipulated
+ * @param bkg_lambda Lambda for generating number of diseased individuals
+ */
+void generate_diseased(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
+
+/**
+ * @brief Generate vector of lambda values for the age groups
+ * 
+ * Creates lambda values based on compartment occupancy for each age group
+ * 
+ * @param inf_hosp Number of hospitalised infected
+ * @param parameter_set Set of model parameters
+ * @param u_val
+ * @param age_data Age group data set
+ * @param pops Population array containing compartments for each age group
+ * @param shut State of lockdown
+ */
+std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
+
+
+/**
+ * @brief Generate an indection spread and compute resulting populations
+ * 
+ * Creates an infection spread state and counters number of people in different states
+ * 
+ * @param rng Seeded random number generator
+ * @param pop Particular population age group
+ * @param n_hospitalised Number of people in hospital prior to new spread
+ * @param fixed_parameters Fixed model parameters
+ * @param parameter_set Variable model parameters
+ * @param cfr_tab Case Fatality Ratio table
+ * @param pf_val Frailty Probability
+ * @param lambda Rate of spread
+ */
+InfectionState infection_spread(Random::RNGInterface::Sptr rng, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+						std::vector<double> parameter_set, std::vector<double> cfr_tab,
+						double pf_val, double lambda);
 
 } // namespace Model
 } // namespace EERAModel
