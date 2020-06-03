@@ -25,7 +25,7 @@ endif()
 
 option(CODE_COVERAGE "Enable code coverage with LCov" OFF)
 
-set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\" -O3")
+set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\" ")
 
 if(CODE_COVERAGE)
 	set(COVERAGE_COMPILER_FLAGS "-g -fprofile-arcs -ftest-coverage")

@@ -150,6 +150,26 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	const std::vector<int>& obsDeaths);
 
 /**
+ * @brief Run the model with the given parameters and configurations
+ * 
+ * TODO: longer description and parameter definitions
+ * 
+ * @param parameter_set 
+ * @param fixed_parameters
+ * @param per_age_data
+ * @param seedlist
+ * @param day_shut
+ * @param agenums
+ * @param n_sim_steps Number of steps to simulate
+ * @param rng Seeded random number generator
+ * 
+ * @return Status of model after run
+ */
+Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
+				int n_sim_steps, Random::RNGInterface::Sptr rng);
+
+/**
  * @brief Construct the population seed
  * 
  * Builds a vector of integers based on the input.
@@ -158,7 +178,7 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
  * 
  * @return Vector containing populations
  */
-std::vector<double> build_population_seed(const std::vector<int>& age_nums);
+std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
 
 /**
  * @brief Construct the population array
@@ -172,7 +192,7 @@ std::vector<double> build_population_seed(const std::vector<int>& age_nums);
  * 
  * @return Vector of vectors containing compartment populations
  */ 
-std::vector<Compartments> build_population_array(Random::RNGInterface::Sptr rng, const std::vector<int>& age_nums, const seed& seedlist);
+std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng, const std::vector<int>& age_nums, const seed& seedlist);
 
 /**
  * @brief Randomly assign movement of individuals between compartments
@@ -187,7 +207,7 @@ std::vector<Compartments> build_population_array(Random::RNGInterface::Sptr rng,
  * 
  * @return Number of individuals moving/flowing from one compartment to the other
  */
-int flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate);
+int Flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate);
 
 /**
  * @brief Introduced diseased to the population
@@ -199,7 +219,7 @@ int flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& po
  * @param seedarray Population seed array to be manipulated
  * @param bkg_lambda Lambda for generating number of diseased individuals
  */
-void generate_diseased(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
+void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
 
 /**
  * @brief Generate vector of lambda values for the age groups
@@ -213,7 +233,7 @@ void generate_diseased(Random::RNGInterface::Sptr rng, std::vector<Compartments>
  * @param pops Population array containing compartments for each age group
  * @param shut State of lockdown
  */
-std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
 
 
@@ -231,7 +251,7 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
  * @param pf_val Frailty Probability
  * @param lambda Rate of spread
  */
-InfectionState infection_spread(Random::RNGInterface::Sptr rng, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
 						std::vector<double> parameter_set, std::vector<double> cfr_tab,
 						double pf_val, double lambda);
 
