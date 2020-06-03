@@ -87,7 +87,7 @@ int main() {
 	if (modelInputParameters.seedlist.use_fixed_seed) {
 		randomiser_seed = modelInputParameters.seedlist.seed_value;
 	} else {
-        randomiser_seed = time(NULL);
+        randomiser_seed = time(nullptr);
 	}
 	//initialise the gsl random number generator with a seed depending on the time of the run
 	gsl_rng * r = gsl_rng_alloc (gsl_rng_mt19937);

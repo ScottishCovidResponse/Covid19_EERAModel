@@ -18,9 +18,6 @@
 namespace EERAModel {
 namespace Model {
 
-static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<double> parameter_set, double u_val,
-				AgeGroupData age_data, std::vector<Compartments> pops, bool shut);
-
 static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, gsl_rng * r, Status& status);
@@ -341,7 +338,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	/**@todo status.deaths is unused anywhere (although it is populated in my_model) */
 
 	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
-	const int n_sim_steps = get_n_simulation_steps(duration, tau);
+	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
 	my_model(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
 			agenums, n_sim_steps, r, status);
@@ -454,7 +451,7 @@ void generate_diseased(gsl_rng* r, std::vector<Compartments>& poparray, std::vec
 		int nseed = startdist[age-1];
 		//std::min(poparray[age][0], startdist[age-1]);
 		poparray[age].S -=  nseed;	// take diseased out of S
-		poparray[age].E +=  nseed;	// put diseased in E	
+		poparray[age].E +=  nseed;	// put diseased in E
 	}
 }
 
@@ -551,13 +548,13 @@ InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalis
 	// H_f  = pop.D;
 	
 	//fixed parameters
-	double T_lat= fixed_parameters.T_lat;
+	const double T_lat= fixed_parameters.T_lat;
 //	double p_s= fixed_parameters.p_s;
-	double T_inf= fixed_parameters.T_inf;
-	double T_rec= fixed_parameters.T_rec;
-	double T_sym= fixed_parameters.T_sym;
-	double T_hos= fixed_parameters.T_hos;
-	double K=fixed_parameters.K;
+	const double T_inf= fixed_parameters.T_inf;
+	const double T_rec= fixed_parameters.T_rec;
+	const double T_sym= fixed_parameters.T_sym;
+	const double T_hos= fixed_parameters.T_hos;
+	const double K=fixed_parameters.K;
 	
 	double capacity = n_hospitalised/K;
 	capacity = std::min(1.0,capacity);

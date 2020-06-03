@@ -126,22 +126,6 @@ std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartme
 }
 
 /**
- * @brief Calculate number of simulation steps
- * 
- * Calculates the time steps for the simulation based on the duration time
- * and the step duration.
- * 
- * @param duration Duration of the simulation
- * @param tau Duration of a single time step
- * 
- * @return Number of simulation steps
- */
-int get_n_simulation_steps(const int& duration, const double& tau)
-{
-	return static_cast<int>(ceil(duration/tau));
-}
-
-/**
  * @brief Run the model and inference framework
  * 
  * Runs the model based on the given input parameters, observations and seeded random number generator.
