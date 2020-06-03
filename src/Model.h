@@ -53,6 +53,34 @@ struct Compartments
 };
 
 /**
+ * @brief Structure to hold status objects
+ * 
+ * Contains vectors containing information on the status of the simulation itself, 
+ * population and deaths for each simulation step.
+ */
+struct Status
+{
+	std::vector<int> simulation;				/*!< Status of the simulation. */
+	std::vector<int> deaths;					/*!< Number of deaths. */
+	std::vector<int> hospital_deaths;			/*!< Number of deaths in hospitals. */
+	std::vector<Compartments> ends;				/*!< Population per Category per age group on last day. */
+};
+
+/**
+ * @brief Structure containing population counters after infection
+ * 
+ * Contains counters for the number of detected cases, deaths and hospitalisations
+ * after infection.
+ */
+struct InfectionState
+{
+	int detected = 0;
+	int hospitalised = 0;
+	int deaths = 0;
+	int hospital_deaths = 0;
+};
+
+/**
  * @brief Accumulate total across all compartments
  * 
  * Totals all counters within every compartment in a Compartments struct
@@ -96,20 +124,6 @@ std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartme
 
 	return _temp;
 }
-
-/**
- * @brief Structure to hold status objects
- * 
- * Contains vectors containing information on the status of the simulation itself, 
- * population and deaths for each simulation step.
- */
-struct Status
-{
-	std::vector<int> simulation;				/*!< Status of the simulation. */
-	std::vector<int> deaths;					/*!< Number of deaths. */
-	std::vector<int> hospital_deaths;			/*!< Number of deaths in hospitals. */
-	std::vector<Compartments> ends;					/*!< Population per Category per age group on last day. */
-};
 
 /**
  * @brief Calculate number of simulation steps
@@ -220,6 +234,11 @@ void generate_diseased(gsl_rng* r, std::vector<Compartments>& poparray, std::vec
  */
 std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
+
+
+InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+						std::vector<double> parameter_set, std::vector<double> cfr_tab,
+						double pf_val, double lambda);
 
 } // namespace Model
 } // namespace EERAModel

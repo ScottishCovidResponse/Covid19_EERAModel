@@ -18,10 +18,6 @@
 namespace EERAModel {
 namespace Model {
 
-static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH, int& detected, int totHosp, 
-				::EERAModel::params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab,
-				double pf_val, double lambda);
-
 static void Lambda(std::vector<double> &lambda, int& inf_hosp, std::vector<double> parameter_set, double u_val,
 				AgeGroupData age_data, std::vector<Compartments> pops, bool shut);
 
@@ -494,11 +490,7 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	//run the simulation
 	for (int tt = 1; tt < n_sim_steps; ++tt) {
 		//initialize return value
-		int deaths=0;
-		int deathsH=0;
-		int detected=0;
-		std::vector<int> popcomp;
-		int totHosp = 0;	
+		InfectionState infection_state;	
 		
 //		std::cout<< "top4..\n";
 		//identify the lock down
@@ -515,20 +507,24 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 		}
 
 		//compute the forces of infection
-		std::vector<double> lambda = generate_lambda_vector(totHosp, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
+		std::vector<double> lambda = generate_lambda_vector(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
 				poparray, inLockdown);	
 
 		//step each agegroup through infections
 		for ( int age{0}; age < (n_agegroup); ++age) {	
-			infspread(r, poparray[age], deaths, deathsH, detected,totHosp,fixed_parameters[age],parameter_fit[age],
-				per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+			const InfectionState new_spread = infspread(r, poparray[age], infection_state.hospitalised, fixed_parameters[age],parameter_fit[age],
+															per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+
+			infection_state.deaths += new_spread.deaths;
+			infection_state.hospital_deaths += new_spread.hospital_deaths;
+			infection_state.detected += new_spread.detected;
 		}
 //std::cout<< "top9..\n";
 //		std::cout << tt << " , " <<  detected << " , " << deaths << " , " << deathsH << '\n';
 
-		status.simulation.push_back(detected); 
-		status.deaths.push_back(deaths); 
-		status.hospital_deaths.push_back(deathsH);
+		status.simulation.push_back(infection_state.detected); 
+		status.deaths.push_back(infection_state.deaths); 
+		status.hospital_deaths.push_back(infection_state.hospital_deaths);
     }	
 	//save the population in each epi compt for the last day
 	for ( int age = 0; age < n_agegroup; ++age) {
@@ -536,8 +532,9 @@ static void my_model(std::vector<double> parameter_set, std::vector<::EERAModel:
 	}
 }
 
-static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH, int& detected, int totHosp,
-	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda){
+InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalised,
+	params fixed_parameters, std::vector<double> parameter_set, std::vector<double> cfr_tab, double pf_val, double lambda)
+{
 		
 /*    unsigned int S=pop[0], E=pop[1], E_t=pop[2], I_p=pop[3], I_t=pop[4],I1=pop[5],I2=pop[6],I3=pop[7],I4=pop[8];
 	unsigned int I_s1=pop[9], I_s2=pop[10], I_s3=pop[11], I_s4=pop[12];//, I_fs=pop[13]
@@ -545,6 +542,9 @@ static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH,
 */	
 	//define the vector of return values
 	Compartments newpop(pop);
+
+	//Define infection state for this spread
+	InfectionState infection_state;
 	
 	//define the position of each compartment in pop
 	// I_fs = pop.H;
@@ -559,7 +559,7 @@ static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH,
 	double T_hos= fixed_parameters.T_hos;
 	double K=fixed_parameters.K;
 	
-	double capacity = totHosp/K;
+	double capacity = n_hospitalised/K;
 	capacity = std::min(1.0,capacity);
 	
 	const double p_h= cfr_tab[0];
@@ -678,9 +678,11 @@ static void infspread(gsl_rng * r, Compartments& pop, int& deaths, int& deathsH,
 	
 //	std::cout << S<<","<<E<<","<<E_t<<","<<I_p<<","<<I_t<<","<<I1<<","<<I2<<","<<I3<<","<<I4<<","<<I_s1<<","<<I_s2<<","<<I_s3<<","<<I_s4<<","<<I_fs<<","<<H<<","<<H_f<<","<<R<<","<<D<<std::endl;
 	pop = newpop;
-	deaths += (newdeathsH + newdeathsI_s) ;
-	deathsH += newdeathsH ;
-	detected += (hospitalize + infectious_t);	
+	infection_state.deaths += (newdeathsH + newdeathsI_s) ;
+	infection_state.hospital_deaths += newdeathsH ;
+	infection_state.detected += (hospitalize + infectious_t);	
+
+	return infection_state;
 }
 
 std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
