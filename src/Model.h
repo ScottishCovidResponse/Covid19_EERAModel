@@ -4,7 +4,7 @@
 #include <vector>
 #include <random>
 #include "Utilities.h"
-#include <gsl/gsl_rng.h>
+#include "Random.h"
 
 namespace EERAModel {
 namespace Model {
@@ -17,15 +17,14 @@ namespace Model {
  * 
  * @param modelInputParameters Input parameters to the model run
  * @param observations Input observations to the model run
- * @param r Seeded random number generator
+ * @param rng Seeded random number generator
  * @param gen Seeded random number generator for importance sampling
  * @param outDirPath Path to the directory in which the output files should be placed
  * @param log Pointer to the logger
  */
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::InputObservations observations,
-		 gsl_rng* r,
-		 std::mt19937& gen,
+		 Random::RNGInterface::Sptr rng,
 		 const std::string& outDirPath,
 		 EERAModel::Utilities::logging_stream::Sptr log);
 
@@ -33,7 +32,7 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, gsl_rng * r, const std::vector<int>& obsHosp,
+	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
 	const std::vector<int>& obsDeaths);
 
 } // namespace Model
