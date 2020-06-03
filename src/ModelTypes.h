@@ -82,6 +82,12 @@ struct ModelInputParameters
 	double prior_ps_shape1;
 	double prior_ps_shape2;
 	std::string run_type;
+	std::vector <double> prior_param_list;
+};
+
+struct PriorParticleParameters
+{
+	std::vector <double> prior_param_list;
 };
 
 struct InputParametersObservations

@@ -101,6 +101,37 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	return modelInputParameters;
 }
 
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+{
+	EERAModel::PriorParticleParameters priorParticleParameters;
+
+	std::ifstream infile(filePath.c_str());
+	// if (infile.fail()) { std::cout << "Prior Parameters File" << std::endl;}
+	std::string line;
+	int linepos = 0;
+	// int inquotes = false;
+	char c;
+	int linemax = line.length();
+	std::string curstring;
+	char delimiter = '\n';
+	while (std::getline(infile, line, delimiter))
+	{
+		while (line[linepos] != 0 && linepos < linemax)
+		{
+			if (c == delimiter)
+			{
+				priorParticleParameters.prior_param_list.push_back(atof(curstring.c_str()));
+			}
+			else
+			{
+				curstring.push_back(c);
+			}
+		}
+	}
+	
+	return priorParticleParameters;
+}
+
 EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
 {
 	EERAModel::InputObservations observations;

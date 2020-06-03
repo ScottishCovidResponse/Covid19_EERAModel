@@ -21,6 +21,9 @@ namespace IO {
  */
 EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
+
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+
 /**
  * @brief Read in observations
  * 
