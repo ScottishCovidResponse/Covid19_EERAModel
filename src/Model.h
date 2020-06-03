@@ -197,7 +197,7 @@ int flow(gsl_rng*r, const int& pops_from_val, const int& pops_new_from_val, cons
  * 
  * Compute the total number of susceptible and the number of susceptible per age class
  * 
- * @param gsl_rng GSL RNG pointer
+ * @param r GSL RNG pointer
  * @param poparray Population array to be manipulated
  * @param seedarray Population seed array to be manipulated
  * @param bkg_lambda Lambda for generating number of diseased individuals
@@ -220,6 +220,20 @@ std::vector<double> generate_lambda_vector(int& inf_hosp, const std::vector<doub
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
 
 
+/**
+ * @brief Generate an indection spread and compute resulting populations
+ * 
+ * Creates an infection spread state and counters number of people in different states
+ * 
+ * @param r GSL RNG pointer
+ * @param pop Particular population age group
+ * @param n_hospitalised Number of people in hospital prior to new spread
+ * @param fixed_parameters Fixed model parameters
+ * @param parameter_set Variable model parameters
+ * @param cfr_tab Case Fatality Ratio table
+ * @param pf_val Frailty Probability
+ * @param lambda Rate of spread
+ */
 InfectionState infspread(gsl_rng * r, Compartments& pop, const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
 						std::vector<double> parameter_set, std::vector<double> cfr_tab,
 						double pf_val, double lambda);
