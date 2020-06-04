@@ -42,7 +42,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCODE_COVERAGE=ON
+        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON
         make 2>&1 | tee clang_tidy_build_results.log
         
     - name: Run regression tests
