@@ -26,17 +26,15 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Code Coverage: ${CODE_COVERAGE}")
 message("------------------------------------")
 
-# Disable Clang-Tidy for macOS (as not available by default)
-
 if(CLANG_TIDY)
 	if(APPLE)
+    # Disable Clang-Tidy for macOS (as not available by default)
 		message(WARNING "Clang Tidy option not currently supported on macOS, ignoring option")
 	else()
 		set(CLANG_TIDY_FLAGS -checks=*,-*default-arguments-calls*,-llvm-include-order*,-modernize-use-trailing-return-type*,-readability-isolate-declaration*,-google-runtime-references*,-fuchsia-*,-llvm-header-guard* -header-filter=${CMAKE_SOURCE_DIR}/src)
 		set(CMAKE_CXX_CLANG_TIDY clang-tidy ${CLANG_TIDY_FLAGS})
 	endif(APPLE)
 endif()
-
 if(CODE_COVERAGE)
 	message(STATUS "Including Code Coverage")
 	set(COVERAGE_COMPILER_FLAGS "-g -fprofile-arcs -ftest-coverage")

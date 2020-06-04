@@ -68,7 +68,7 @@ double InferenceParameterGenerator::PerturbParameter(double oldParam, double ker
     {
         parameter = oldParam + kernel * rng_->Flat(-1, 1);
     } 
-    while (std::isnan(parameter) || parameter <= min || parameter >= max);
+    while (parameter <= min || parameter >= max);
     
     return parameter;
 }
