@@ -55,14 +55,18 @@ std::vector<T> AccumulateEveryNth(const std::vector<T>& data_vector, const int& 
 	std::vector<T> _temp = {};
 	T data_val(0);
 
-	for(int i{0}; i < data_vector.size(); ++i)
+	for(int i{0}; i < data_vector.size()+1; ++i)
 	{
-		if(i % n == 0)
+		if(i % n == 0 && i > 0)
 		{
 			_temp.push_back(data_val);
 			data_val = T(0);
 		}
-		data_val += data_vector[i];
+		
+		if(i < data_vector.size())
+		{
+			data_val += data_vector[i];
+		}
 	}
 
 	return _temp;
