@@ -67,8 +67,6 @@ static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleL
 static std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList);
 
-static void weekly(std::vector<int>& reduced, const std::vector<int>& original);
-
 void Run(EERAModel::ModelInputParameters& modelInputParameters,
          EERAModel::InputObservations observations,
 		 Random::RNGInterface::Sptr rng,
@@ -344,11 +342,13 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------	
 	// aggregate daily values to weekly values 
 	// due to reporting process creating uncertaincies within weeks
-	std::vector<int> obs_death_red, sim_death_red;
-	weekly(obs_death_red, obsDeaths);
-	weekly(sim_death_red, status.hospital_deaths);
+
+	const int week_length = 7;
+
+	const std::vector<int> obs_death_red = Utilities::AccumulateEveryNth(obsDeaths, week_length);
+	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryNth(status.hospital_deaths, week_length);
 	
-	double sum_sq_deaths = Utilities::sse_calc<int>(sim_death_red, obs_death_red);
+	double sum_sq_deaths = Utilities::sse_calc<int>(sim_hospital_death_red, obs_death_red);
 
 	//---------------------------------------
 	// Compute the deviation of the fit expressed as % total number of observations
@@ -367,7 +367,8 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	// Return all selection measures
 	//---------------------------------------
 	outvec.simu_outs = status.simulation;
-	outvec.death_outs = status.hospital_deaths;
+	outvec.hospital_death_outs = status.hospital_deaths;
+	outvec.death_outs = status.deaths;
 	outvec.end_comps = compartments_to_vector(status.ends);
 }
  
@@ -834,20 +835,6 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id)
 {
 	return obs.cases[region_id][0];
-}
-
-//reduce vector of daily  value into vector of weekly value
-static void weekly(std::vector<int>& reduced, const std::vector<int>& original){
-
-	int weekly_value=0;
-	for(unsigned int ttime =0; ttime< original.size(); ++ttime){
-		weekly_value+=original[ttime];
-				
-		if( (ttime % 7) == 6){
-			reduced.push_back(weekly_value);
-			weekly_value=0;
-		}
-	}
 }
 
 } // namespace Model

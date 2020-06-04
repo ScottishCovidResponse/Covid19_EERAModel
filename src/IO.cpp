@@ -181,7 +181,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro,weight\n";
 
 	//add the column names for each output list of chosen simulations
-	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death\n";
+	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death\n";
 	
 	//add the column names for each output list of the compartment values of the last day of the chosen simulations
 	output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value\n";		
@@ -196,8 +196,9 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 		output_step	<< particleList[kk].weight<< '\n';
 		
 		for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-//				cout  << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].death_outs[var] << '\n';
-			output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].death_outs[var] << '\n';
+//				cout  << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].hospital_death_outs[var] << '\n';
+			output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", ";
+			output_simu <<  particleList[kk].hospital_death_outs[var] << ", " << particleList[kk].death_outs[var] << '\n';
 		}
 		
 		for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {

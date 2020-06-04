@@ -15,6 +15,7 @@ struct particle {
 	int iter;
 	double weight;
 	std::vector<int> simu_outs;
+	std::vector<int> hospital_death_outs;
 	std::vector<int> death_outs;
 	std::vector< std::vector<int> > end_comps;
 };
