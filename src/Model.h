@@ -17,9 +17,9 @@ namespace Model {
 struct AgeGroupData
 {
 	
-	std::vector<std::vector<double>> waifw_norm;	/*!< mean number of daily contacts per age group (overall). */	
-	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts per age group (home only). */
-	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts per age group (not school, not work). */
+	std::vector<std::vector<double>> waifw_norm;	/*!< mean number of daily contacts between age groups (overall). */	
+	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts between age groups (home only). */
+	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts between age groups (not school, not work). */
 	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
 	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
 };
@@ -28,54 +28,53 @@ struct AgeGroupData
  * @brief Structure containing counters for different population categories
  * 
  * Integers to count the number of people within the different compartments within the model 
- * TODO: Name all the container types here
  */
 struct Compartments
 {
-	int S = 0;
-	int E = 0;	
-	int E_t = 0;
-	int I_p = 0;
-	int I_t = 0;
-	int I1 = 0;
-	int I2 = 0;
-	int I3 = 0;
-	int I4 = 0;
-	int I_s1 = 0;
-	int I_s2 = 0;
-	int I_s3 = 0;
-	int I_s4 = 0;
-	int H = 0;
-	int R = 0;
-	int D = 0;
+	int S = 0;    	/*!< Number of susceptible individuals (not infected). */	
+	int E = 0;		/*!< Number of infected individuals but not yet infectious (exposed). */	
+	int E_t = 0;	/*!< Number of exposed individuals and tested positive. */	
+	int I_p = 0;	/*!< Number of infected and infectious symptomatic individuals but at pre-clinical stage (show yet no symptoms). */	
+	int I_t = 0;	/*!< Number of tested positive individuals that infectious. */	
+	int I1 = 0;		/*!< Number of infected and infectious asymptomatic individuals: first stage. */	
+	int I2 = 0;		/*!< Number of infected and infectious asymptomatic individuals: second stage.  */	
+	int I3 = 0;		/*!< Number of infected and infectious asymptomatic individuals: third stage.  */	
+	int I4 = 0;		/*!< Number of infected and infectious asymptomatic individuals: last stage.  */	
+	int I_s1 = 0;	/*!< Number of infected and infectious symptomatic individuals: first stage. */	
+	int I_s2 = 0;	/*!< Number of infected and infectious symptomatic individuals: second stage.  */	
+	int I_s3 = 0;	/*!< Number of infected and infectious symptomatic individuals: thrid stage. */	
+	int I_s4 = 0;	/*!< Number of infected and infectious symptomatic individuals: last stage.  */	
+	int H = 0;		/*!< Number of infected individuals that are hospitalised.  */	
+	int R = 0;		/*!< Number of infected individuals that are recovered from infection.   */	
+	int D = 0;		/*!< Number of dead individuals due to disease. */	
 };
 
 /**
  * @brief Structure to hold status objects
  * 
- * Contains vectors containing information on the status of the simulation itself, 
- * population and deaths for each simulation step.
+ * Contains vectors containing information on the trajectories of the predicted disease status for individuals involved in the model 
+ * (i.e. number of incident cases, number of incident deaths for each simulation step).
  */
 struct Status
 {
-	std::vector<int> simulation;				/*!< Status of the simulation. */
-	std::vector<int> deaths;					/*!< Number of deaths. */
-	std::vector<int> hospital_deaths;			/*!< Number of deaths in hospitals. */
-	std::vector<Compartments> ends;				/*!< Population per Category per age group on last day. */
+	std::vector<int> simulation;				/*!< Number of incident (newly detected/reported) cases of covid in each simulation step. */
+	std::vector<int> deaths;					/*!< Overall number of incident deaths due to covid in each simulation step. */
+	std::vector<int> hospital_deaths;			/*!< Number of incident deaths reported at hospital due to covid in each simulation step. */
+	std::vector<Compartments> ends;				/*!< Population per epidemiological state and per age group on last day. */
 };
 
 /**
  * @brief Structure containing population counters after infection
  * 
- * Contains counters for the number of detected cases, deaths and hospitalisations
- * after infection.
+ * Contains counters for the number of newly detected (due to testing or hospitalisation) cases, deaths and hospitalisations
+ * at each time step.
  */
 struct InfectionState
 {
-	int detected = 0;
-	int hospitalised = 0;
-	int deaths = 0;
-	int hospital_deaths = 0;
+	int detected = 0;				/*!< Number of newly detected (due to testing or hospitalisation) cases at each time step. */
+	int hospitalised = 0;			/*!< Number of newly detected cases due to their hospitalisation at each time step. */
+	int deaths = 0;					/*!< Overall number of incident deaths due to covid at each time step.  */
+	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
 };
 
 /**
@@ -152,16 +151,14 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
 /**
  * @brief Run the model with the given parameters and configurations
  * 
- * TODO: longer description and parameter definitions
- * 
- * @param parameter_set 
- * @param fixed_parameters
- * @param per_age_data
- * @param seedlist
- * @param day_shut
- * @param agenums
- * @param n_sim_steps Number of steps to simulate
- * @param rng Seeded random number generator
+ * @param parameter_set: set of parameters that are being infered (i.e. particles)
+ * @param fixed_parameters: set of fixed (known) parameters
+ * @param per_age_data: age-structured known parameters (such as case fatality ratio (CFR) and probability of severe clinical outcomes )
+ * @param seedlist: seeding method to initialise infection ("random": randomly allocate n infectious individuaals at the start, or "background": background transmission over a defined pre-lockdown period )
+ * @param day_shut: day of the lock down
+ * @param agenums: number of individuals in each age group in the study area
+ * @param n_sim_steps: Number of steps to simulate
+ * @param rng: Seeded random number generator
  * 
  * @return Status of model after run
  */

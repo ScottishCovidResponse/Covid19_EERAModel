@@ -454,7 +454,10 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 ///	std::cout<< "top0..\n";
 
 	//initialize saving of the detection for t=0 in simulations, deaths, hospital deaths
-	/**@todo status.deaths is unused anywhere (although it is populated in RunModel) */
+	/**@todo status.deaths is unused anywhere (although it is populated in RunModel) 
+	* TP: yes, I had issues in memory to output it and write it in the output_abc-smc_simu file. 
+	* an output of this should be created similarly to status.deaths_hospital.
+	*/
 	Status status = {{0}, {0}, {0}, {}};
 
 	const int n_agegroup = per_age_data.waifw_norm.size();
