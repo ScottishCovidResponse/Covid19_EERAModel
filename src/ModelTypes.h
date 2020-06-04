@@ -90,15 +90,6 @@ struct PriorParticleParameters
 	std::vector<double> prior_param_list;
 };
 
-struct InputParametersObservations
-{
-	std::vector<std::vector<double>> cfr_byage;
-	std::vector<double> pf_byage;
-	std::vector<std::vector<double>> waifw_norm;
-	std::vector<std::vector<double>> waifw_sdist;
-	std::vector<std::vector<double>> waifw_home;
-};
-
 /**
  * @brief Model input observations
  */

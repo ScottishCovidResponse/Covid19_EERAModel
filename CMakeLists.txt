@@ -7,29 +7,38 @@ project(${PROJECT_NAME} VERSION 0.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\"")
 
-# Disable Clang-Tidy for macOS (as not available by default)
+# Enable or Disable Clang Tidy in Build
+option(CLANG_TIDY "Enable Clang Tidy in Build" OFF)
 
-#if(NOT APPLE)
-#	set(CLANG_TIDY_FLAGS -checks=*,-*default-arguments-calls*,-llvm-include-order*,-modernize-use-trailing-return-type*,-readability-isolate-declaration*,-google-runtime-references*,-fuchsia-*,-llvm-header-guard* -header-filter=${CMAKE_SOURCE_DIR}/src)
-#	set(CMAKE_CXX_CLANG_TIDY clang-tidy ${CLANG_TIDY_FLAGS})
-#endif(NOT APPLE)
+# Enable or Disable Coverage with LCov During Compilation
+option(CODE_COVERAGE "Enable code coverage with LCov" OFF)
 
 # Allow user to override default of running build in Debug Mode
-
-if(NOT DEFINED CMAKE_BUILD_TYPE)
+if(CMAKE_BUILD_TYPE STREQUAL "")
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# Enable or Disable Coverage with LCov During Compilation
+message("----- EERA Model Build Options -----")
+message(STATUS "Clang Tidy: ${CLANG_TIDY}")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Code Coverage: ${CODE_COVERAGE}")
+message("------------------------------------")
 
-option(CODE_COVERAGE "Enable code coverage with LCov" OFF)
-
-set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\"")
-
+if(CLANG_TIDY)
+	if(APPLE)
+    # Disable Clang-Tidy for macOS (as not available by default)
+		message(WARNING "Clang Tidy option not currently supported on macOS, ignoring option")
+	else()
+		set(CLANG_TIDY_FLAGS -checks=*,-*default-arguments-calls*,-llvm-include-order*,-modernize-use-trailing-return-type*,-readability-isolate-declaration*,-google-runtime-references*,-fuchsia-*,-llvm-header-guard* -header-filter=${CMAKE_SOURCE_DIR}/src)
+		set(CMAKE_CXX_CLANG_TIDY clang-tidy ${CLANG_TIDY_FLAGS})
+	endif(APPLE)
+endif()
 if(CODE_COVERAGE)
+	message(STATUS "Including Code Coverage")
 	set(COVERAGE_COMPILER_FLAGS "-g -fprofile-arcs -ftest-coverage")
-	set (CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wextra -O0 ${COVERAGE_COMPILER_FLAGS} ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wextra ${COVERAGE_COMPILER_FLAGS} ${CMAKE_CXX_FLAGS}")
 endif()
 	
 
