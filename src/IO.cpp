@@ -196,7 +196,6 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 		output_step	<< particleList[kk].weight<< '\n';
 		
 		for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-//				cout  << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " <<  particleList[kk].hospital_death_outs[var] << '\n';
 			output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " \
 						<<  particleList[kk].hospital_death_outs[var] << ", " << particleList[kk].death_outs[var] << '\n';
 		}
