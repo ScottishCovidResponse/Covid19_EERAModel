@@ -4,7 +4,7 @@
 
 using namespace EERAModel::Utilities;
 
-TEST(TestUtilities, TestSumEveryNth)
+TEST(TestUtilities, TestSumEveryN)
 {
     const std::vector<int> original = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
                                        1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
@@ -23,10 +23,25 @@ TEST(TestUtilities, TestSumEveryNth)
 		}
 	}
 
-    std::vector<int> test_reduced = AccumulateEveryNth(original, weekly_index);
+    std::vector<int> test_reduced = AccumulateEveryN(original, weekly_index);
 
     EXPECT_EQ(test_reduced, reduced);
 
+}
+
+TEST(TestUtilities, TestSumEveryNInvalidN)
+{
+    const std::vector<int> original = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
+                                       1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
+    
+    ASSERT_DEATH(AccumulateEveryN(original, 123), "Assertion .* failed");
+}
+
+TEST(TestUtilities, TestSumEveryNInvalidVector)
+{
+    const std::vector<int> original;
+    
+    ASSERT_DEATH(AccumulateEveryN(original, 23), "Assertion .* failed");
 }
 
 TEST(TestUtilities, TestSumSq)

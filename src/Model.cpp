@@ -345,8 +345,8 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 
 	const int week_length = 7;
 
-	const std::vector<int> obs_death_red = Utilities::AccumulateEveryNth(obsDeaths, week_length);
-	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryNth(status.hospital_deaths, week_length);
+	const std::vector<int> obs_death_red = Utilities::AccumulateEveryN(obsDeaths, week_length);
+	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryN(status.hospital_deaths, week_length);
 	
 	double sum_sq_deaths = Utilities::sse_calc<int>(sim_hospital_death_red, obs_death_red);
 
@@ -374,7 +374,7 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
  
 std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums)
 {
-	std::vector<double> _temp = {};
+	std::vector<double> _temp;
 	for ( int age{0}; age < age_nums.size(); ++age)
 	{
 		// seed only occurs in >20yo and not in HCW
@@ -412,7 +412,7 @@ std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng, c
 	return _temp;
 }
 
-void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda)
+void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, double bkg_lambda)
 {
 	int n_susc = 0;
 
@@ -680,8 +680,8 @@ InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartme
 	return infection_state;
 }
 
-std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
-			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut) 
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut) 
 {
 
 	double p_i = parameter_set[0];	
@@ -777,7 +777,7 @@ std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<d
 	pop_from -= outs;
 }*/
 
-int Flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate)
+int Flow(Random::RNGInterface::Sptr rng, int pops_from_val, int pops_new_from_val, double rate)
 {
 	int outs = rng->Poisson(rate * static_cast<double>(pops_from_val)); //symptomatic become hospitalized
 	outs = std::min(pops_new_from_val, outs);

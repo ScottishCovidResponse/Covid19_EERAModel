@@ -204,7 +204,7 @@ std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng, c
  * 
  * @return Number of individuals moving/flowing from one compartment to the other
  */
-int Flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& pops_new_from_val, const double& rate);
+int Flow(Random::RNGInterface::Sptr rng, int pops_from_val, int pops_new_from_val, double rate);
 
 /**
  * @brief Introduced diseased to the population
@@ -216,7 +216,7 @@ int Flow(Random::RNGInterface::Sptr rng, const int& pops_from_val, const int& po
  * @param seedarray Population seed array to be manipulated
  * @param bkg_lambda Lambda for generating number of diseased individuals
  */
-void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, const double& bkg_lambda);
+void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Compartments>& poparray, std::vector<double>& seedarray, double bkg_lambda);
 
 /**
  * @brief Generate vector of lambda values for the age groups
@@ -230,8 +230,8 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng, std::vector<Comp
  * @param pops Population array containing compartments for each age group
  * @param shut State of lockdown
  */
-std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, const double& u_val, 
-			const AgeGroupData& age_data, const std::vector<Compartments>& pops, const bool& shut);
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut);
 
 
 /**
