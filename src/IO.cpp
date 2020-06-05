@@ -107,12 +107,36 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string
 	EERAModel::PriorParticleParameters priorParticleParameters;
 
 	std::ifstream infile(filePath.c_str());
+<<<<<<< HEAD
 	std::string line;
 	
 	char delimiter = '\n';
 	while (std::getline(infile, line, delimiter))
 	{
 		priorParticleParameters.prior_param_list.push_back(atof(line.c_str()));
+=======
+	// if (infile.fail()) { std::cout << "Prior Parameters File" << std::endl;}
+	std::string line;
+	int linepos = 0;
+	// int inquotes = false;
+	char c;
+	int linemax = line.length();
+	std::string curstring;
+	char delimiter = '\n';
+	while (std::getline(infile, line, delimiter))
+	{
+		while (line[linepos] != 0 && linepos < linemax)
+		{
+			if (c == delimiter)
+			{
+				priorParticleParameters.prior_param_list.push_back(atof(curstring.c_str()));
+			}
+			else
+			{
+				curstring.push_back(c);
+			}
+		}
+>>>>>>> 825517cf9a21a1eb7c4d5e86292efbcdfc899c20
 	}
 	
 	return priorParticleParameters;

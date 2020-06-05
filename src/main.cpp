@@ -58,7 +58,11 @@ int main() {
 	// Read prior particle parameters if run type is "Prediction"
 	if (modelInputParameters.run_type == "Prediction")
 	{
+<<<<<<< HEAD
 		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
+=======
+		const std::string prior_params_addr = std::string(ROOT_DIR)+"data/prior_particle_params.csv";
+>>>>>>> 825517cf9a21a1eb7c4d5e86292efbcdfc899c20
 		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
 		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
 	}
