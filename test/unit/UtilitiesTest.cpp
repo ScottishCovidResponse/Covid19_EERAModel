@@ -34,14 +34,14 @@ TEST(TestUtilities, TestSumEveryNInvalidN)
     const std::vector<int> original = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
                                        1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
     
-    ASSERT_DEATH(AccumulateEveryN(original, 123), "Assertion .* failed");
+    ASSERT_DEATH(AccumulateEveryN(original, 123), "Assertion .*");
 }
 
 TEST(TestUtilities, TestSumEveryNInvalidVector)
 {
     const std::vector<int> original;
     
-    ASSERT_DEATH(AccumulateEveryN(original, 23), "Assertion .* failed");
+    ASSERT_DEATH(AccumulateEveryN(original, 23), "Assertion .*");
 }
 
 TEST(TestUtilities, TestSumSq)
