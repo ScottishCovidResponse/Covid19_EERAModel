@@ -376,12 +376,8 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums,  ModelStructureId structure)
 {
     unsigned int end_age = age_nums.size() - 1;
-    unsigned int start_age;
-    if (ModelStructureId::ORIGINAL == structure) 
-    {
-        start_age = 1;
-    }
-    else if (ModelStructureId::IRISH == structure)
+    unsigned int start_age = 1;
+    if (ModelStructureId::IRISH == structure)
     {
         start_age = 0;
     }
@@ -398,12 +394,8 @@ std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums,  Model
 std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
     const std::vector<int>& age_nums, const seed& seedlist, ModelStructureId structure)
 {
-    unsigned int distribution_size;
-    if (ModelStructureId::ORIGINAL == structure)
-    {
-        distribution_size = 6;
-    }
-    else if (ModelStructureId::IRISH == structure)
+    unsigned int distribution_size = 6;
+    if (ModelStructureId::IRISH == structure)
     {
         distribution_size = 7;
     }
