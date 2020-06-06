@@ -47,6 +47,15 @@ struct seed {
 };
 
 /**
+ * @brief Enumeration identifying which model structure the code should use
+ */
+enum class ModelStructureId
+{
+    ORIGINAL,
+    IRISH
+};
+
+/**
  * @brief Structure containing the inputs to a model run
  */
 struct ModelInputParameters
@@ -54,6 +63,7 @@ struct ModelInputParameters
 	int herd_id;
 	double tau;
 	int num_threads;
+    ModelStructureId model_structure;
 	int nsteps;
 	int nParticalLimit;
 	int nSim;

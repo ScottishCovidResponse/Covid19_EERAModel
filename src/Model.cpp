@@ -110,6 +110,8 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
 		(*log) << "    duration of the high risk period (hrp): " << modelInputParameters.seedlist.hrp << std::endl;
 	}
+    (*log) << "    model structure: " << 
+        ((modelInputParameters.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
 
     (*log) << "[Fixed parameter values]:\n";
 	(*log) << "    latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
