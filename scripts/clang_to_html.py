@@ -57,6 +57,9 @@ class ClangTidyParser(object):
           <li class="nav-item">
           <a class="nav-link" href="../site/clang_tidy.html">Clang Tidy</a>
             </li>
+            <li class="nav-item">
+            <a class="nav-link" href="../site/cppcheck.html">CPP Check</a>
+          </li>
         </ul>
 
         </nav> 
