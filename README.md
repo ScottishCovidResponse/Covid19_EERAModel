@@ -32,6 +32,10 @@ Following build, the model executable is `build/bin/Covid19EERAModel`. It presen
 is run from the top-level project directory, where the working input data files are located at 
 relative path `./data`.
 
+## Code Documentation
+
+Code documentation generated using Doxygen can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/doxygen/html/index.html).
+
 ## Tests
 
 ### Regression tests
