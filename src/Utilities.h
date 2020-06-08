@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -39,42 +39,44 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 }
 
 /**
- * @brief Create new vector summating every Nth element
+ * @brief Sum vector elements in blocks
  * 
- * Summate values at every Nth index, e.g. n = 7 would summate
- * daily data to be weekly data. For cases where n is not a multiple of the
- * vector size, the remaining values are dropped:
+ * Summate values at every Nth index, e.g. n = 7 would summate daily data to be weekly data. For 
+ * cases where n is not a multiple of the vector size, the residual values at the end of the input
+ * are dropped.
+ * 
+ * If n is less than the size of @p data, or the size of @p data is zero, and empty vector is returned.
  * 
  * @f$f([0,1,2,3,4,5,6,7], 3) -> f([0,1,2,3,4,5], 4) -> [3,12] @f$
  * 
- * @param data_vector	Vector of data to be reduced
- * @param n	Nth value at which summation should occur (i.e. index+1) where @code{.cpp} n < data_vector.size() @endcode
+ * @param data	Vector of data to be reduced
+ * @param n	Nth value at which summation should occur (i.e. index+1) where @code{.cpp} n <= data.size() @endcode
  * 
  * @return Vector of summation values
  */
 template<typename T>
-std::vector<T> AccumulateEveryN(const std::vector<T>& data_vector, int n)
+std::vector<T> AccumulateEveryN(const std::vector<T>& data, int n)
 {
-	std::vector<T> _temp;
-	T data_val(0);
+    std::vector<T> _temp;
+    T data_val(0);
 
-	assert(("Value for 'N' must be less than vector size", n < data_vector.size()));
-	assert(("Cannot accumulate vector of size 0", data_vector.size() > 0));
+    if (n <= data.size())
+    {
+        for (int i{0}; i < data.size(); ++i)
+        {
+            data_val += data[i];
 
-	for(int i{0}; i < data_vector.size(); ++i)
-	{
-		data_val += data_vector[i];
+            // Append to vector when index + 1 is a multiple of n
+            if ((i + 1) % n == 0 )
+            {
+                _temp.push_back(data_val);
+                data_val = T(0);
+            }
+            
+        }
+    }
 
-		// Append to vector when index+1 is a multiple of n
-		if( (i+1) % n == 0 )
-		{
-			_temp.push_back(data_val);
-			data_val = T(0);
-		}
-		
-	}
-
-	return _temp;
+    return _temp;
 }
 
 /*! @brief  Logging Stream Class

@@ -1,47 +1,55 @@
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "Utilities.h"
 
 using namespace EERAModel::Utilities;
+using namespace testing;
+
+TEST(TestUtilities, TestSummEveryNReturnsEmptyIfVectorSizeLessThanN)
+{
+    std::vector<int> data(3, 0);
+
+    auto actual = AccumulateEveryN(data, 4);
+
+    ASSERT_EQ(actual.size(), 0);
+}
+
+TEST(TestUtilities, TestSumEveryNReturnsEmptyIfDataIsEmpty)
+{
+    std::vector<int> data;
+
+    auto actual = AccumulateEveryN(data, 1);
+
+    ASSERT_EQ(actual.size(), 0);
+}
+
+TEST(TestUtilities, TestSumEveryNReturnsSingleValueIfNEqualsDataSize)
+{
+    std::vector<int> data{0, 1, 2, 3, 4, 5};
+
+    auto actual = AccumulateEveryN(data, 6);
+
+    ASSERT_THAT(actual, ElementsAre(15));
+}
+
+TEST(TestUtilities, TestSumEveryNDiscardsResidualData)
+{
+    std::vector<int> data{0, 1, 2, 3, 4, 5, 6};
+
+    auto actual = AccumulateEveryN(data, 2);
+
+    ASSERT_THAT(actual, ElementsAre(1, 5, 9));
+}
 
 TEST(TestUtilities, TestSumEveryN)
 {
-    const std::vector<int> original = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
+    const std::vector<int> data = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
                                        1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
     
-    const int weekly_index = 7;
+    auto actual = AccumulateEveryN(data, 7);
 
-    std::vector<int> reduced = {};
-
-    int weekly_value = 0;
-	for(unsigned int ttime =0; ttime< original.size(); ++ttime){
-		weekly_value+=original[ttime];
-				
-		if( (ttime % weekly_index) == weekly_index-1){
-			reduced.push_back(weekly_value);
-			weekly_value=0;
-		}
-	}
-
-    std::vector<int> test_reduced = AccumulateEveryN(original, weekly_index);
-
-    EXPECT_EQ(test_reduced, reduced);
-
-}
-
-TEST(TestUtilities, TestSumEveryNInvalidN)
-{
-    const std::vector<int> original = {1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7,
-                                       1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7};
-    
-    ASSERT_DEATH(AccumulateEveryN(original, 123), "Assertion .*");
-}
-
-TEST(TestUtilities, TestSumEveryNInvalidVector)
-{
-    const std::vector<int> original;
-    
-    ASSERT_DEATH(AccumulateEveryN(original, 23), "Assertion .*");
+    ASSERT_THAT(actual, ElementsAre(28, 28, 28, 28));
 }
 
 TEST(TestUtilities, TestSumSq)
