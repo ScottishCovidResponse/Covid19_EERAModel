@@ -11,14 +11,24 @@ RUN_SCRIPT=./scripts/RunModel.sh
 CHECK_SCRIPT=./scripts/CheckRunOutputs.sh
 
 function usage {
-    echo "usage: $scriptname"
+    echo "usage: $scriptname <first> <last>"
+    echo "  first      Number of the first regression test to run"
+    echo "  expected    Number of the last regression test to run"
     exit 1
 }
 
-if [[ $# -ne 0 ]]; then
-  echo "ERROR: Invalid ($#) number of arguments"
-  usage
-  exit 1
+if [[ $# -ne 2 ]]; then
+    echo "ERROR: Invalid ($#) number of arguments"
+    usage
+    exit 1
+fi
+
+FIRST=$1
+LAST=$2
+if [[ ! $FIRST -le $LAST ]]; then
+    echo "ERROR: $FIRST should be less than or equal to $LAST"
+    usage
+    exit 1
 fi
 
 failures=0
@@ -28,7 +38,7 @@ echo "Running regression tests..."
 echo ""
 echo "==========================================================================="
 
-for i in $(seq 1 6) ; do   
+for i in $(seq $FIRST $LAST) ; do   
   echo ""
   echo "***************** Running regression test #$i *****************"
   

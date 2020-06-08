@@ -23,6 +23,14 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	//number of threads used for computation
 	modelInputParameters.num_threads = atoi(parameters.GetValue("num_threads", "Settings", filePath).c_str());
 
+    // Model structure
+    std::string model_structure(parameters.GetValue("model", "Settings", filePath));
+    if ("irish" == model_structure) {
+        modelInputParameters.model_structure = ModelStructureId::IRISH;
+    } else {
+        modelInputParameters.model_structure = ModelStructureId::ORIGINAL;
+    }
+
 	//Seed settings
 	modelInputParameters.seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", filePath).c_str();
 	if(modelInputParameters.seedlist.seedmethod == "random"){

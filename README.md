@@ -16,7 +16,6 @@ Simple COVID-19 simulation model with ABC-smc inference
  * GSL (GNU Scientific Library)
  * PkgConfig
  * Threads
- * CppCheck
  
 ## Build
 The build follows the normal CMake procedure. From the root project directory:
@@ -41,9 +40,21 @@ The regression tests can be found in `test/regression`. Each run uses a fixed se
 * Running the model executable `./build/bin/Covid19EERAModel`
 * Compare the model outputs in `outputs` with the reference outputs in `test/regression/runN/outputs`
 
-The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` from the top-level roject directory. Each test will be run consecutively, and the script will provide a summary of success/failures.
+There are two sets of regression tests: one set which use the original model structure, and another 
+set which use the Irish epidemiological structure. The former are regression tests 1-6; the latter
+are tests 7-12.
 
-**Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are based on the last baseline model code (Version 0.3.2.4 at the time of writing).
+The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` 
+from the top-level roject directory. Each test will be run consecutively, and the script will provide
+a summary of success/failures. The script takes the first and last tests to run as arguments i.e.
+to run tests 4 through 9:
+```
+$ ./scripts/RunRegressionTests 4 9
+```
+
+**Note:** The regression tests are an aid to refactoring with confidence: they should not be considered
+confirmation of the code's correctness. The reference outputs are updates periodically based on 
+changes in the core model logic.
 
 ### Unit tests
 The unit tests can be found in `test/unit`. They are built using the Google Test unit-testing framework. CMake automatically downloads and builds GTest as an external project, so it is not required to have GTest installed on the build system.
