@@ -49,10 +49,10 @@ class ClangTidyParser(object):
             <a class="nav-link" href="../index.html">Home</a>
             </li>
             <li class="nav-item">
-            <a class="nav-link" href="doxygen/html/index.html">Doxygen</a>
+            <a class="nav-link" href="../doxygen/html/index.html">Doxygen</a>
             </li>
             <li class="nav-item">
-            <a class="nav-link" href="build/Covid19EERAModel_coverage/index.html">Code Coverage</a>
+            <a class="nav-link" href="../build/Covid19EERAModel_coverage/index.html">Code Coverage</a>
             </li>
             <li class="nav-item">
             <a class="nav-link" href="doxygen/clang_tidy.html">Clang Tidy</a>
