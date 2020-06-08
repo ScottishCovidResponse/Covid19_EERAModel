@@ -1,0 +1,994 @@
+---
+title: "Scottish COVID Response Consortium (SCRC)"
+subtitle: EERA model overview
+author: 
+- name: Thibaud Porphyre, Mark Bronsvoort
+  affiliation: EPIC, The Roslin Institute, University of Edinmburgh
+- name: Peter Fox, Kristian Zarębski, Qingfeng Xia, Sanket Gadgil
+  affiliation: UKAEA
+date: "03/06/2020"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_float: true
+    toc_collapsed: true
+  toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+  number_sections: false  ## if you want number sections at each table header
+  theme: lumen     # united ; many options for theme, this one is my favorite.
+    
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(tidyr)
+library(readxl)
+library(lubridate)
+
+#======================
+# Functions
+#======================
+#### multiplot function
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+create_df <- function(scot_data, HB_interest,params,tofit=T, methodseed){
+  #observations for given HB
+  obs_data = scot_data %>% select(Date,HB_interest) %>% 
+    rename(cases=HB_interest)
+  
+  if(tofit){
+    t_index = (obs_data %>% 
+                 filter(cases>0) %>% 
+                 summarise(index = min(Date,na.rm=T)) %>% 
+                 pull(index))
+    t_start = obs_data %>% summarise(start = min(Date,na.rm=T)) %>% pull(start)
+    
+    if(methodseed != "background"){#assume that the first detected case occured i+s=13days after becoming infectious
+      if((t_index - (params$i+params$s))< (t_start-1)){
+        extra_data = as.data.frame(cbind(Date = as.character(seq(t_index - (params$i+params$s),t_start-1,1)),
+                                         cases = 0)) %>% as_tibble() %>% 
+          mutate(Date = as.Date(Date),
+                 cases = as.numeric(as.character(cases)))
+        
+        obs_data <- bind_rows(extra_data,obs_data) 
+      }
+    } else {
+      if((t_index - (params$hrp))< (t_start-1)){
+        extra_data = as.data.frame(cbind(Date = as.character(seq(t_index - (params$hrp),t_start-1,1)),
+                                         cases = 0)) %>% as_tibble() %>% 
+          mutate(Date = as.Date(Date),
+                 cases = as.numeric(as.character(cases)))
+        
+        obs_data <- bind_rows(extra_data,obs_data) 
+      }
+    }
+  }
+  #correct for negative incidence
+  obs_data <- correct_df(obs_data %>% 
+                           distinct_all() %>% 
+                           mutate(time = row_number()-1,
+                                  inc_case = cases - lag(cases, default = 0)) %>% 
+                           drop_na())
+  return(obs_data)
+}
+
+#correct the timeseries to avoid negative incidence records
+correct_df <- function(test){
+  
+  for(ii in seq_len(nrow(test))){
+    if(test$inc_case[ii]<0){
+      #look next day number of cases
+      case_bef=test$cases[ii-1]
+      #look at the previous number of cases
+      case_aft=test$cases[ii+1]
+      #check if the next tot cases is bigger than tot cases before
+      #if(bigger) compute difference and remove it from day before
+      
+      if(case_bef<case_aft){
+        if(test$inc_case[ii-1] >= abs(test$inc_case[ii])){
+          test$cases[ii-1] <- test$cases[ii-1] + test$inc_case[ii]
+        } else {
+          test$cases[ii-1] <-NA
+        }
+      } else{
+        #if smaller
+        #check when the day prior today was smaller than the next day and remove extra cases to this day
+        counter_check=1
+        while(test$cases[ii-counter_check]>case_aft){
+          counter_check = counter_check+1
+        }
+        if(test$inc_case[ii-counter_check+1] >= abs(test$inc_case[ii])){
+          test$cases[(ii-counter_check+1):(ii-1)] <- test$cases[(ii-counter_check+1):(ii-1)] + test$inc_case[ii]
+        } else {
+          test$cases[ii-counter_check+1] <-NA
+        }
+      }
+      #change negative incidence to 0
+      test$cases[ii] <- test$cases[ii-1] 
+    }
+  }
+  #recompute the incident cases
+  test <- test %>% mutate(inc_case = cases - lag(cases, default = 0))
+  return(test)
+}
+
+```
+
+
+
+```{r, include=FALSE}
+
+#======================
+# load data
+#======================
+
+# Data published by Public Health England 
+# https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases
+
+# Scottish Data
+WATTY62DATA <- "https://raw.githubusercontent.com/watty62/Scot_covid19/master/data/processed/regional_cases.csv"
+WATTY62POP <- "https://raw.githubusercontent.com/watty62/Scot_covid19/master/data/processed/HB_Populations.csv"
+WATTY62DEATHS <- "https://raw.githubusercontent.com/watty62/Scot_covid19/master/data/processed/regional_deaths.csv"
+scot_pop <- read_csv(file =WATTY62POP , col_types = cols()) %>% 
+  mutate(hcw_per_rata = Population/sum(Population))
+scot_tot_pop = as.data.frame(list(`Name` = "Scotland",`Population` = sum(scot_pop$Population)))%>% 
+  mutate(hcw_per_rata = Population/sum(Population)) %>% 
+  mutate_if(is.factor,as.character)
+scot_pop <- bind_rows(scot_pop,scot_tot_pop)
+scot_deaths <- read_csv(file = WATTY62DEATHS, col_types = cols()) 
+scot_deaths[scot_deaths == "x"] <- -999   
+scot_deaths <- scot_deaths %>% 
+  rename(`Scotland`= `Grand Total`) %>%
+  mutate(Date = lubridate::dmy(Date))
+
+scot_data <- read_csv(file = WATTY62DATA, col_types = cols()) %>%
+  rename(`Scotland`= `Grand Total`) %>%
+  mutate(Date = lubridate::dmy(Date),
+        Area = "Scotland")
+
+# from https://doi.org/ 10.1371/journal.pcbi.1005697
+#all location
+polymoduk=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_all_locations_2.xlsx",
+                    sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                          "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("00-04","05-09","10-14","15-19"),"Under20",
+                            ifelse(from %in% c("20-24","25-29"),"20-29",
+                                   ifelse(from %in% c("30-34","35-39"),"30-39",
+                                          ifelse(from %in% c("40-44","45-49"),"40-49",
+                                                 ifelse(from %in% c("50-54","55-59"),"50-59",
+                                                        ifelse(from %in% c("60-64","65-69"),"60-69",
+                                                               ifelse(from %in% c("70-74","75+"),"Over70",NA)))))))) %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+
+polymoduk_HCW=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_all_locations_2.xlsx",
+                        sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                              "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("25-29","30-34","35-39","40-44","45-49","50-54"),"HCW",NA)) %>% 
+  drop_na() %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+waifw_norm = bind_rows(polymoduk, polymoduk_HCW)
+
+#home only (i.e non-work, non-school)
+polymoduk=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_home_2.xlsx",
+                    sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                          "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("00-04","05-09","10-14","15-19"),"Under20",
+                            ifelse(from %in% c("20-24","25-29"),"20-29",
+                                   ifelse(from %in% c("30-34","35-39"),"30-39",
+                                          ifelse(from %in% c("40-44","45-49"),"40-49",
+                                                 ifelse(from %in% c("50-54","55-59"),"50-59",
+                                                        ifelse(from %in% c("60-64","65-69"),"60-69",
+                                                               ifelse(from %in% c("70-74","75+"),"Over70",NA)))))))) %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+polymoduk_HCW=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_home_2.xlsx",
+                        sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                              "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("25-29","30-34","35-39","40-44","45-49","50-54"),"HCW",NA)) %>% 
+  drop_na() %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+
+waifw_home = bind_rows(polymoduk, polymoduk_HCW)
+
+
+#home + other location (i.e non-work, non-school)
+polymoduk=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_home_2.xlsx",
+                    sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                          "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) + 
+  read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_other_locations_2.xlsx",
+            sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                  "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) 
+polymoduk=polymoduk %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("00-04","05-09","10-14","15-19"),"Under20",
+                            ifelse(from %in% c("20-24","25-29"),"20-29",
+                                   ifelse(from %in% c("30-34","35-39"),"30-39",
+                                          ifelse(from %in% c("40-44","45-49"),"40-49",
+                                                 ifelse(from %in% c("50-54","55-59"),"50-59",
+                                                        ifelse(from %in% c("60-64","65-69"),"60-69",
+                                                               ifelse(from %in% c("70-74","75+"),"Over70",NA)))))))) %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+polymoduk_HCW=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_home_2.xlsx",
+                        sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                              "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))  + 
+  read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_other_locations_2.xlsx",
+            sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
+                                                                  "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+")) 
+polymoduk_HCW=polymoduk_HCW %>%
+  mutate(from = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"),
+         group_age = ifelse(from %in% c("25-29","30-34","35-39","40-44","45-49","50-54"),"HCW",NA)) %>% 
+  drop_na() %>% 
+  mutate(`Under20` = (`00-04`+`05-09`+`10-14`+`15-19`)/4,
+         `20-29` = (`20-24`+`25-29`)/2,
+         `30-39` =(`30-34`+`35-39`)/2,
+         `40-49` = (`40-44`+`45-49`)/2,
+         `50-59` = (`50-54`+`55-59`)/2,
+         `60-69` = (`60-64`+`65-69`)/2,
+         `Over70` = (`70-74`+`75+`)/2,
+         `HCW`= (`25-29`+`30-34`+`35-39`+`40-44`+`45-49`+`50-54`)/6) %>% 
+  ungroup() %>% 
+  select(group_age,`Under20`,`20-29`,`30-39`,`40-49`,`50-59`,`60-69`,`Over70`,`HCW`) %>% 
+  group_by(group_age) %>% 
+  summarise_at(vars(-group_cols()),mean) %>% 
+  ungroup() %>% 
+  mutate(group_age = factor(group_age,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW"))) %>% 
+  arrange(group_age) %>% 
+  select(-group_age) 
+
+
+waifw_sdist = bind_rows(polymoduk, polymoduk_HCW)
+
+
+#population structure per health board (2011), from https://www.scotlandscensus.gov.uk/ods-web/data-warehouse.html
+scot_age <- read_csv(file ="/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/HealthBoard_census/DC1117SC.csv",
+  skip=5 , col_names = c("Health_Board","age","All people","Males","Females"), col_types = cols()) %>% 
+  mutate(group_age = ifelse(age %in% c("Under 1",as.character(1:20)),"Under20",
+                            ifelse(age %in% as.character(21:29),"20-29",
+                                   ifelse(age %in% as.character(30:39),"30-39",
+                                          ifelse(age %in% as.character(40:49),"40-49",
+                                                 ifelse(age %in% as.character(50:59),"50-59",
+                                                        ifelse(age %in% as.character(60:69),"60-69",
+                                                               ifelse(age %in% c(as.character(70:84),"85 to 89","90 to 94","95 and over"),"Over70",NA))))))),
+         group_age = factor(group_age,levels= names(waifw_norm)[-8]))
+
+scot_age <- scot_age %>% 
+  drop_na(group_age) %>% 
+  ungroup() %>% 
+  mutate(Health_Board = gsub("&","and",Health_Board)) %>% 
+  group_by(Health_Board,group_age) %>% 
+  summarise(tot=sum(`All people`)) %>% 
+  mutate(freq=tot/sum(tot))
+
+
+```
+
+
+
+## Project Details
+Version:
+
+******
+## Model overview
+
+---
+
+### Model structure
+* Age-structured, compartment stochastic model (based on ASF within herd model).
+* HCW considered as a separated population and treated as an additional age class for disease progression.
+* Different transmission behaviour between community and HCW.
+* Hospitalisation rate as a function of bed capacity.
+* Coupled with ABC-smc inference framework and fitted over the reported number of incident cases (daily) and deaths (weekly)
+
+### Programming
+* C++ programming
+*	Tau-leap (Poisson process)
+*	Daily time step
+
+### Purpose
+* Short-term goals:
+  + Inference of key epidemiological parameters
+  + Impact of scales (national vs regional vs health board) on parameter estimates
+
+* Medium-term goals:
+  + Prediction of community level infection
+  + Optimization lifting movement restrictions strategies
+
+
+
+******
+## Model structure
+
+---
+
+### General disease progression
+*	Stochastic, compartmental SEI3HRD model.
+*	Flow description (see below):
+  +	Exposed individuals (Ea) will become pre-clinically infectious (Ia). From there, a portion of infected individuals will develop to be asymptomatic while the remaining will be symptomatic (Isa) 
+  +	asymptomatic individuals will sstay infectious for relatively long period and will recover (Ra) following a gamma-distributed decay.
+  +	Recovery, hospitalisation and death of symptomatic individuals is based on age and the number of bed available in COVID wards.
+  +	A portion of symptomatic individuals will develop severe clinical symptoms based on age and will remain infectious (through self-isolating) for a gamma-distributed stay of mean $\theta_s$. If bed capacity is optimum (i.e. Ha/K ~ 0), all severe cases will be hospitalised (Ha). Otherwise (i.e. Ha/K ~ 1), all severe cases will remain at home where they will die (Da), undetected from hospital surveillance.
+  +	Hospitalized individuals will either recover or die based on age
+
+
+### Spatial structure
+* No spatial structure
+
+### Demography
+*	7 age groups: Under 20, 20-29,03-39, 40-49, 50-59, 60-69, 70 over
+*	1 extra group to include health care worker (HCW), assumed to have similar behaviour as people between 20 and 59 (i.e. mean behaviour).  
+
+### Movement
+*	No movement
+*	Contact structured informed thought Age-mixing matrices giving mean number of contacts per day between age groups.
+
+
+### Main version
+
+![Figure 1: the original framework](/Users/tporphyr/Documents/PROJECTS/COVID-19/eeraModel_original_struct.png)
+
+### Alternative version
+
+![Figure 2: the "irish" framework](/Users/tporphyr/Documents/PROJECTS/COVID-19/eeraModel_irish_struct.png)
+
+
+* Note! Both the asymptomatic ($I^a$) and symptomatic ($I_s^a$) compartments are divided into 4 successive compartments with exponential decay of rate=$4/\theta_r$ or $4/\theta_s$, respectively. As such, individuals remain in these states for a $gamma$-distributed stay of mean $\theta_r$ or $\theta_s$, respectively.
+
+
+******
+## Infectious process
+
+---
+
+### Community infection process
+
+
+In the model, the virus can be transmitted from an infectious individual of age class $a$, either asymptomatic or symptomatic, to a susceptible individual of any age class at a rate $\Lambda(a,t)$, which depends on the number of daily contacts between individuals of age class $a$. Here, we define $c(a,j,t)$ the expected number of daily contacts with individuals of age class $a$ by a single individual of age class $j$. In the model, $c(a,j,t)$ will change as a function of the control measures implemented to mitigate the spread of the virus during the course of the outbreak.  We further assumed that all symptomatic infectious individuals will self-isolate and will only contact $q$ individuals from their household. As such, $\Lambda(a,t)$ can be formulate such as:
+
+$$
+\begin{aligned}
+    \Lambda\left ( a,t \right )=
+\sum_{j\in \forall a}p_{i}.c(a,j,t).\frac{\left ( I_{p}^{a} + uI^{a} + q  \sum I_{s}^{a}  ) \right )}{ N^{a}}.
+\end{aligned}
+$$
+
+where, $N^a$ is the total number of individuals in each age class $a$; $u$ is the relative infectivity of asymptomatic individuals; and $p_i$ is the probability that a susceptible individual becomes infected given that a contact with an infectious individual has occurred. Here, we assumed that this probability $p_i$ is constant for all age classes $a$. 
+
+* Based on this model, the basic reproductive number of COVID19 in the general population, $R_0$, denoting the average number of secondary infections generated by a typical infectious individual in a fully susceptible population, is computed as the absolute value of the dominant eigenvalue of the next generation matrix $M_{aj}$, where each element of $M_{aj}$ is defined for the original version of the model as:
+
+$$
+\begin{aligned}
+M_{aj}=p_i.c(a,j,t).(θ_i+u(1-p_s ) θ_r+qp_s θ_s))
+\end{aligned}
+$$
+whereas,
+
+$$
+\begin{aligned}
+M_{aj}=p_i.c(a,j,t).(u(1-p_s ) θ_r+p_s (θ_i+qθ_s))
+\end{aligned}
+$$
+
+for the alternative ("irish") version.
+
+
+### HCW infection process
+
+While we assumed that the clinical outcome of a given case does not impact upon transmission dynamics in the general population, hospitalised individuals represent a source of infection for health care workers (HCW) exclusively. Concomitantly, we considered that HCW will acquire infection differently to the general population, through contact with hospitalised individuals only. Particularly, we assumed that HCW will be tested regularly and will self-isolate perfectly, hence they represent a negligible source of infection for susceptible individuals in the rest of population. In this situation, transmission would depends on the expected number of patient-to-HCW contact $c_{hcw}$ and the probability $p_{hcw}$ that a susceptible HCW becomes infected given that a contact with an hospitalised patient occurred. To account for the distinct transmission risk of HCW among the population, we considered HCW as a separate age class and extended $\Lambda(a,t)$ such as:
+
+$$
+\begin{equation}
+    \Lambda\left ( a,t \right )=
+p_{hcw}.c_{hcw}.\frac{\sum_{j\in \forall a}H^{j}}{N^{a}}, ~\mathrm{if} \, ~a=HCW.
+\end{equation}
+$$
+
+where, $H^{a}$ is the number of hospitalised individuals of age class $a$. Note that HCW are behaving markedly different from the rest of the population. As such, we considered that HCW are not involved in the calculation of $R_0$.
+
+
+### pre-lockdown imports
+
+* We further considered that multiple incursions of COVID19 occurred in Scotland prior the implementation of the lock down rather than assuming that epidemics start with a single initially infected individual. We therefore extended the transmission rate of an infectious individual to a susceptible individual ${\Lambda}'(a,t)$, such as ${\Lambda}'(a,t) = \lambda(T) + \Lambda(a,t)$, where $\lambda(T)$ is a constant background transmission parameter within a given time period $T$. It is worth noting that $\lambda(T)$ ultimately measures the number of infection events that are independent of the second order effect throughout $T$, and estimates would strongly depend on the duration for which the system is observed. Here, we considered $T$ starting 34 days prior the detection of the index case and ending when lock-down mitigation activities have been implemented, thereby restricting movement within Scotland and with other regions of the UK. The 34-day period prior detection of the index case was chosen because (1) it largely encompasses the time COVID19 was assumed introduced in Scotland (end of January, early February), (2) remains small enough to avoid adverse effect on the estimates of $\lambda(T)$ and (3) avoid partial weekly data. 
+
+
+*	In the original model, number of daily primary infection events were distributed homogeneously and randomly within the >20yo population within a high-risk period $T$ prior detection of the index case (i.e first detected case), whereas the "irish" model would consider that incursion can occur in all age class.
+
+* In all situations, we assumed that no incursion can occur in the HCW population.
+
+
+******
+
+## Control activities:
+
+---
+
+*	Control activities implemented through change in Age-mixing matrices. Particularly, we considered that $c(a,j,t)$ would be markedly be reduced once social distancing measures have been implemented and enforced ("lock-down"), which include school closure and non-essential work. Once the lock-down has been enforced, efficacy of social distancing measures will further depend on compliance of individuals limiting their contact structure to home contact only. We therefore considered that a proportion $d$ of the population will chose to limit their contact to those from home only, while $1-d$ will contact their expected number of daily contact that are neither from work nor from school.
+*	If symptomatic, infectious individuals will self-isolate. Self-isolated individuals will only contact a proportion $q$ of the contacts they do at home.
+*	Testing activities implemented by not active yet (extra epi states)
+
+
+###	Key assumptions:
+*	Symptomatic Infectious individuals will self-isolate.
+*	Self-isolated individuals will only contact a proportion q of the contacts they do at home.
+*	HCW will self-isolate perfectly once symptomatic.
+*	Number of HCW is proportional to population.
+*	Scots contact behaviour similar to the rest of the UK. 
+
+
+******
+## Model inference
+
+---
+
+### Inference framework
+* Model is integrated within an ABC-smc inference framework.
+* Inference based on: 
+  + the daily reported incident cases, and 
+  + weekly reported number of deaths from hospital.
+* Eligible particles were selected based on the normalised sum of squares of residuals. Specifically, we measured the deviation $D_k$ of each simulated trajectories $y ̂_k(t)$ constructed by each particle such as defined by:
+
+$$
+\begin{aligned}
+D_k=\frac{1}{Y_k}  \sqrt{(∑_{t=t_0}^{n}(y_k (t)-y ̂_k (t))^2 )}
+\end{aligned}
+$$
+
+where $y ̂_k(t)$ and $y_k(t)$ denote the simulated and observed value on time step $t$ for the variable $k$ being predicted, respectively; and $Y_k$ is the total number of observations over the $n$ days of observation and for the given start date $t_0$. Here, $k$ are either the daily number of newly hospitalised individuals (aggregated over all age groups) or the weekly number of death events from hospitalised individuals (aggregated over all age groups).
+
+### Key assumption for inference 
+*	All reported cases are hospitalised (not yet testing)
+*	All regions of interest (e.g. Health Boards, regions, nations) are independent to each other (closed syst.)
+
+
+### Parameters and priors
+* Currently 8 parameters fitted: $\lambda$, $p_i$, $p_{hcw}$, $p_s(a>20yo)$, $c_{hcw}$, $q$, $d$ and $r_d$
+* Priors:
+  + $\lambda$: uniform distribution ranging from 0.001 to 1 infection per million individuals at risk per day of exposure ($Unif(1e^{-9},1e^{-6})$).
+  + $p_i$: Beta distribution with mean 0.25 ($Beta(3,9)$).
+  + $p_s$: Beta distribution with mean 0.75 ($Beta(9,3)$).
+  + $p_{hcw}$, $q$ and $d$: Beta distribution with mean of 0.5 (Uninformative, $Beta(3,3)$).
+  + $c_{hcw}$: Poisson distribution with mean of 42 contacts $Pois(42)$.
+  + $r_d$: Gamma distribution of shape and scale of 1 (Uninformative, $\Gamma(1,1$).
+
+
+******
+## Fixed parameters
+
+---
+
+### age mixing matrices
+
+* source: Prem et al (2017) <https://doi.org/10.1371/journal.pcbi.1005697>
+* Note! Health care worker contact behaviour assumed similar to the average  number of daily contacts of 20 to 59 yo individuals.
+
+```{r , echo=FALSE, warning=FALSE,error = FALSE, message= FALSE, fig.height=3.5, fig.width=12, fig.cap="Figure 3: Mean number of daily contacts between individuals of given age classes: (a) overall, (b) without work nor school contacts, (c) home contacts only"}
+
+  #contact distribution during shutdown and normal period
+contacts = as.data.frame(cbind(type = c(rep("normal",length(colnames(waifw_norm))),rep("social distancing",length(colnames(waifw_norm)))),
+                               age_group = c(colnames(waifw_norm),colnames(waifw_norm)),
+                               contact = c(-rowSums(waifw_norm),rowSums(waifw_sdist)))) %>% 
+  as_tibble() %>% 
+  mutate(age_group = factor(age_group,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW")),
+         contact = as.numeric(as.character(contact)))
+
+contact_home = as.data.frame(cbind(type = rep("home",length(colnames(waifw_norm))),
+                                   age_group = colnames(waifw_norm),
+                                   contact = rowSums(waifw_home))) %>% 
+  as_tibble() %>% 
+  mutate(age_group = factor(age_group,levels = c("Under20","20-29","30-39","40-49","50-59","60-69","Over70","HCW")),
+         contact = as.numeric(as.character(contact)))
+
+colors_fill <- c(`Normal` = "#E41A1C", `Shutdown` = "#377EB8" , `Home only` =  "light blue")
+contactdis <- ggplot()+
+  geom_bar(data = contacts %>% 
+             filter(type == "normal"),
+           aes(x = age_group, y = contact, fill = "Normal"), stat = "identity") + 
+  geom_bar(data = contacts %>% 
+             filter(type == "social distancing"),
+           aes(x = age_group, y = contact, fill = "Shutdown"), stat = "identity") + 
+  geom_bar(data = contact_home,aes(x = age_group, y = contact, fill = "Home only"), stat = "identity")+ #,fill="light blue"
+  coord_flip() + 
+  scale_fill_manual(values = colors_fill) + 
+  theme_bw(base_size = 14) +
+  theme(legend.title = element_blank(),
+        legend.position = c(1,1),
+        legend.justification = c(1,1),
+        legend.background = element_blank())+
+  scale_y_continuous(breaks = seq(-7, 7, 1), 
+                     limits = c(-7,7),
+                     labels = as.character(c(7:0, 1:7))) +
+  labs(y="mean number of contacts",
+       x="age groups")
+
+
+#matrix of contacts
+cmat1 <- ggplot(data = reshape2::melt(waifw_norm %>% 
+                               mutate(from = (names(waifw_norm)), 
+                                      from=factor(from, levels = rev(names(waifw_norm))))
+                             ) %>% mutate(value = ifelse(value<1e-4,0,value)),
+       aes(x=variable, y=from, fill=value)) + 
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "dark blue", limits=c(-0.001,2), na.value = "white")+
+  theme_bw() + theme(legend.position = "none",axis.title = element_blank()) 
+
+cmat2 <- ggplot(data = reshape2::melt(waifw_sdist %>% 
+                                        mutate(from = (names(waifw_sdist)), 
+                                               from=factor(from, levels = rev(names(waifw_sdist))))
+                                )%>% mutate(value = ifelse(value<1e-4,0,value)),
+aes(x=variable, y=from, fill=value)) + 
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "dark blue", limits=c(-0.001,2), na.value = "white")+
+  theme_bw() + theme(legend.position = "none",axis.title = element_blank()) 
+
+cmat3 <- ggplot(data = reshape2::melt(waifw_home %>% 
+                                        mutate(from = (names(waifw_home)), 
+                                               from=factor(from, levels = rev(names(waifw_home))))
+)%>% mutate(value = ifelse(value<1e-4,0,value)),
+aes(x=variable, y=from, fill=value)) + 
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "dark blue", limits=c(-0.001,2), na.value = "white")+
+  theme_bw() + theme(legend.position = "none",axis.title = element_blank()) 
+
+
+
+
+multiplot( cmat1 +ggtitle("(a)"), cmat2  +ggtitle("(b)"), cmat3 +ggtitle("(c)"), cols=3)
+
+
+```
+
+### age-structured parameters
+
+* hospitalisation probability ($h(a)$) given symptoms extracted from <https://www.ecdc.europa.eu/sites/default/files/documents/RRA-seventh-update-Outbreak-of-coronavirus-disease-COVID-19.pdf>
+* Note! Values were extracted graphically from figure. I have concern in their validity and exact estimates.
+
+* Case fatality ratio  ($cfr(a)$) from Russell et al (2020) <https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2020.25.12.2000256>.
+* Note! values estimated from outbreak response in the Diamond Princess Cruise ship. General health, wealth and age structure of the study population is likely to not be representative to what observed in the UK. Also, due to limited number and physical restrictions in place, all individuals would have been tested, irrespective they were asymptomatic and symptomatic.
+
+* probability of death given severe infection was computed as $p_d(a)=cfr(a)/h(a)$
+
+```{r , echo=FALSE}
+#fixed age-structured probabilities
+cfr_byage=data.frame(
+  #assume HCW similar to 20-59
+  `age classes`=colnames(waifw_norm),
+  p_h=c(0.143,	0.1141,	0.117,	0.102,	0.125,	0.2,	0.303,	0.114525), #https://www.ecdc.europa.eu/sites/default/files/documents/RRA-seventh-update-Outbreak-of-coronavirus-disease-COVID-19.pdf
+  cfr=c(0.001,	0.002,	0.002	,0.004,	0.013,	0.036,	0.114,	0.00525) #https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2020.25.12.2000256. NOTE: case defined as infected individuals (either symptomatic or asymptomatic)
+  ) %>% 
+  mutate(p_d=cfr/p_h) #convert p(d) to p(d|h)
+
+knitr::kable(cfr_byage, 
+             col.names = c("$a$", "$h(a)$", "$cfr(a)$", "$p_d(a)$"),
+             caption = 'Table 1: Age-strucutre parameters')
+
+
+```
+
+
+
+******
+## Outputs
+
+---
+
+### Inference mode
+3 files per smc step:
+
+* <_output_abc-smc_particles_>: list of particles selected at each step, providing details on values of all statistics and particles' weight
+* <_output_abc-smc_simu_>: trajectories of both daily incident cases and weekly incident deaths for the selected particles
+* <_output_abc-smc_ends_>: number of individuals per age group and per epidemiological states at the last day of the inference period.
+
+
+```{r, echo=FALSE, message = FALSE}
+
+#Date of the implemented lock down in the UK
+lock_down = as.Date("2020-03-20")
+
+#Date of the last day of the study period
+upto ="2020-04-28"
+
+#location of the data + reshape for ploting
+foldername = "/Users/tporphyr/Documents/workspace/Covid19_EERAModel/outputs"
+filenames = list.files(foldername)
+list_shb = unique(sapply(strsplit(filenames,"_"), function(oo) as.numeric(gsub("[^[:digit:].]", "",  oo[5]))) )
+list_shb = as.data.frame(cbind(shb = list_shb)) %>% 
+  drop_na() %>% 
+  mutate(Name = names(scot_data)[shb+1],
+         max_step=0) %>% 
+  arrange(Name)
+for(ii in seq_len(nrow(list_shb))){
+  list_shb$max_step[ii] <- max(sapply(strsplit(
+    list.files(foldername)[grepl(paste0("shb",list_shb$shb[ii],"."),list.files(foldername),fixed=T)],
+    "_"), 
+    function(oo) as.numeric(gsub("[^[:digit:].]", "",  oo[4]))))
+}
+list_shb = list_shb %>% 
+  filter(!(shb %in% c(11,12,14))) %>% 
+  arrange(shb) %>%
+  mutate(code = gsub(" and ", " & ", Name),
+         code = strsplit(code," "),
+         len = sapply(code, function(oo) length(oo)),
+         code = ifelse(len==1, sapply(code, function(oo) substr(oo, 1, 3)), sapply(code, function(oo) substr(oo, 1, 1))),
+         code = ifelse(Name == "Scotland", Name, code),
+         code = sapply(code, function(x) paste(x, collapse='')))
+
+thresholds <- c(Key1=0.2,
+                Key2=0.18,
+                Key3=0.16,
+                Key4=0.14,
+                Key5=0.12,
+                Key6=0.10,
+                Key7=0.08,
+                Key8=0.07,
+                Key9=0.06,
+                Key10=0.05)
+list_shb <- list_shb %>% mutate(max_error = thresholds[max_step]) %>% select(-len)
+
+
+params=list(
+  hrp=34,
+  # most from http://gabgoh.github.io/COVID/index.html
+  l=4,   #length of latency, from https://www.medrxiv.org/content/10.1101/2020.04.01.20049908v1.full.pdf
+#  p_s=0.96, #probability of symptoms,
+  juvp_s = 0.2,#probability of symptoms of Under20, 0.1 from doi:10.1542/peds.2020-0702   ; 0.2 from https://www.medrxiv.org/content/10.1101/2020.03.24.20043018v1.full.pdf
+  i=1.5,   #length of infectiousness before symptomatic, from  https://www.medrxiv.org/content/10.1101/2020.04.01.20049908v1.full.pdf
+  r=11,   #time to recovery if mild/asymptomatic, 22/2 from  https://www.medrxiv.org/content/10.1101/2020.04.01.20049908v1.full.pdf
+  s=7,   #length of symptoms before hospitalization, from https://www.medrxiv.org/content/10.1101/2020.04.01.20049908v1.full.pdf
+  h=5,#  #length of hospitalization, from  https://www.icnarc.org/Our-Audit/Audits/Cmp/Reports
+  K=2000
+)
+#average capacity of beds in itu in the UK
+itu = 6.6/100000
+
+#priors
+mpi=0.25;mphcw=0.5;api=3
+mq= md = 0.5; aq=ad=3;
+lint=1e-9;uint=1e-6
+
+shb = 15; 
+message(list_shb$Name[list_shb$shb == shb])
+
+methodseed = "background"
+# Load data
+HB_interest = list_shb$Name[list_shb$shb == shb]
+obs_data <- create_df(scot_data, HB_interest,params,methodseed=methodseed)
+per_hrp = lock_down - min(obs_data$Date)
+#find top step
+filenames = list.files(foldername, paste0("shb",shb))
+max_step= list_shb$max_step[list_shb$shb==shb]+1
+Nhcw = totN_hcw = 112974
+N=scot_pop %>% filter(Name=="Scotland") %>% pull(Population)
+Nyoung = (N-Nhcw) * scot_age %>% filter(Health_Board=="Scotland" & group_age == "Under20") %>% pull(freq)
+Nadult = sum((N-Nhcw) * scot_age %>% filter(Health_Board=="Scotland" & !(group_age %in% c("Under20","Over70"))) %>% pull(freq))
+Nold = (N-Nhcw) * scot_age %>% filter(Health_Board=="Scotland" & group_age == "Over70") %>% pull(freq)
+
+#data particles
+compdata <- read.table(paste0(foldername,"/output_abc-smc_particles_step",max_step-1,"_shb",shb,".txt"),h=T,sep=",",skip = 0)
+simdata <- read.table(paste0(foldername,"/output_abc-smc_simu_step",max_step-1,"_shb",shb,".txt"),h=T,sep=",")
+select_seed <- read.table(paste0(foldername,"/output_abc-smc_ends_step",max_step-1,"_shb",shb,".txt"),h=T,sep=",")
+
+#error 
+gof_part<- ggplot(data = compdata)+
+          geom_histogram(aes(x=nsse_cases,fill="cases"),alpha=1/3)+
+          geom_histogram(aes(x=nsse_deaths,fill="death"),alpha=1/3) +
+          geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=nsse_cases,col="cases"),size=3,show.legend = F)+
+          geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=nsse_deaths,col="death"),size=3,show.legend = F)+
+  guides(fill = guide_legend(override.aes = list(alpha = 1)))+
+  theme_bw(base_size = 14)+
+  theme(legend.position = c(0,1),
+        legend.justification = c(0,1),
+        legend.background = element_blank(),
+        legend.title = element_blank())+
+  labs(x="error",
+       y="iterations")
+
+#plot posteriors
+posteriors1 <- ggplot(data = compdata) +
+  geom_density(aes(x=p_inf,col="p_i")) +
+  geom_density(aes(x=p_hcw,col="p_hcw")) +
+  geom_density(aes(x=p_s,col="p_s")) +
+  geom_density(aes(x=q,col="quarantine")) +
+  geom_density(aes(x=d,col="distancing")) +
+  xlim(0,1)+
+  geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=p_inf,col="p_i"),size=3)+
+  geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=p_hcw,col="p_hcw"),size=3)+
+  geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=p_s,col="p_s"),size=3)+
+  geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=q,col="quarantine"),size=3)+
+  geom_point(data=compdata %>% summarise_all(median),aes(y=0,x=d,col="distancing"),size=3)+
+  labs(x="posterior estimates",
+       y="density")+ 
+  theme_bw(base_size = 14)+
+  scale_color_discrete(
+    breaks= c("p_i","p_hcw","p_s","p_hf","quarantine","distancing"),
+    labels=c(expression(italic(p)[i]),expression(italic(p)[hcw]),expression(italic(p)[s]),
+             expression(italic(p)[hf]),expression(italic(q)),expression(italic(d))))+
+  theme(legend.title=element_blank(),
+        legend.position = c(1,1),
+        legend.justification = c(1,1),
+        legend.background = element_blank(),
+        legend.text = element_text(hjust=0))
+
+
+
+#goodness of fit  
+weekly_sim = simdata %>% 
+  mutate(date=as.Date(upto) - (max(day) - day),
+         week=week(date)) %>%
+  group_by(iterID,week) %>% 
+  summarise(weekcase= sum(inc_case),
+            weekdeath= sum(inc_death)) %>% 
+  ungroup() %>% group_by(week) %>% 
+  summarise(mean_case=quantile(weekcase,probs=0.5),
+            lo50_case=quantile(weekcase,probs=0.25),
+            up50_case=quantile(weekcase,probs=0.75),
+            lo95_case=quantile(weekcase,probs=0.025),
+            up95_case=quantile(weekcase,probs=0.975),
+            mean_death=quantile(weekdeath,probs=0.5),
+            lo50_death=quantile(weekdeath,probs=0.25),
+            up50_death=quantile(weekdeath,probs=0.75),
+            lo95_death=quantile(weekdeath,probs=0.025),
+            up95_death=quantile(weekdeath,probs=0.975)) %>% 
+  drop_na()
+  
+
+fit_comp_week <- ggplot()+
+      geom_ribbon(data = weekly_sim,aes(x = week, ymin=lo95_case,ymax=up95_case),col="light blue",fill="light blue")+
+      geom_ribbon(data = weekly_sim, aes(x = week, ymin=lo50_case,ymax=up50_case),col="#1B6EB4FF",fill="#1B6EB4FF")+
+      geom_path(data = weekly_sim, aes(week,mean_case),col="dark blue")+
+    geom_ribbon(data = weekly_sim,aes(x = week, ymin=lo95_death,ymax=up95_death),col="pink",fill="pink")+
+    geom_ribbon(data = weekly_sim, aes(x = week, ymin=lo50_death,ymax=up50_death),col="red3",fill="red3")+
+    geom_path(data = weekly_sim, aes(week,mean_death),col="dark red")+
+      geom_point(data = scot_data %>%
+                  mutate(inc_cases = Scotland - lag(Scotland, default = 0)) %>% 
+                  select(Date, inc_cases) %>% 
+                  mutate(week = week(Date)) %>% 
+                  group_by(week) %>% 
+                  summarise(wkcases = sum(inc_cases)),
+                aes(x = week,y = wkcases),col="black",size=3)+
+      geom_point(data = scot_deaths %>%
+                  mutate(inc_death = Scotland - lag(Scotland, default = 0)) %>% 
+                  select(Date, inc_death) %>% 
+                  mutate(week = week(Date)) %>% 
+                  group_by(week) %>% 
+                  summarise(wkdeath = sum(inc_death)),
+                aes(x = week,y = wkdeath),col="grey",size=3)+
+    theme_bw(base_size = 14)+
+    labs(
+      x = "week",
+      y="incident number"
+    )
+
+
+  #number of introduction
+  intro_plot <- ggplot(data = compdata,  aes(x = intro*(Nadult)*as.numeric(per_hrp)) ) + 
+    geom_histogram()+scale_x_log10()+
+    theme_bw(base_size = 14)+
+    labs(
+      x = "number of incursions",
+      y="iterations"
+    )
+  
+  #epidemiological distribution in community
+  distr_epi <- ggplot(data= select_seed %>% 
+         filter(age_group<max(age_group)) %>% 
+         group_by(iterID, comparts) %>% 
+         summarise(check=sum(value)) %>% 
+         filter(!(comparts %in% c(0,2,4)) ) %>% 
+         mutate(infstate = ifelse(comparts %in% 5:8,"asymp",
+                                  ifelse(comparts %in% 9:12,"symp",comparts)),
+                infstate = factor(infstate, 
+                                  levels = c(1,3,"asymp","symp",13,14,15),
+                                  labels = c("lat","preClin","asymp","symp","host","rec","death"))) %>% 
+         ungroup() %>% group_by(iterID, infstate) %>% 
+         mutate(prev=check/(N-totN_hcw)),
+   aes(x=infstate,y=prev))+
+    geom_boxplot()+
+    theme_bw(base_size = 14)
+  
+  #prevalence in community
+  prev_com <- ggplot()+geom_boxplot(data= select_seed %>% 
+         filter(age_group<max(age_group)) %>% 
+         group_by(iterID, comparts) %>% 
+         summarise(check=sum(value)) %>% 
+         filter(!(comparts %in% c(2,4,13,14,15)) ) %>% 
+         mutate(infstate = ifelse(comparts %in% 5:8,"asymp",
+                                  ifelse(comparts %in% 9:12,"symp",comparts)),
+                infstate = factor(infstate, 
+                                  levels = c(0,1,3,"asymp","symp"),
+                                  labels = c("susc","lat","preClin","asymp","symp"))) %>% 
+         ungroup() %>% group_by(iterID) %>% 
+         mutate(prev = check/sum(check)) %>% 
+         filter(infstate!="susc"),
+       aes(x=infstate,y=prev))+scale_y_log10(limits=c(0.001,0.2))+
+    theme_bw(base_size = 14)
+  
+  #prevalence in hcw
+  prev_hcw <- ggplot()+
+    geom_boxplot(data= select_seed %>% 
+                        filter(age_group==max(age_group)) %>% 
+                        group_by(iterID, comparts) %>% 
+                        summarise(check=sum(value)) %>% 
+                        filter(!(comparts %in% c(2,4,13,14,15)) ) %>% 
+                        mutate(infstate = ifelse(comparts %in% 5:8,"asymp",
+                                                 ifelse(comparts %in% 9:12,"symp",comparts)),
+                               infstate = factor(infstate, 
+                                                 levels = c(0,1,3,"asymp","symp"),
+                                                 labels = c("susc","lat","preClin","asymp","symp"))) %>% 
+                        ungroup() %>% group_by(iterID) %>% 
+                        mutate(prev = check/sum(check)) %>% 
+                        filter(infstate!="susc"),
+                  aes(x=infstate,y=prev))+
+    scale_y_log10(limits=c(0.001,1))+
+    theme_bw(base_size = 14)
+
+
+```
+
+
+```{r, echo=F, message=F, error=F, fig.cap = "Figure 4: Model fit until 28-Apr: Scotland. (a) proportional residual error, (b) goodness of fit, (c) posteriors probabilities, (d) posterior number of incursion events until lock down."}
+
+multiplot(gof_part+ggtitle("(a)"),posteriors1+ggtitle("(c)"),fit_comp_week+ggtitle("(b)"),intro_plot+ggtitle("(d)"),cols=2)
+
+```
+
+
+
+### Forward prediction mode
+* <_output_forwardpred_simu_>: trajectories of both daily incident cases and weekly incident deaths
+* <_output_forwardpred_epi_>: one file for each epidemiological state giving the number of individuals per age group and per day.
+
+
+
+
+
+******
+## Current targets for further development
+
+---
+
+Beyond development to enable cross validation and unitesting, I would like to:
+
+* include testing/tracing and isolation via a compartment
+* move away from a fixed (i.e. constant) point estimate of social distancing (i.e. $d$) by using the google mobility reports <https://www.google.com/covid19/mobility/> to drive it. 
+
+
+
+
+
+
