@@ -66,7 +66,6 @@ class ClangTidyParser(object):
             Code Checks
           </a>
           <div class="dropdown-menu">
-            <a class="dropdown-item" href="../site/doxygen-docs.html">Doxygen</a>
             <a class="dropdown-item" href="../site/code-coverage.html">Code Coverage</a>
             <a class="dropdown-item" href="../site/clang_tidy.html">Clang Tidy</a>
             <a class="dropdown-item" href="../site/cppcheck.html">CPP Check</a>
