@@ -105,7 +105,7 @@ jobs:
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
@@ -113,7 +113,7 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Push changes (Ubuntu GCC)
       uses: ad-m/github-push-action@master
@@ -121,4 +121,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
         force: false
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
