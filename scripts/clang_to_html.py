@@ -50,9 +50,16 @@ class ClangTidyParser(object):
     
       <!-- Links -->
       <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="../site/model_documentation.html">Documentation</a>
-        </li>
+        <!-- Dropdown -->
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+          Documentation
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="../site/model_documentation.html">Model Overview</a>
+          <a class="dropdown-item" href="../site/doxygen-docs.html">Doxygen</a>
+        </div>
+      </li>
         <!-- Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="../index.html" id="navbardrop" data-toggle="dropdown">
