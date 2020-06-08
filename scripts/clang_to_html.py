@@ -32,40 +32,43 @@ class ClangTidyParser(object):
 <!DOCTYPE HTML>
 <html lang="en-GB">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-        
-        <title>{site_name}</title>
-         <!-- A grey horizontal navbar that becomes vertical on small screens -->
-        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <meta charset="UTF-8">
+    <!-- Redirect -->
+    <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    
+    <title>{site_name}</title>
 
-        <!-- Links -->
-        <ul class="navbar-nav">
-            <li class="nav-item">
-            <a class="nav-link" href="../index.html">Home</a>
-          </li>
-          <li class="nav-item">
-          <a class="nav-link" href="../site/doxygen-docs.html">Doxygen</a>
-          </li>
-          <li class="nav-item">
-          <a class="nav-link" href="../site/code-coverage.html">Code Coverage</a>
-          </li>
-          <li class="nav-item">
-          <a class="nav-link" href="../site/clang_tidy.html">Clang Tidy</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="../site/cppcheck.html">CPP Check</a>
-          </li>
-        </ul>
-
-        </nav> 
-            
-    </head>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <!-- Brand -->
+      <a class="navbar-brand" href="../index.html">COVID-19 EERA Model</a>
+    
+      <!-- Links -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="../site/model_documentation.html">Documentation</a>
+        </li>
+        <!-- Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="../index.html" id="navbardrop" data-toggle="dropdown">
+            Code Checks
+          </a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="../site/doxygen-docs.html">Doxygen</a>
+            <a class="dropdown-item" href="../site/code-coverage.html">Code Coverage</a>
+            <a class="dropdown-item" href="../site/clang_tidy.html">Clang Tidy</a>
+            <a class="dropdown-item" href="../site/cppcheck.html">CPP Check</a>
+          </div>
+        </li>
+      </ul>
+    </nav> 
+        
+</head>
     <body>
     <div class="container">
     <div class="jumbotron">
@@ -128,5 +131,5 @@ if __name__ in "__main__":
     cl_parser = ClangTidyParser()
     cl_parser.parse(parser.parse_args().input_file)
     
-    with open('doxygen/clang_tidy.html', 'w') as f:
+    with open('site/clang_tidy.html', 'w') as f:
         f.write(cl_parser.build_html())
