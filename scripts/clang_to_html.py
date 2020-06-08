@@ -11,9 +11,13 @@ class ClangTidyParser(object):
         with open(self._input_file) as f:
             for line in f:
                 try:
-                    entry = re.findall('(src/\w+[.h|.cpp].+)', line)[0]
+                    entry = re.findall('.+(src/\w+[.h|.cpp].+)', line)[0]
                     entry  = entry.split(': ', 1)
-                    file_name, address = entry[0].split(':', 1)
+                    try:
+                        file_name, address = entry[0].split(':', 1)
+                    except ValueError:
+                        file_name = entry[0]
+                        address = ''
                     library = re.findall('\[(.+)\]', entry[1])
                     message = entry[1] if len(library) == 0 else entry[1].replace(' [{}]'.format(library[0]), '')
                     if file_name not in self._data:
@@ -42,7 +46,7 @@ class ClangTidyParser(object):
         <!-- Links -->
         <ul class="navbar-nav">
             <li class="nav-item">
-            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="../index.html">Home</a>
             </li>
             <li class="nav-item">
             <a class="nav-link" href="doxygen/html/index.html">Doxygen</a>
