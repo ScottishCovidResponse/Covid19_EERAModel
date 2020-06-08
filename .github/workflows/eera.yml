@@ -101,22 +101,24 @@ jobs:
               path: build/clang_tidy_build_results.log
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Build Doxygen Documentation
+    - name: Build Doxygen Documentation (Ubuntu GCC)
       run : |
             mkdir -p doxygen
             doxygen
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
     
-    - name: Commit Doxygen files
+    - name: Commit Doxygen files (Ubuntu GCC)
       run: |
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Action"
            git add doxygen/*
            git commit -m "Updated Doxygen Documentation" -a
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
     
-    - name: Push changes
+    - name: Push changes (Ubuntu GCC)
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: kzscisoft/doxygen
-        force: false
+        force: true
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc'
