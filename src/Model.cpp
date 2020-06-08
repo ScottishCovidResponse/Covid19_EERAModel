@@ -534,26 +534,34 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda, structure);
 		}
 
-		//compute the forces of infection
-		std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
-				poparray, inLockdown);	
+        //compute the forces of infection
+        std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
+            poparray, inLockdown);	
 
-		//step each agegroup through infections
-		for ( int age{0}; age < (n_agegroup); ++age) {	
-			const InfectionState new_spread = 
-                GenerateInfectionSpread(rng, poparray[age], infection_state.hospitalised,
-                    fixed_parameters[age],parameter_fit[age],
-                    per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age], structure);
+        // step each agegroup through infections
+        for ( int age{0}; age < n_agegroup; ++age) {	
+            InfectionState new_spread;
+            if (ModelStructureId::ORIGINAL == structure) {
+                new_spread = 
+                    GenerateInfectionSpreadOriginal(rng, poparray[age], infection_state.hospitalised,
+                        fixed_parameters[age],parameter_fit[age],
+                        per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+            } else {
+                new_spread = 
+                    GenerateInfectionSpreadIrish(rng, poparray[age], infection_state.hospitalised,
+                        fixed_parameters[age],parameter_fit[age],
+                        per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+            }
 
-			infection_state.deaths += new_spread.deaths;
-			infection_state.hospital_deaths += new_spread.hospital_deaths;
-			infection_state.detected += new_spread.detected;
-		}
+            infection_state.deaths += new_spread.deaths;
+            infection_state.hospital_deaths += new_spread.hospital_deaths;
+            infection_state.detected += new_spread.detected;
+        }
 
-		status.simulation.push_back(infection_state.detected); 
-		status.deaths.push_back(infection_state.deaths); 
-		status.hospital_deaths.push_back(infection_state.hospital_deaths);
-    }	
+        status.simulation.push_back(infection_state.detected); 
+        status.deaths.push_back(infection_state.deaths); 
+        status.hospital_deaths.push_back(infection_state.hospital_deaths);
+    }
 
 	//save the population in each epi compt for the last day
 	for ( int age{0}; age < n_agegroup; ++age) {
@@ -563,9 +571,116 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 	return status;
 }
 
-InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
-    std::vector<double> cfr_tab, double pf_val, double lambda, ModelStructureId structure)
+    std::vector<double> cfr_tab, double pf_val, double lambda)
+{
+    Compartments newpop(pop);
+
+    // Fixed parameters
+    const double T_lat= fixed_parameters.T_lat;
+    const double T_inf= fixed_parameters.T_inf;
+    const double T_rec= fixed_parameters.T_rec;
+    const double T_sym= fixed_parameters.T_sym;
+    const double T_hos= fixed_parameters.T_hos;
+    const double K=fixed_parameters.K;
+
+    double capacity = n_hospitalised / K;
+    capacity = std::min(1.0, capacity);
+
+    const double p_h= cfr_tab[0];
+    const double p_d= cfr_tab[2];	
+    const double p_s= parameter_set[5];
+    const double rrd= parameter_set[6];
+
+    // hospitalized  - non-frail
+    const int newdeathsH= Flow(rng, pop.H, newpop.H, p_d * (1.0 / T_hos));
+    newpop.H -= newdeathsH;
+    newpop.D += newdeathsH;
+
+    const int recoverH = Flow(rng, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
+    newpop.H -= recoverH;
+    newpop.R += recoverH;
+
+    // symptomatic - non-frail
+    const int hospitalize = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
+    newpop.I_s4 -= hospitalize;
+    newpop.H += hospitalize;
+
+    const int newdeathsI_s = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
+    newpop.I_s4 -= newdeathsI_s;
+    newpop.D += newdeathsI_s;
+
+    const int recoverI_s = Flow(rng, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
+    newpop.I_s4 -= recoverI_s;
+    newpop.R += recoverI_s;
+
+    const int Is_from3_to_4 = Flow(rng, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
+    newpop.I_s3 -= Is_from3_to_4;
+    newpop.I_s4 += Is_from3_to_4;
+
+    const int Is_from2_to_3 = Flow(rng, pop.I_s2, newpop.I_s2, (4.0 / T_sym));
+    newpop.I_s2 -= Is_from2_to_3;
+    newpop.I_s3 += Is_from2_to_3;
+        
+    const int Is_from1_to_2 = Flow(rng, pop.I_s1, newpop.I_s1, (4.0 / T_sym));
+    newpop.I_s1 -= Is_from1_to_2;
+    newpop.I_s2 += Is_from1_to_2;
+
+    // asymptomatic
+    const int recoverI = Flow(rng, pop.I4, newpop.I4, ( 4.0 / T_rec ));
+    newpop.I4 -= recoverI;
+    newpop.R += recoverI;
+
+    const int I_from3_to_4 = Flow(rng, pop.I3, newpop.I3, ( 4.0 / T_rec ));
+    newpop.I3 -= I_from3_to_4;
+    newpop.I4 += I_from3_to_4;
+
+    const int I_from2_to_3=Flow(rng, pop.I2, newpop.I2, ( 4.0 / T_rec ));
+    newpop.I2 -= I_from2_to_3;
+    newpop.I3 += I_from2_to_3;
+
+    const int I_from1_to_2 = Flow(rng, pop.I1, newpop.I1, ( 4.0 / T_rec ));
+    newpop.I1 -= I_from1_to_2;
+    newpop.I2 += I_from1_to_2;
+
+    // infectious - pre-clinical
+    int newasymptomatic = Flow(rng, pop.I_p, newpop.I_p, (1.0 - p_s) * ( 1.0 / T_inf ));
+    newpop.I_p -= newasymptomatic;
+    newpop.I1 += newasymptomatic;
+
+    const int newsymptomatic = Flow(rng, pop.I_p, newpop.I_p, p_s * ( 1.0 / T_inf ));
+    newpop.I_p -= newsymptomatic;
+    newpop.I_s1 += newsymptomatic;
+
+    // latent
+    const int infectious = Flow(rng, pop.E, newpop.E, ( 1.0 / T_lat ));
+    newpop.E -= infectious;
+    newpop.I_p += infectious;
+
+    const int infectious_t = Flow(rng, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
+    newpop.E_t -= infectious_t;
+    newpop.I_t += infectious_t;
+
+    // susceptible
+    const int newinfection = Flow(rng, pop.S, newpop.S, lambda);
+    newpop.S -= newinfection;
+    newpop.E += newinfection;
+
+    pop = newpop;
+
+    // Define infection state for this spread
+    InfectionState infection_state;
+    infection_state.deaths              += (newdeathsH + newdeathsI_s);
+    infection_state.hospital_deaths     +=  newdeathsH;
+    infection_state.detected            += (hospitalize + infectious_t);
+
+    return infection_state;
+}
+
+InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
+    const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
+    std::vector<double> cfr_tab, double pf_val, double lambda)
 {
     Compartments newpop(pop);
 
@@ -620,12 +735,9 @@ InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartme
     newpop.I_s2 += Is_from1_to_2;
 
     //pre-clinical
-    if (ModelStructureId::IRISH == structure)
-    {
-        const int showsymptoms = Flow(rng, pop.I_p, newpop.I_p, (1.0 / T_inf));
-        newpop.I_p -= showsymptoms;
-        newpop.I_s1 += showsymptoms;
-    }
+    const int showsymptoms = Flow(rng, pop.I_p, newpop.I_p, (1.0 / T_inf));
+    newpop.I_p -= showsymptoms;
+    newpop.I_s1 += showsymptoms;
 
     // asymptomatic
     const int recoverI = Flow(rng, pop.I4, newpop.I4, ( 4.0 / T_rec ));
@@ -644,36 +756,14 @@ InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartme
     newpop.I1 -= I_from1_to_2;
     newpop.I2 += I_from1_to_2;
 
-    // infectious - pre-clinical
-    if (ModelStructureId::ORIGINAL == structure)
-    {
-        int newasymptomatic = Flow(rng, pop.I_p, newpop.I_p, (1.0 - p_s) * ( 1.0 / T_inf ));
-        newpop.I_p -= newasymptomatic;
-        newpop.I1 += newasymptomatic;
-    }
+    // latent
+    const int newsymptomatic = Flow(rng, pop.E, newpop.E, p_s * ( 1.0 / T_lat ));
+    newpop.E -= newsymptomatic;
+    newpop.I_p += newsymptomatic;
 
-    if (ModelStructureId::IRISH == structure)
-    {
-        // latent
-        const int newsymptomatic = Flow(rng, pop.E, newpop.E, p_s * ( 1.0 / T_lat ));
-        newpop.E -= newsymptomatic;
-        newpop.I_p += newsymptomatic;
-
-        const int newasymptomatic = Flow(rng, pop.E, newpop.E, (1.0 - p_s) * ( 1.0 / T_lat ));
-        newpop.E -= newasymptomatic;
-        newpop.I1 += newasymptomatic;
-    }
-    else if (ModelStructureId::ORIGINAL == structure)
-    {
-        const int newsymptomatic = Flow(rng, pop.I_p, newpop.I_p, p_s * ( 1.0 / T_inf ));
-        newpop.I_p -= newsymptomatic;
-        newpop.I_s1 += newsymptomatic;
-
-        // latent
-        const int infectious = Flow(rng, pop.E, newpop.E, ( 1.0 / T_lat ));
-        newpop.E -= infectious;
-        newpop.I_p += infectious;
-    }
+    const int newasymptomatic = Flow(rng, pop.E, newpop.E, (1.0 - p_s) * ( 1.0 / T_lat ));
+    newpop.E -= newasymptomatic;
+    newpop.I1 += newasymptomatic;
 
     const int infectious_t = Flow(rng, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
     newpop.E_t -= infectious_t;

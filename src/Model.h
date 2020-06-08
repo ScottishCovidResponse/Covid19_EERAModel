@@ -243,9 +243,8 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
 std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut);
 
-
 /**
- * @brief Generate an indection spread and compute resulting populations
+ * @brief Generate an infection spread as per the structure of the original EERA model
  * 
  * Creates an infection spread state and counters number of people in different states
  * 
@@ -257,12 +256,30 @@ std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<d
  * @param cfr_tab Case Fatality Ratio table
  * @param pf_val Frailty Probability
  * @param lambda Rate of spread
- * @param structure 
  */
-InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
     const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
     std::vector<double> parameter_set, std::vector<double> cfr_tab,
-    double pf_val, double lambda,  ModelStructureId structure);
+    double pf_val, double lambda);
+
+/**
+ * @brief Generate an infection spread as per the structure of the Irish model
+ * 
+ * Creates an infection spread state and counters number of people in different states
+ * 
+ * @param rng Seeded random number generator
+ * @param pop Particular population age group
+ * @param n_hospitalised Number of people in hospital prior to new spread
+ * @param fixed_parameters Fixed model parameters
+ * @param parameter_set Variable model parameters
+ * @param cfr_tab Case Fatality Ratio table
+ * @param pf_val Frailty Probability
+ * @param lambda Rate of spread
+ */
+InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
+    const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+    std::vector<double> parameter_set, std::vector<double> cfr_tab,
+    double pf_val, double lambda);
 
 } // namespace Model
 } // namespace EERAModel
