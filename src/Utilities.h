@@ -45,7 +45,8 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
  * cases where n is not a multiple of the vector size, the residual values at the end of the input
  * are dropped.
  * 
- * If n is less than the size of @p data, or the size of @p data is zero, and empty vector is returned.
+ * If n is greater than the size of @p data, or the size of @p data is zero, an empty vector is
+ * returned.
  * 
  * @f$f([0,1,2,3,4,5,6,7], 3) -> f([0,1,2,3,4,5], 4) -> [3,12] @f$
  * 
