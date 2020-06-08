@@ -47,15 +47,15 @@ class ClangTidyParser(object):
         <ul class="navbar-nav">
             <li class="nav-item">
             <a class="nav-link" href="../index.html">Home</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="../doxygen/html/index.html">Doxygen</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="../build/Covid19EERAModel_coverage/index.html">Code Coverage</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="doxygen/clang_tidy.html">Clang Tidy</a>
+          </li>
+          <li class="nav-item">
+          <a class="nav-link" href="../site/doxygen-docs.html">Doxygen</a>
+          </li>
+          <li class="nav-item">
+          <a class="nav-link" href="../site/code-coverage.html">Code Coverage</a>
+          </li>
+          <li class="nav-item">
+          <a class="nav-link" href="../site/clang_tidy.html">Clang Tidy</a>
             </li>
         </ul>
 
