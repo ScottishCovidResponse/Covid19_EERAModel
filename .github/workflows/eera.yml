@@ -68,13 +68,8 @@ jobs:
         fi
     - name: Run Cpp Check
       run: |
-         for i in src/*.h src/*.cpp test/unit/*.cpp; do 
-           if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
+        cppcheck --language=c++ --std=c++11 --enable=all -DROOT_DIR=$PWD -v --xml --xml-version=2 src/ 2>&1 | tee cpp-check.xml
+        cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
       run : |
@@ -106,6 +101,12 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation" -a
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Push CPPCheck HTML
+      run: |
+          git add site/cppcheck/*
+          git commit -m "Added CPPCheck Output" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Clang Tidy Results on Website
