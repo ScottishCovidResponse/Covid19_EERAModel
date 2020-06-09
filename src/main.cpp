@@ -26,19 +26,15 @@
  *
  */
 
-#include <random>
-#include <time.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <iostream>
-#include <random>
 
-#include "Model.h"
+#include <iostream>
+#include <time.h>
 #include "ModelTypes.h"
 #include "IO.h"
-#include "Utilities.h"
 #include "Random.h"
+#include "Model.h"
 #include "PredictionFramework.h"
+#include "InferenceFramework.h"
 
 using namespace EERAModel;
 
@@ -91,6 +87,9 @@ int main() {
     }
     else
     {
+        Inference::InferenceFramework framework(modelInputParameters, observations, rng, logger);
+        
+        //framework.Run();
         Model::Run(modelInputParameters, observations, rng, out_dir, logger);
     }
 	
