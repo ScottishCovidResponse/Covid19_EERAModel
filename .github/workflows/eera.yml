@@ -113,7 +113,7 @@ jobs:
     - name: Build Clang Tidy Results on Website
       run: |
           python scripts/clang_to_html.py build/clang_tidy_build_results.log
-          git add doxygen/clang_tidy.html
+          git add site/clang_tidy.html
           git commit -m "Added Latest Clang Tidy output" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
       
