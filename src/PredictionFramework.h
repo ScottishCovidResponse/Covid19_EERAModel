@@ -14,8 +14,8 @@ class Framework
 public:
     using ModelRunner = std::function<
         Status (
-            std::vector<double>,
-            const std::vector<EERAModel::params>&,
+            params,
+            std::vector<EERAModel::params>,
             AgeGroupData,
             seed,
             int,
@@ -35,12 +35,12 @@ public:
         std::vector<int> ageNums,
         Random::RNGInterface::Sptr rng);
 
-    void RunModel(EERAModel::params parameterSet, int n_sim_steps);
+    Status RunModel(EERAModel::params parameterSet, int n_sim_steps);
 
 private:
     ModelRunner modelRunner_;
 
-    std::vector<EERAModel::params> fixed_parameters_;
+    std::vector<EERAModel::params> fixedParameters_;
 
     AgeGroupData ageGroupData_;
 

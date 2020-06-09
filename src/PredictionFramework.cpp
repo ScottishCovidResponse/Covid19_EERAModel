@@ -19,7 +19,13 @@ Framework::Framework(ModelRunner modelRunner,
         modelStructure_(modelStructure),
         rng_(rng)
 {
-    fixed_parameters_ = Model::BuildFixedParameters(size, modelInputParameters.paramlist);
+    fixedParameters_ = Model::BuildFixedParameters(size, modelInputParameters.paramlist);
+}
+
+Status Framework::RunModel(EERAModel::params parameterSet, int nSimulationSteps)
+{
+    return modelRunner_(parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_,
+        ageNums_, nSimulationSteps, modelStructure_, rng_);
 }
 
 } // namespace Prediction
