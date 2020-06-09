@@ -69,8 +69,6 @@ jobs:
     - name: Run Cpp Check
       run: |
         cppcheck --language=c++ --std=c++11 --enable=all -DROOT_DIR=$PWD -v --xml --xml-version=2 src/ 2>&1 | tee cpp-check.xml
-        mkdir -p site/cppcheck
-        cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
       run : |
@@ -104,8 +102,10 @@ jobs:
            git commit -m "Updated Doxygen Documentation" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
-    - name: Push CPPCheck HTML
+    - name: Convert CPPCheck to HTML and push
       run: |
+          mkdir -p site/cppcheck
+          cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
           git add site/cppcheck/*
           git commit -m "Added CPPCheck Output" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
