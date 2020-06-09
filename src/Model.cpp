@@ -222,7 +222,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
-
 				//Update progress
 				if (acceptedParticleCount >= modelInputParameters.nParticalLimit) {
 					aborting = true;
@@ -231,16 +230,18 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 				//declare and initialise output variables
 				particle outs_vec;
-				outs_vec.iter = sim;
-				outs_vec.nsse_cases = 0.0;
-				outs_vec.nsse_deaths = 0.0;
+				outs_vec.iter = sim;				
 //				outs_vec.sum_sq = 1.e06;
 				for (int i{0}; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
-				//pick the values of each particles
-				if (modelInputParameters.run_type == "Inference")
+				
+				outs_vec.nsse_cases = 0.0;
+				outs_vec.nsse_deaths = 0.0;
+
+				if (modelInputParameters.run_type == "Inference") 
 				{
+					//pick the values of each particles
 					if (smc==0) {
 						//pick randomly and uniformly parameters' value from priors
 
@@ -253,40 +254,61 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 						outs_vec.parameter_set = inferenceParameterGenerator.GenerateWeighted(
 							particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
 					}
+					//run the model and compute the different measures for each potential parameters value
+					model_select(outs_vec, fixed_parameters, observations.cfr_byage, pf_byage,
+								observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
+								agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
+								modelInputParameters.day_shut, rng, obsHosp, obsDeaths);
+
+
+					//count the number of simulations that were used to reach the maximum number of accepted particles
+					if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
+					//if the particle agrees with the different criteria defined for each ABC-smc step
+					if (
+						acceptedParticleCount < modelInputParameters.nParticalLimit &&
+						outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
+						outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
+						) {				
+							//#pragma omp critical
+							{
+								FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
+									vlimitKernel, modelInputParameters.nPar);
+								particleList1.push_back(outs_vec);
+								++acceptedParticleCount;
+								if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
+								//(*log) << acceptedParticleCount << " " ;
+							}
+						
+					}			
 				}
-				else if (modelInputParameters.run_type == "Prediction")
+				if (modelInputParameters.run_type == "Prediction")
 				{
 					outs_vec.parameter_set = modelInputParameters.prior_param_list;  // Read from file
-				}
 
-				//run the model and compute the different measures for each potential parameters value
-				model_select(outs_vec, fixed_parameters, observations.cfr_byage, pf_byage,
-							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
-							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
-							modelInputParameters.day_shut, rng, obsHosp, obsDeaths);
+					// This can be modified with more externally read values
+					const AgeGroupData per_age_data = {observations.waifw_norm,
+													observations.waifw_home,
+													observations.waifw_sdist,
+													observations.cfr_byage,
+													pf_byage};
+					const int n_sim_steps = static_cast<int>(ceil(duration/modelInputParameters.tau));
 
-				//count the number of simulations that were used to reach the maximum number of accepted particles
-				//#pragma omp critical
-					{
-						if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
-					}
-				//if the particle agrees with the different criteria defined for each ABC-smc step
-				if (
-					acceptedParticleCount < modelInputParameters.nParticalLimit &&
-					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
-					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
-					) {				
-						//#pragma omp critical
-						{
-							FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
-								vlimitKernel, modelInputParameters.nPar);
-							particleList1.push_back(outs_vec);
-							++acceptedParticleCount;
-							if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
-							//(*log) << acceptedParticleCount << " " ;
-						}
+					Status status = RunModel(outs_vec.parameter_set, fixed_parameters, per_age_data, modelInputParameters.seedlist, modelInputParameters.day_shut, agenums, n_sim_steps, rng);
+
+					std::vector<int> sim_death_red;
+					weekly(sim_death_red, status.hospital_deaths);
 					
-				}			
+					outs_vec.simu_outs = status.simulation;
+					outs_vec.death_outs = status.hospital_deaths;
+					outs_vec.end_comps = compartments_to_vector(status.ends);
+					
+					//count the number of simulations that were used to reach the maximum number of accepted particles
+					if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
+
+					outs_vec.weight = 1.0;
+					particleList1.push_back(outs_vec);
+					++acceptedParticleCount;
+				}
 			}
 		}
 
