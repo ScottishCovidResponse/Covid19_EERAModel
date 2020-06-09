@@ -69,6 +69,7 @@ jobs:
     - name: Run Cpp Check
       run: |
         cppcheck --language=c++ --std=c++11 --enable=all -DROOT_DIR=$PWD -v --xml --xml-version=2 src/ 2>&1 | tee cpp-check.xml
+        mkdir -p site/cppcheck
         cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
