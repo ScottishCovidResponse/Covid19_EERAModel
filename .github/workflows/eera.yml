@@ -123,13 +123,6 @@ jobs:
            git commit -m "Updated LCOV report" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
-    - name: Push changes (Ubuntu GCC)
-      uses: ad-m/github-push-action@master
-      with:
-              name: CMake (with Clang Tidy) Build Warning Log
-              path: build/clang_tidy_build_results.log
-      if: matrix.os == 'ubuntu-latest'
-
     - name: Build Doxygen Documentation (Ubuntu GCC)
       run : |
             mkdir -p doxygen
