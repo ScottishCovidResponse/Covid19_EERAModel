@@ -92,7 +92,7 @@ jobs:
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
@@ -100,7 +100,7 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Convert CPPCheck to HTML and push
       run: |
@@ -108,26 +108,26 @@ jobs:
           cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
           git add -f site/cppcheck/*
           git commit -m "Added CPPCheck Output"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Clang Tidy Results on Website
       run: |
-          python scripts/clang_to_html.py build/clang_tidy_build_results.log
+          python scripts/site_generation.py build/clang_tidy_build_results.log
           git add -f site/clang_tidy.html
           git commit -m "Added Latest Clang Tidy output"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
       
     - name: Commit LCOV files (Ubuntu GCC)
       run: |
            git add -f build/Covid19EERAModel_coverage/*
            git commit -m "Updated LCOV report"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Doxygen Documentation (Ubuntu GCC)
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
@@ -135,7 +135,7 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Push changes (Ubuntu GCC)
       uses: ad-m/github-push-action@master
@@ -143,4 +143,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
         force: true
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
