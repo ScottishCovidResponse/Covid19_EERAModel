@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -10,6 +10,16 @@
 namespace EERAModel {
 namespace Utilities {
 
+/**
+ * @brief Compute the sum of squared errors
+ * 
+ * Compares two vectors of equal length computing the sum of squared errors
+ * 
+ * @param simval First vector (e.g. simulation values)
+ * @param obsval Second vector (e.g. observed values)
+ * 
+ * @return Sum of squared errors
+ */
 template<typename T>
 double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 	
@@ -26,6 +36,48 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 
 	return sum_sq;
 	
+}
+
+/**
+ * @brief Sum vector elements in blocks
+ * 
+ * Summate values at every Nth index, e.g. n = 7 would summate daily data to be weekly data. For 
+ * cases where n is not a multiple of the vector size, the residual values at the end of the input
+ * are dropped.
+ * 
+ * If n is greater than the size of @p data, or the size of @p data is zero, an empty vector is
+ * returned.
+ * 
+ * @f$f([0,1,2,3,4,5,6,7], 3) -> f([0,1,2,3,4,5], 4) -> [3,12] @f$
+ * 
+ * @param data	Vector of data to be reduced
+ * @param n	Nth value at which summation should occur (i.e. index+1) where @code{.cpp} n <= data.size() @endcode
+ * 
+ * @return Vector of summation values
+ */
+template<typename T>
+std::vector<T> AccumulateEveryN(const std::vector<T>& data, int n)
+{
+    std::vector<T> _temp;
+    T data_val(0);
+
+    if (n <= data.size())
+    {
+        for (int i{0}; i < data.size(); ++i)
+        {
+            data_val += data[i];
+
+            // Append to vector when index + 1 is a multiple of n
+            if ((i + 1) % n == 0 )
+            {
+                _temp.push_back(data_val);
+                data_val = T(0);
+            }
+            
+        }
+    }
+
+    return _temp;
 }
 
 /*! @brief  Logging Stream Class
