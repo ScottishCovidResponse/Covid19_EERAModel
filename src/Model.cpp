@@ -104,11 +104,9 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
 
 	//create vector of fixed parameters		
-	std::vector<params> fixed_parameters(observations.waifw_norm.size());	
-	for (unsigned int var = 0; var < fixed_parameters.size(); ++var) {
-		fixed_parameters[var] = modelInputParameters.paramlist;
-	}
-
+	std::vector<params> fixed_parameters = BuildFixedParameters(observations.waifw_norm.size(),
+        modelInputParameters.paramlist);
+    
 	//Separate case information for each herd_id
 	modelInputParameters.seedlist.day_intro=0;
 	int duration = 0;
@@ -941,6 +939,37 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id)
 {
 	return obs.cases[region_id][0];
+}
+
+std::vector<params> BuildFixedParameters(unsigned int size, params parameters)
+{
+    return std::vector<params>(size, parameters);
+}
+
+int accumulate_compartments(const Compartments& comp)
+{
+	int _total = 0;
+	_total += comp.S + comp.E + comp.E_t + comp.I_p;
+	_total += comp.I_t + comp.I1 + comp.I2 + comp.I3;
+	_total += comp.I4 + comp.I_s1 + comp.I_s2 + comp.I_s3;
+	_total += comp.I_s4 + comp.H + comp.R + comp.D;
+
+	return _total;
+}
+
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
 }
 
 } // namespace Model

@@ -4,13 +4,10 @@
 #include <functional>
 #include "ModelTypes.h"
 #include "Random.h"
+#include "Model.h"
 
 namespace EERAModel {
 namespace Prediction {
-
-class ModelOutputs {
-
-};
 
 class Framework
 {
@@ -29,10 +26,14 @@ public:
         )
     >;
     
-    Framework(ModelRunner modelRunner) : modelRunner_(modelRunner) 
-    {
-        
-    }
+    Framework(ModelRunner modelRunner,
+        ModelStructureId modelStructure,
+        unsigned int size,
+        AgeGroupData ageGroupData,
+        const ModelInputParameters& modelInputParameters,
+        int dayShut,
+        std::vector<int> ageNums,
+        Random::RNGInterface::Sptr rng);
 
     void RunModel(EERAModel::params parameterSet, int n_sim_steps);
 
