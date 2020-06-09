@@ -23,6 +23,18 @@ namespace Model {
 int GetPopulationOfRegion(const InputObservations& obs, int region_id);
 
 /**
+ * @brief Compute number of health care workers (HCW) in the region
+ * 
+ * Calculates the number of HCW in the region, assuming that the ratio of the region's population
+ * to that of the country is same as that for HCWs only
+ * 
+ * @param regionalPopulation Population of the region
+ * @param totalHCW Total number of HCWs in the country
+ * @param observations Input observations
+ */
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations);
+
+/**
  * @brief Compute the agenums 
  * 
  * @param Npop Population

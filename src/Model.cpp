@@ -108,14 +108,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		modelInputParameters.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
 		regionalDeaths, time_back, log);
 
-	//define age structure and number of hcw of the population at risk
-	//compute the number of hcw in the shb
-	int N_scot = 0;
-	for (unsigned int nn = 0; nn < observations.cases.size()-1; ++nn) {
-		N_scot += observations.cases[nn][0];  //compute number of scots in scotland
-	}
-	double prop_scot = (double)population / (double)N_scot;  //proportion of Scots in each shb
-	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
+	int N_hcw = ComputeNumberOfHCWInRegion(population, modelInputParameters.totN_hcw, observations);
 
 	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, population, N_hcw, observations);
 	
@@ -915,6 +908,17 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 int GetPopulationOfRegion(const InputObservations& obs, int region_id)
 {
 	return obs.cases[region_id][0];
+}
+
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations)
+{
+    int scotlandPopulation = 0;
+	for (unsigned int region = 0; region < observations.cases.size() - 1; ++region) {
+		scotlandPopulation += observations.cases[region][0];
+	}
+	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
+	
+    return static_cast<int>(round(totalHCW * regionalProportion)); 
 }
 
 std::vector<params> BuildFixedParameters(unsigned int size, params parameters)

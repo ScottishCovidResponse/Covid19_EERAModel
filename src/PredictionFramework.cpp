@@ -30,13 +30,9 @@ Framework::Framework(
         observations, modelInputParameters.herd_id
     );
 
-    // Duplicated from Model.cpp - needs refactoring
-    int scotlandPopulation = 0;
-	for (unsigned int region = 0; region < observations.cases.size() - 1; ++region) {
-		scotlandPopulation += observations.cases[region][0];
-	}
-	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
-	int healthCareWorkers = round(modelInputParameters.totN_hcw * regionalProportion); 
+    int healthCareWorkers = Model::ComputeNumberOfHCWInRegion(
+        regionalPopulation, modelInputParameters.totN_hcw, observations
+    );
     
     ageNums_ = Model::ComputeAgeNums(
         modelInputParameters.herd_id, regionalPopulation, healthCareWorkers, observations
