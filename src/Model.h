@@ -10,6 +10,30 @@ namespace EERAModel {
 namespace Model {
 
 /**
+ * @brief Get the population of a region
+ * 
+ * Within the input cases data, the total population of the region is located in the first column
+ * of the row corresponding to the region
+ * 
+ * @param obs Input observations
+ * @param region_id Index of the region within the observation data set
+ * 
+ * @return The population of the region
+ */
+int GetPopulationOfRegion(const InputObservations& obs, int region_id);
+
+/**
+ * @brief Compute the agenums 
+ * 
+ * @param Npop Population
+ * @param Nhcw Number of health care workers
+ * @param obs Model observations
+ * 
+ * @return agenums
+ */
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs);
+
+/**
  * @brief Accumulate total across all compartments
  * 
  * Totals all counters within every compartment in a Compartments struct

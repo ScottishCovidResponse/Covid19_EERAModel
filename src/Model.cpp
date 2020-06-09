@@ -18,30 +18,6 @@ namespace EERAModel {
 namespace Model {
 
 /**
- * @brief Get the population of a region
- * 
- * Within the input cases data, the total population of the region is located in the first column
- * of the row corresponding to the region
- * 
- * @param obs Input observations
- * @param region_id Index of the region within the observation data set
- * 
- * @return The population of the region
- */
-static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id);
-
-/**
- * @brief Compute the agenums 
- * 
- * @param Npop Population
- * @param Nhcw Number of health care workers
- * @param obs Model observations
- * 
- * @return agenums
- */
-static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs);
-
-/**
  * @brief Compute the Kernel Window
  * 
  * @param nPar Number of parameters to compute kernel for
@@ -888,7 +864,7 @@ int Flow(Random::RNGInterface::Sptr rng, int pops_from_val, int pops_new_from_va
 	return outs;
 }
 
-static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
 	std::vector<int> agenums;
 	
 	// define age structure of the shb of interest. the -1 is to account for difference in number of
@@ -936,7 +912,7 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
 }
 
-static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id)
+int GetPopulationOfRegion(const InputObservations& obs, int region_id)
 {
 	return obs.cases[region_id][0];
 }
