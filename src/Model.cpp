@@ -461,8 +461,9 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     // (not total population, only 20-70 individuals)
     int startdz = rng->Poisson(static_cast<double>(n_susc) * bkg_lambda);
 
-    unsigned int startdist[seedarray.size()];
-    rng->Multinomial(seedarray.size(), startdz, &seedarray[0], startdist); //distribute the diseased across the older age categories
+    //unsigned int startdist[seedarray.size()];
+    std::vector<unsigned int> startdist(seedarray.size(), 0);
+    rng->Multinomial(seedarray.size(), startdz, &seedarray[0], &startdist[0]); //distribute the diseased across the older age categories
     
     if (ModelStructureId::ORIGINAL == structure)
     {    
