@@ -72,5 +72,19 @@ int main() {
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
-	Model::Run(modelInputParameters, observations, rng, out_dir, logger);
+    bool runPredictionFramework = false;
+    if (runPredictionFramework) 
+    {
+        Prediction::Framework framework(modelInputParameters, observations, rng, logger);
+
+        int n_sim_steps = 10;
+        std::vector<double> parameter_set(8, 0.0);
+        
+        framework.Run(parameter_set, n_sim_steps);
+    }
+    else
+    {
+        Model::Run(modelInputParameters, observations, rng, out_dir, logger);
+    }
+	
 }
