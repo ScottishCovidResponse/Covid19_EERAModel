@@ -34,7 +34,7 @@ relative path `./data`.
 
 ## Code Documentation Site
 
-Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/index.html).
+Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
 
 ## Tests
 
