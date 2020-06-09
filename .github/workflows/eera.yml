@@ -136,12 +136,6 @@ jobs:
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation" -a
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
-    
-    - name: Commit LCOV files (Ubuntu GCC)
-      run: |
-           git add -f build/Covid19EERAModel_coverage/*
-           git commit -m "Updated LCOV report" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Push changes (Ubuntu GCC)
       uses: ad-m/github-push-action@master
