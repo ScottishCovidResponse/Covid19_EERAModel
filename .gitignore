@@ -5,3 +5,5 @@ data/*.csv
 data/parameters.ini
 outputs/logs/
 doxygen
+site/*
+index.html
