@@ -20,11 +20,13 @@ public:
      * @param modelInputParameters Model input parameters
      * @param observations Observations
      * @param rng Seeded random number generator
+     * @param outDir Outputs directory path
      * @param log Logger
      */
     InferenceFramework(const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
+        const std::string& outDir,
         Utilities::logging_stream::Sptr log);
 
     /**
@@ -33,6 +35,17 @@ public:
      void Run();
 
 private:
+    /**
+     * @private
+     * @brief Run the model inside the inference framework
+     */
+    void ModelSelect(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
+        const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
+        const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
+        const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
+        int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
+        const std::vector<int>& obsDeaths, ModelStructureId structure);
+
     /**
      * @private
      * @brief Model input parameters
@@ -50,6 +63,12 @@ private:
      * @brief Random number generator
      */
     Random::RNGInterface::Sptr rng_;
+
+    /**
+     * @private
+     * @brief Outputs directory path
+     */
+    std::string outDir_;
 
     /**
      * @private

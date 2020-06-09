@@ -69,37 +69,30 @@ int accumulate_compartments(const Compartments& comp);
 std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 /**
- * @brief Run the model and inference framework
+ * @brief Compute the Kernel Window
  * 
- * Runs the model based on the given input parameters, observations and seeded random number generator.
- * Places the outputs in the indicated directory.
- * 
- * @param modelInputParameters Input parameters to the model run
- * @param observations Input observations to the model run
- * @param rng Seeded random number generator
- * @param gen Seeded random number generator for importance sampling
- * @param outDirPath Path to the directory in which the output files should be placed
- * @param log Pointer to the logger
+ * @param nPar Number of parameters to compute kernel for
+ * @param particleList List of previously accepted particles
+ * @param kernelFactor Common kernel multiplicative factor
+ * @param vlimitKernel Storage for the computed kernel
+ * @param vect_Max Storage for maximum values of ranges
+ * @param vect_Min Storage for minimum values of ranges
  */
-void Run(EERAModel::ModelInputParameters& modelInputParameters,
-         EERAModel::InputObservations observations,
-		 Random::RNGInterface::Sptr rng,
-		 const std::string& outDirPath,
-		 EERAModel::Utilities::logging_stream::Sptr log);
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
+	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
+	std::vector<double>& vect_Min);
 
-// void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
-// 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-// 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-// 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-// 	int duration, seed seedlist, int day_shut, gsl_rng * r, const std::vector<int>& obsHosp,
-// 	const std::vector<int>& obsDeaths);
-
-void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-	const std::vector<int>& obsDeaths, ModelStructureId structure);
+/**
+ * @brief Compute weight distribution
+ * 
+ * Create the discrete distribution of the weights for the "importance sampling" process
+ * 
+ * @param particleList List of previously accepted particles
+ * 
+ * @return Weight distribution
+ */
+std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList);
 
 /**
  * @brief Run the model with the given parameters and configurations

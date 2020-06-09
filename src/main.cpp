@@ -87,10 +87,9 @@ int main() {
     }
     else
     {
-        Inference::InferenceFramework framework(modelInputParameters, observations, rng, logger);
+        Inference::InferenceFramework framework(modelInputParameters, observations, rng, out_dir, logger);
         
-        //framework.Run();
-        Model::Run(modelInputParameters, observations, rng, out_dir, logger);
+        framework.Run();
     }
 	
 }
