@@ -189,7 +189,6 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
-
 				//Update progress
 				if (acceptedParticleCount >= modelInputParameters.nParticalLimit) {
 					aborting = true;
@@ -198,9 +197,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 
 				//declare and initialise output variables
 				particle outs_vec;
-				outs_vec.iter = sim;
-				outs_vec.nsse_cases = 0.0;
-				outs_vec.nsse_deaths = 0.0;
+				outs_vec.iter = sim;				
 //				outs_vec.sum_sq = 1.e06;
 				for (int i{0}; i < modelInputParameters.nPar; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
@@ -225,27 +222,25 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
 							modelInputParameters.day_shut, rng, obsHosp, obsDeaths, modelInputParameters.model_structure);
 
-				//count the number of simulations that were used to reach the maximum number of accepted particles
-				//#pragma omp critical
-					{
-						if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
-					}
-				//if the particle agrees with the different criteria defined for each ABC-smc step
-				if (
-					acceptedParticleCount < modelInputParameters.nParticalLimit &&
-					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
-					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
-					) {				
-						//#pragma omp critical
-						{
-							FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
-								vlimitKernel, modelInputParameters.nPar);
-							particleList1.push_back(outs_vec);
-							++acceptedParticleCount;
-							if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
-							//(*log) << acceptedParticleCount << " " ;
-						}
-					
+                //count the number of simulations that were used to reach the maximum number of accepted particles
+                if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
+                
+                //if the particle agrees with the different criteria defined for each ABC-smc step
+                if (
+                    acceptedParticleCount < modelInputParameters.nParticalLimit &&
+                    outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
+                    outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
+                    ) {				
+                        //#pragma omp critical
+                        {
+                            FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
+                                vlimitKernel, modelInputParameters.nPar);
+                            particleList1.push_back(outs_vec);
+                            ++acceptedParticleCount;
+                            if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
+                            //(*log) << acceptedParticleCount << " " ;
+                        }
+						
 				}			
 			}
 		}

@@ -55,6 +55,14 @@ int main() {
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
+	
+    // Read prior particle parameters if run type is "Prediction"
+	if (modelInputParameters.run_type == "Prediction")
+	{
+		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
+		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
+		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
+	}
 
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
@@ -72,8 +80,7 @@ int main() {
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
-    bool runPredictionFramework = false;
-    if (runPredictionFramework) 
+    if (modelInputParameters.run_type == "Prediction")
     {
         Prediction::PredictionFramework framework(modelInputParameters, observations, rng, logger);
 
