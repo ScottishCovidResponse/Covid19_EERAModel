@@ -99,7 +99,7 @@ jobs:
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
-           git commit -m "Updated Doxygen Documentation"
+           git commit -m "Updated Doxygen Documentation `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Convert CPPCheck to HTML and push
@@ -107,20 +107,13 @@ jobs:
           mkdir -p site/cppcheck
           cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
           git add -f site/cppcheck/*
-          git commit -m "Added CPPCheck Output"
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
-
-    - name: Build Clang Tidy Results on Website
-      run: |
-          python scripts/site_generation.py build/clang_tidy_build_results.log
-          git add -f site/clang_tidy.html
-          git commit -m "Added Latest Clang Tidy output"
+          git commit -m "Added CPPCheck Output `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
       
     - name: Commit LCOV files (Ubuntu GCC)
       run: |
            git add -f build/Covid19EERAModel_coverage/*
-           git commit -m "Updated LCOV report"
+           git commit -m "Updated LCOV report `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Doxygen Documentation (Ubuntu GCC)
@@ -134,7 +127,15 @@ jobs:
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
-           git commit -m "Updated Doxygen Documentation"
+           git commit -m "Updated Doxygen Documentation `date`"
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Build Website Files
+      run: |
+          python scripts/site_generation.py build/clang_tidy_build_results.log
+          git add -f site/*.html
+          git add -f index.html
+          git commit -m "Updated Website Output `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Push changes (Ubuntu GCC)
