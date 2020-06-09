@@ -38,6 +38,7 @@
 #include "IO.h"
 #include "Utilities.h"
 #include "Random.h"
+#include "PredictionFramework.h"
 
 using namespace EERAModel;
 
