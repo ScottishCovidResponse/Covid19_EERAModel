@@ -6,3 +6,5 @@ data/parameters.ini
 outputs/logs/
 data/*.dat
 doxygen
+site/*
+index.html
