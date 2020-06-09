@@ -4,7 +4,7 @@
 namespace EERAModel {
 namespace Prediction {
 
-Framework::Framework(
+PredictionFramework::PredictionFramework(
     const ModelInputParameters& modelInputParameters,
     const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
@@ -39,14 +39,14 @@ Framework::Framework(
     );
 }
 
-void Framework::Run(std::vector<double> parameterSet, int nSimulationSteps)
+void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationSteps)
 {
     Status status = Model::RunModel(
         parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_, ageNums_,
         nSimulationSteps, modelStructure_, rng_
     );
 
-    // To do: Write model status outputs here
+    // To do: Write model prediction outputs here
 }
 
 } // namespace Prediction

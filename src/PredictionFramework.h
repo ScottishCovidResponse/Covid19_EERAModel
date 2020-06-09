@@ -13,7 +13,7 @@ namespace Prediction {
  * @class Framework
  * @brief Model prediction framework
  */
-class Framework
+class PredictionFramework
 {
 public:
     /**
@@ -24,7 +24,7 @@ public:
      * @param rng Seeded random number generator
      * @param log Logger
      */
-    Framework(const ModelInputParameters& modelInputParameters,
+    PredictionFramework(const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
         Utilities::logging_stream::Sptr log);

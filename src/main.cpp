@@ -75,7 +75,7 @@ int main() {
     bool runPredictionFramework = false;
     if (runPredictionFramework) 
     {
-        Prediction::Framework framework(modelInputParameters, observations, rng, logger);
+        Prediction::PredictionFramework framework(modelInputParameters, observations, rng, logger);
 
         int n_sim_steps = 10;
         std::vector<double> parameter_set(8, 0.0);
