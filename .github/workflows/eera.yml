@@ -92,7 +92,7 @@ jobs:
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
@@ -100,33 +100,53 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Convert CPPCheck to HTML and push
       run: |
           mkdir -p site/cppcheck
           cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
-          git add site/cppcheck/*
+          git add -f site/cppcheck/*
           git commit -m "Added CPPCheck Output" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Clang Tidy Results on Website
       run: |
           python scripts/clang_to_html.py build/clang_tidy_build_results.log
-          git add site/clang_tidy.html
+          git add -f site/clang_tidy.html
           git commit -m "Added Latest Clang Tidy output" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
       
     - name: Commit LCOV files (Ubuntu GCC)
       run: |
            git add -f build/Covid19EERAModel_coverage/*
            git commit -m "Updated LCOV report" -a
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Build Doxygen Documentation (Ubuntu GCC)
+      run : |
+            mkdir -p doxygen
+            doxygen
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+    
+    - name: Commit Doxygen files (Ubuntu GCC)
+      run: |
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Action"
+           git add -f doxygen/*
+           git commit -m "Updated Doxygen Documentation" -a
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+    
+    - name: Commit LCOV files (Ubuntu GCC)
+      run: |
+           git add -f build/Covid19EERAModel_coverage/*
+           git commit -m "Updated LCOV report" -a
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Push changes (Ubuntu GCC)
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
-        force: false
-      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+        force: true
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
