@@ -81,22 +81,17 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<Compartments>& poparray, std::vector<double>& seedarray,
     const double& bkg_lambda, ModelStructureId structure)
 {
-    int n_susc = 0;
-    if (ModelStructureId::ORIGINAL == structure)
-    {    
-        for (int age = 1; age < poparray.size() - 1; ++age) 
-        {
-            seedarray[age - 1] = static_cast<double>(poparray[age].S);
-            n_susc += poparray[age].S;	
-        }
-    }
-    else if (ModelStructureId::IRISH == structure)
+    unsigned int start_age = 1;
+    if (ModelStructureId::IRISH == structure)
     {
-        for (int age = 0; age < poparray.size() - 1; ++age) 
-        {
-            seedarray[age] = static_cast<double>(poparray[age].S);
-            n_susc += poparray[age].S;	
-        }
+        start_age = 0;
+    }
+	
+	int n_susc = 0;
+    for (int age = start_age; age < poparray.size() - 1; ++age) 
+    {
+        seedarray[age - start_age] = static_cast<double>(poparray[age].S);
+        n_susc += poparray[age].S;	
     }
 
     // how many diseased is introduced in each given day before lockdown
@@ -108,22 +103,12 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<unsigned int> startdist(seedarray.size(), 0);
     rng->Multinomial(seedarray.size(), startdz, &seedarray[0], &startdist[0]); //distribute the diseased across the older age categories
     
-    if (ModelStructureId::ORIGINAL == structure)
-    {    
-        for (int age = 1; age < poparray.size() - 1; ++age) {
-            int nseed = startdist[age - 1];
-            poparray[age].S -=  nseed;	// take diseased out of S
-            poparray[age].E +=  nseed;	// put diseased in E
-        }
+    for (int age = start_age; age < poparray.size() - 1; ++age) {
+    	int nseed = startdist[age - start_age];
+    	poparray[age].S -=  nseed;	// take diseased out of S
+    	poparray[age].E +=  nseed;	// put diseased in E
     }
-    else if (ModelStructureId::IRISH == structure)
-    {
-        for (int age = 0; age < poparray.size() - 1; ++age) {
-            int nseed = startdist[age];
-            poparray[age].S -=  nseed;	// take diseased out of S
-            poparray[age].E +=  nseed;	// put diseased in E
-        }
-    }
+
 }
 
 Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
