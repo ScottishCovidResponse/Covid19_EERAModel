@@ -139,9 +139,10 @@ class logging_stream
  * Converts data within a CSV file into a vector of vectors
  * for a particular data type.
  * 
- * @param data output data variable
  * @param inputfile address of input file
  * @param delimiter column separator character
+ * 
+ * @return vector of vectors containing read in data values
  */
 template<typename T>
 std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimiter)
