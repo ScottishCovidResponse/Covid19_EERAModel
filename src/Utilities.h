@@ -144,10 +144,11 @@ class logging_stream
  * @param delimiter column separator character
  */
 template<typename T>
-void read_csv(std::vector<std::vector<T> > &data, const std::string &inputfile, char delimiter)
+std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimiter)
 {
+	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());
-	if (infile.fail())  { std::cout << "Input file not found" << std::endl; return; }
+	if (infile.fail())  { std::cout << "Input file not found" << std::endl; return data; }
 	std::string line;
 	std::vector<T> record;
 	
@@ -187,6 +188,8 @@ void read_csv(std::vector<std::vector<T> > &data, const std::string &inputfile, 
 		record.push_back( atof(curstring.c_str()) );
 		data.push_back(record);
 	}
+
+	return data;
 }
 } // namespace Utilities
 } // namespace EERAModel
