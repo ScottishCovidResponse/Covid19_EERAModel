@@ -133,6 +133,16 @@ class logging_stream
 	std::string _log_time = "";
 };
 
+/**
+ * @brief Read data from a CSV file into vectors
+ * 
+ * Converts data within a CSV file into a vector of vectors
+ * for a particular data type.
+ * 
+ * @param data output data variable
+ * @param inputfile address of input file
+ * @param delimiter column separator character
+ */
 template<typename T>
 void read_csv(std::vector<std::vector<T> > &data, const std::string &inputfile, char delimiter)
 {
