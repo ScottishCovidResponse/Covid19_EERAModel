@@ -46,15 +46,15 @@ jobs:
            find . -iname *.h -o -iname *.cpp | xargs clang-format -style=file -i -fallback-style=none
            git add -u
            git commit -m "Applied Code Formatting `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Push format changes to Dev (Ubuntu GCC)
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: dev
+        branch:  kzscisoft/doxygen-no-merge-test
         force: true
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Compile
       env:
@@ -123,13 +123,13 @@ jobs:
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Convert CPPCheck to HTML and push
       run: |
@@ -137,19 +137,19 @@ jobs:
           cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
           git add -f site/cppcheck/*
           git commit -m "Added CPPCheck Output `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
       
     - name: Commit LCOV files (Ubuntu GCC)
       run: |
            git add -f build/Covid19EERAModel_coverage/*
            git commit -m "Updated LCOV report `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Doxygen Documentation (Ubuntu GCC)
       run : |
             mkdir -p doxygen
             doxygen
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
@@ -157,7 +157,7 @@ jobs:
            git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Website Files
       run: |
@@ -165,7 +165,7 @@ jobs:
           git add -f site/*.html
           git add -f index.html
           git commit -m "Updated Website Output `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Push site changes to gh-pages (Ubuntu GCC)
       uses: ad-m/github-push-action@master
@@ -173,4 +173,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
         force: true
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' #&& ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
