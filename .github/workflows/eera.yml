@@ -24,7 +24,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Dependencies (Ubuntu)
-      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang lcov cppcheck htmldoc poppler-utils clang-tidy graphviz doxygen
+      run: |
+           sudo apt-get update
+           sudo apt-get install -y libgsl-dev clang lcov cppcheck 
+           sudo apt-get install -y htmldoc poppler-utils clang-tidy graphviz doxygen flawfinder
       if: matrix.os == 'ubuntu-latest'
 
     - name: Install Brew (Mac OS X)
@@ -69,6 +72,11 @@ jobs:
     - name: Run Cpp Check
       run: |
         cppcheck --language=c++ --std=c++11 --enable=all -DROOT_DIR=$PWD -v --xml --xml-version=2 src/ 2>&1 | tee cpp-check.xml
+
+    - name: Run Flawfinder (Ubuntu GCC)
+      run: |
+        flawfinder src/ | tee flawfinder.log
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
       run : |
@@ -132,7 +140,7 @@ jobs:
 
     - name: Build Website Files
       run: |
-          python scripts/site_generation.py build/clang_tidy_build_results.log
+          python scripts/site_generation.py build/clang_tidy_build_results.log flawfinder.log
           git add -f site/*.html
           git add -f index.html
           git commit -m "Updated Website Output `date`"
