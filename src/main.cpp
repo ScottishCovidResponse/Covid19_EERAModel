@@ -78,12 +78,13 @@ int main() {
 
     if (modelInputParameters.run_type == "Prediction")
     {
-        Prediction::PredictionFramework framework(modelInputParameters, observations, rng, logger);
+        Prediction::PredictionFramework framework(modelInputParameters, observations, rng, out_dir, logger);
 
-        int n_sim_steps = 10;
+        int n_sim_steps = 1000;
         std::vector<double> parameter_set(8, 0.0);
-        
-        framework.Run(parameter_set, n_sim_steps);
+
+        // framework.Run(parameter_set, n_sim_steps);
+		framework.Run(modelInputParameters.prior_param_list, n_sim_steps);
     }
     else
     {

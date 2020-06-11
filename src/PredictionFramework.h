@@ -27,6 +27,7 @@ public:
     PredictionFramework(const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
+        const std::string& outDir,
         Utilities::logging_stream::Sptr log);
 
     /**
@@ -77,6 +78,18 @@ private:
      * @brief Random number generator
      */
     Random::RNGInterface::Sptr rng_;
+
+    /**
+     * @private
+     * @brief Outputs directory path
+     */
+    std::string outDir_;
+
+    /**
+     * @private
+     * @brief Logger
+     */
+    Utilities::logging_stream::Sptr log_;
 };
 
 } // namespace Prediction

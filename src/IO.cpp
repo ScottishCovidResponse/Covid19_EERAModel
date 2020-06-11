@@ -104,8 +104,8 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
 	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	modelInputParameters.run_type = "Inference";
-	// modelInputParameters.run_type = "Prediction";
+	// modelInputParameters.run_type = "Inference";
+	modelInputParameters.run_type = "Prediction";
 
 	return modelInputParameters;
 }
@@ -236,6 +236,34 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	}
 	
 	output_step.close();
+	output_simu.close();
+	output_ends.close();
+}
+
+void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
+{
+	std::stringstream namefile_simu, namefile_ends;
+	namefile_simu << (outDirPath + "/output_prediction_simu_") << log->getLoggerTime() << ".txt";
+	namefile_ends << (outDirPath + "/output_prediction_ends_") << log->getLoggerTime() << ".txt";
+
+	std::ofstream output_simu (namefile_simu.str().c_str());
+	std::ofstream output_ends (namefile_ends.str().c_str());
+
+	output_simu << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death\n";
+
+	output_ends << "age_group" << "," << "comparts" << "," << "value\n";
+
+	for (unsigned int var = 0; var < status.simulation.size(); ++var) {
+		output_simu << var << ", " << status.simulation[var] << ", "\
+					<< status.hospital_deaths[var] << ", " << status.deaths[var] << '\n';
+	}
+	
+	for (unsigned int age = 0; age < end_comps.size(); ++age) {
+		for (unsigned int var = 0; var < end_comps[0].size(); ++var) {
+			output_ends << age << ", " << var << ", " << end_comps[age][var] << '\n';
+		}
+	}
+
 	output_simu.close();
 	output_ends.close();
 }
