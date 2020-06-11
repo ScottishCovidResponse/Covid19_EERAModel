@@ -161,7 +161,7 @@ jobs:
 
     - name: Build Website Files
       run: |
-          python scripts/site_generation.py build/clang_tidy_build_results.log flawfinder.log
+          python scripts/site_generation.py build/clang_tidy_build_results.log flawfinder.log sim_cpp.log
           git add -f site/*.html
           git add -f index.html
           git commit -m "Updated Website Output `date`"
