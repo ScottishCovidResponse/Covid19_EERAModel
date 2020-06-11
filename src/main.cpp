@@ -26,18 +26,15 @@
  *
  */
 
-#include <random>
-#include <time.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <iostream>
-#include <random>
 
-#include "Model.h"
+#include <iostream>
+#include <time.h>
 #include "ModelTypes.h"
 #include "IO.h"
-#include "Utilities.h"
 #include "Random.h"
+#include "Model.h"
+#include "PredictionFramework.h"
+#include "InferenceFramework.h"
 
 using namespace EERAModel;
 
@@ -54,6 +51,14 @@ int main() {
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
+	
+    // Read prior particle parameters if run type is "Prediction"
+	if (modelInputParameters.run_type == "Prediction")
+	{
+		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
+		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
+		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
+	}
 
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
@@ -71,5 +76,20 @@ int main() {
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
-	Model::Run(modelInputParameters, observations, rng, out_dir, logger);
+    if (modelInputParameters.run_type == "Prediction")
+    {
+        Prediction::PredictionFramework framework(modelInputParameters, observations, rng, logger);
+
+        int n_sim_steps = 10;
+        std::vector<double> parameter_set(8, 0.0);
+        
+        framework.Run(parameter_set, n_sim_steps);
+    }
+    else
+    {
+        Inference::InferenceFramework framework(modelInputParameters, observations, rng, out_dir, logger);
+        
+        framework.Run();
+    }
+	
 }

@@ -10,72 +10,40 @@ namespace EERAModel {
 namespace Model {
 
 /**
- * @brief Structure to hold per-age group data vectors
+ * @brief Get the population of a region
  * 
- * Includes probabilities and mean number of contacts per age group information
+ * Within the input cases data, the total population of the region is located in the first column
+ * of the row corresponding to the region
+ * 
+ * @param obs Input observations
+ * @param region_id Index of the region within the observation data set
+ * 
+ * @return The population of the region
  */
-struct AgeGroupData
-{
-	
-	std::vector<std::vector<double>> waifw_norm;	/*!< mean number of daily contacts between age groups (overall). */	
-	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts between age groups (home only). */
-	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts between age groups (not school, not work). */
-	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
-	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
-};
+int GetPopulationOfRegion(const InputObservations& obs, int region_id);
 
 /**
- * @brief Structure containing counters for different population categories
+ * @brief Compute number of health care workers (HCW) in the region
  * 
- * Integers to count the number of people within the different compartments within the model 
+ * Calculates the number of HCW in the region, assuming that the ratio of the region's population
+ * to that of the country is same as that for HCWs only
+ * 
+ * @param regionalPopulation Population of the region
+ * @param totalHCW Total number of HCWs in the country
+ * @param observations Input observations
  */
-struct Compartments
-{
-	int S = 0;    	/*!< Number of susceptible individuals (not infected). */	
-	int E = 0;		/*!< Number of infected individuals but not yet infectious (exposed). */	
-	int E_t = 0;	/*!< Number of exposed individuals and tested positive. */	
-	int I_p = 0;	/*!< Number of infected and infectious symptomatic individuals but at pre-clinical stage (show yet no symptoms). */	
-	int I_t = 0;	/*!< Number of tested positive individuals that infectious. */	
-	int I1 = 0;		/*!< Number of infected and infectious asymptomatic individuals: first stage. */	
-	int I2 = 0;		/*!< Number of infected and infectious asymptomatic individuals: second stage.  */	
-	int I3 = 0;		/*!< Number of infected and infectious asymptomatic individuals: third stage.  */	
-	int I4 = 0;		/*!< Number of infected and infectious asymptomatic individuals: last stage.  */	
-	int I_s1 = 0;	/*!< Number of infected and infectious symptomatic individuals: first stage. */	
-	int I_s2 = 0;	/*!< Number of infected and infectious symptomatic individuals: second stage.  */	
-	int I_s3 = 0;	/*!< Number of infected and infectious symptomatic individuals: thrid stage. */	
-	int I_s4 = 0;	/*!< Number of infected and infectious symptomatic individuals: last stage.  */	
-	int H = 0;		/*!< Number of infected individuals that are hospitalised.  */	
-	int R = 0;		/*!< Number of infected individuals that are recovered from infection.   */	
-	int D = 0;		/*!< Number of dead individuals due to disease. */	
-};
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations);
 
 /**
- * @brief Structure to hold status objects
+ * @brief Compute the agenums 
  * 
- * Contains vectors containing information on the trajectories of the predicted disease status for individuals involved in the model 
- * (i.e. number of incident cases, number of incident deaths for each simulation step).
- */
-struct Status
-{
-	std::vector<int> simulation;				/*!< Number of incident (newly detected/reported) cases of covid in each simulation step. */
-	std::vector<int> deaths;					/*!< Overall number of incident deaths due to covid in each simulation step. */
-	std::vector<int> hospital_deaths;			/*!< Number of incident deaths reported at hospital due to covid in each simulation step. */
-	std::vector<Compartments> ends;				/*!< Population per epidemiological state and per age group on last day. */
-};
-
-/**
- * @brief Structure containing population counters after infection
+ * @param Npop Population
+ * @param Nhcw Number of health care workers
+ * @param obs Model observations
  * 
- * Contains counters for the number of newly detected (due to testing or hospitalisation) cases, deaths and hospitalisations
- * at each time step.
+ * @return agenums
  */
-struct InfectionState
-{
-	int detected = 0;				/*!< Number of newly detected (due to testing or hospitalisation) cases at each time step. */
-	int hospitalised = 0;			/*!< Number of newly detected cases due to their hospitalisation at each time step. */
-	int deaths = 0;					/*!< Overall number of incident deaths due to covid at each time step.  */
-	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
-};
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs);
 
 /**
  * @brief Accumulate total across all compartments
@@ -86,16 +54,7 @@ struct InfectionState
  * 
  * @return Total across all compartments
  */
-int accumulate_compartments(const Compartments& comp)
-{
-	int _total = 0;
-	_total += comp.S + comp.E + comp.E_t + comp.I_p;
-	_total += comp.I_t + comp.I1 + comp.I2 + comp.I3;
-	_total += comp.I4 + comp.I_s1 + comp.I_s2 + comp.I_s3;
-	_total += comp.I_s4 + comp.H + comp.R + comp.D;
-
-	return _total;
-}
+int accumulate_compartments(const Compartments& comp);
 
 /**
  * @brief Convert Vector of Compartments struct to a vector of integers
@@ -107,46 +66,33 @@ int accumulate_compartments(const Compartments& comp)
  * 
  * @return Vector of population counters
  */
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
-{
-	std::vector<std::vector<int>> _temp;
-
-	for(auto cmps : cmps_vec)
-	{
-		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
-						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
-						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
-						cmps.I_s4, cmps.H, cmps.R, cmps.D});
-	}
-
-	return _temp;
-}
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 /**
- * @brief Run the model and inference framework
+ * @brief Compute the Kernel Window
  * 
- * Runs the model based on the given input parameters, observations and seeded random number generator.
- * Places the outputs in the indicated directory.
- * 
- * @param modelInputParameters Input parameters to the model run
- * @param observations Input observations to the model run
- * @param rng Seeded random number generator
- * @param gen Seeded random number generator for importance sampling
- * @param outDirPath Path to the directory in which the output files should be placed
- * @param log Pointer to the logger
+ * @param nPar Number of parameters to compute kernel for
+ * @param particleList List of previously accepted particles
+ * @param kernelFactor Common kernel multiplicative factor
+ * @param vlimitKernel Storage for the computed kernel
+ * @param vect_Max Storage for maximum values of ranges
+ * @param vect_Min Storage for minimum values of ranges
  */
-void Run(EERAModel::ModelInputParameters& modelInputParameters,
-         EERAModel::InputObservations observations,
-		 Random::RNGInterface::Sptr rng,
-		 const std::string& outDirPath,
-		 EERAModel::Utilities::logging_stream::Sptr log);
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
+	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
+	std::vector<double>& vect_Min);
 
-void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-	const std::vector<int>& obsDeaths, ModelStructureId structure);
+/**
+ * @brief Compute weight distribution
+ * 
+ * Create the discrete distribution of the weights for the "importance sampling" process
+ * 
+ * @param particleList List of previously accepted particles
+ * 
+ * @return Weight distribution
+ */
+std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList);
 
 /**
  * @brief Run the model with the given parameters and configurations
@@ -181,6 +127,16 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
  * @return Seed population
  */
 std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums, ModelStructureId structure);
+
+/**
+ * @brief Build the fixed parameters data structure
+ * 
+ * @param size Number of instances of the parameters to generate
+ * @param parameters Source parameter list
+ * 
+ * @return Vector of @p size copies of @p parameters
+ */
+std::vector<params> BuildFixedParameters(unsigned int size, params parameters);
 
 /**
  * @brief Construct the population array, based on a choice of model structure
