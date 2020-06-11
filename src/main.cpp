@@ -52,12 +52,12 @@ int main() {
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 	
-    // Read prior particle parameters if run type is "Prediction"
+    // Read posterior particle parameters if run type is "Prediction"
 	if (modelInputParameters.run_type == "Prediction")
 	{
-		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
-		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
-		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
+		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/src/posterior_particle_params.csv";
+		PosteriorParticleParameters PosteriorParticleParameters= IO::ReadPosteriorParametersFromFile(posterior_params_addr, logger);
+		modelInputParameters.posterior_param_list = PosteriorParticleParameters.posterior_param_list;
 	}
 
 	// Read in the observations
@@ -80,11 +80,11 @@ int main() {
     {
         Prediction::PredictionFramework framework(modelInputParameters, observations, rng, out_dir, logger);
 
-        int n_sim_steps = 1000;
+        int n_sim_steps = 100;
         std::vector<double> parameter_set(8, 0.0);
 
         // framework.Run(parameter_set, n_sim_steps);
-		framework.Run(modelInputParameters.prior_param_list, n_sim_steps);
+		framework.Run(modelInputParameters.posterior_param_list, n_sim_steps);
     }
     else
     {

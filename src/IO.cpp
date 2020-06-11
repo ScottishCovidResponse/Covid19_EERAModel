@@ -104,15 +104,15 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
 	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	// modelInputParameters.run_type = "Inference";
-	modelInputParameters.run_type = "Prediction";
+	modelInputParameters.run_type = "Inference";
+	// modelInputParameters.run_type = "Prediction";
 
 	return modelInputParameters;
 }
 
-EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
-	EERAModel::PriorParticleParameters priorParticleParameters;
+	EERAModel::PosteriorParticleParameters posteriorParticleParameters;
 
 	std::ifstream infile(filePath.c_str());
 	std::string line;
@@ -120,10 +120,10 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string
 	char delimiter = '\n';
 	while (std::getline(infile, line, delimiter))
 	{
-		priorParticleParameters.prior_param_list.push_back(atof(line.c_str()));
+		posteriorParticleParameters.posterior_param_list.push_back(atof(line.c_str()));
 	}
 	
-	return priorParticleParameters;
+	return posteriorParticleParameters;
 }
 
 EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
@@ -240,11 +240,11 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	output_ends.close();
 }
 
-void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
+void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {
 	std::stringstream namefile_simu, namefile_ends;
-	namefile_simu << (outDirPath + "/output_prediction_simu_") << log->getLoggerTime() << ".txt";
-	namefile_ends << (outDirPath + "/output_prediction_ends_") << log->getLoggerTime() << ".txt";
+	namefile_simu << (outDirPath + "/output_prediction_simu_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
+	namefile_ends << (outDirPath + "/output_prediction_ends_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
 
 	std::ofstream output_simu (namefile_simu.str().c_str());
 	std::ofstream output_ends (namefile_ends.str().c_str());

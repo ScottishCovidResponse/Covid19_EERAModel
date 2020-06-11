@@ -1,5 +1,6 @@
 #include "PredictionFramework.h"
 #include "Model.h"
+#include "Observations.h"
 #include "IO.h"
 
 namespace EERAModel {
@@ -11,9 +12,8 @@ PredictionFramework::PredictionFramework(
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
-     : seedlist_(modelInputParameters.seedlist),
-       dayShut_(modelInputParameters.day_shut),
-       modelStructure_(modelInputParameters.model_structure),
+     : modelInputParameters_(modelInputParameters),
+       observations_(observations),
        rng_(rng),
        outDir_(outDir),
        log_(log)
@@ -30,16 +30,16 @@ PredictionFramework::PredictionFramework(
             observations.pf_pop[modelInputParameters.herd_id - 1]
     };
     
-    int regionalPopulation = Model::GetPopulationOfRegion(
+    regionalPopulation_ = Model::GetPopulationOfRegion(
         observations, modelInputParameters.herd_id
     );
 
-    int healthCareWorkers = Model::ComputeNumberOfHCWInRegion(
-        regionalPopulation, modelInputParameters.totN_hcw, observations
+    healthCareWorkers_ = Model::ComputeNumberOfHCWInRegion(
+        regionalPopulation_, modelInputParameters.totN_hcw, observations
     );
     
     ageNums_ = Model::ComputeAgeNums(
-        modelInputParameters.herd_id, regionalPopulation, healthCareWorkers, observations
+        modelInputParameters.herd_id, regionalPopulation_, healthCareWorkers_, observations
     );
 }
 
@@ -47,21 +47,72 @@ void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationS
 {
     clock_t startTime = clock();
 
+    (*log_) << "[Settings]:\n";
+    (*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
+    (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
+	if (modelInputParameters_.seedlist.seedmethod == "random"){
+		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
+	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
+		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
+	}
+    (*log_) << "    model structure: " << 
+        ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
+    (*log_) << "[Fixed parameter values]:\n";
+	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
+	(*log_) << "    pre-clinical period (theta_i): " << modelInputParameters_.paramlist.T_inf <<std::endl;
+	(*log_) << "    asymptomatic period (theta_r): " << modelInputParameters_.paramlist.T_rec <<std::endl;
+	(*log_) << "    symptomatic period (theta_s): " << modelInputParameters_.paramlist.T_sym <<std::endl;
+	(*log_) << "    hospitalisation stay (theta_h): " << modelInputParameters_.paramlist.T_hos <<std::endl;
+	(*log_) << "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters_.paramlist.juvp_s <<std::endl;
+	(*log_) << "    bed capacity at hospital (K): " << modelInputParameters_.paramlist.K <<std::endl;
+	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
+
+	//Separate case information for each herd_id
+    modelInputParameters_.seedlist.day_intro = 0;
+    int duration = 0;
+    int time_back;
+    if (modelInputParameters_.seedlist.seedmethod == "background") {
+        time_back = modelInputParameters_.seedlist.hrp;
+    } else {
+        time_back = modelInputParameters_.paramlist.T_inf + modelInputParameters_.paramlist.T_sym;
+
+        if (modelInputParameters_.seedlist.seedmethod != "random") {
+            (*log_) << "Warning!! Unknown seeding method - applying _random_ seed method\n";
+        }
+    }
+
+	const std::vector<int>& regionalCases = observations_.cases[modelInputParameters_.herd_id];
+	const std::vector<int>& regionalDeaths = observations_.deaths[modelInputParameters_.herd_id];
+	const std::vector<int>& timeStamps = observations_.cases[0];
+
+    std::vector<int> obsHosp, obsDeaths;
+    Observations::SelectObservations(duration, modelInputParameters_.seedlist.day_intro,
+        modelInputParameters_.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
+        regionalDeaths, time_back, log_);
+
+    (*log_) << "[Health Board settings]:\n";
+	(*log_) << "    SHB id: " << modelInputParameters_.herd_id <<'\n';
+	(*log_) << "    Population size: " << regionalPopulation_ << '\n';
+	(*log_) << "    Number of HCW: " << healthCareWorkers_ << '\n';
+	(*log_) << "    Simulation period: " << duration << "days\n";
+	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
+
+    const int n_sim_steps = static_cast<int>(ceil(duration/modelInputParameters_.tau));
+
     Status status = Model::RunModel(
-        parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_, ageNums_,
-        nSimulationSteps, modelStructure_, rng_
+        parameterSet, fixedParameters_, ageGroupData_, modelInputParameters_.seedlist, modelInputParameters_.day_shut, ageNums_,
+        n_sim_steps, modelInputParameters_.model_structure, rng_
     );
 
     double time_taken;
     time_taken = double(clock() - startTime)/(double)CLOCKS_PER_SEC;
 
-    (*log_) << " <computation time> " << time_taken << " seconds.\n";
+    (*log_) << "\n <computation time> " << time_taken << " seconds.\n";
 
-    // To do: Write model prediction outputs here
     std::vector< std::vector<int> > end_comps;
 	end_comps = Model::compartments_to_vector(status.ends);
 
-    IO::WritePredictionsToFiles(status, end_comps, outDir_, log_);
+    IO::WritePredictionsToFiles(status, modelInputParameters_.herd_id, end_comps, outDir_, log_);
 }
 
 } // namespace Prediction
