@@ -26,7 +26,7 @@ jobs:
     - name: Install Dependencies (Ubuntu)
       run: |
            sudo apt-get update
-           sudo apt-get install -y libgsl-dev clang lcov cppcheck similarity-tester
+           sudo apt-get install -y libgsl-dev clang lcov cppcheck similarity-tester clang-format
            sudo apt-get install -y htmldoc poppler-utils clang-tidy graphviz doxygen flawfinder
       if: matrix.os == 'ubuntu-latest'
 
@@ -37,6 +37,22 @@ jobs:
     - name: Install Dependencies (Mac OS X)
       run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
+
+    - name: Format Code
+      run: |
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Action"
+           find . -iname *.h -o -iname *.cpp | xargs clang-format -style=file -i -fallback-style=none
+           git add -u
+           git commit -m "Applied Code Formatting `date`"
+    
+    - name: Push format changes to Dev (Ubuntu GCC)
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: dev
+        force: true
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Compile
       env:
@@ -104,8 +120,6 @@ jobs:
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
-           git config --local user.email "action@github.com"
-           git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
@@ -146,7 +160,7 @@ jobs:
           git commit -m "Updated Website Output `date`"
       if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
-    - name: Push changes (Ubuntu GCC)
+    - name: Push site changes to gh-pages (Ubuntu GCC)
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
