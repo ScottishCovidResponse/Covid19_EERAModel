@@ -352,8 +352,8 @@ class HTMLFileBuilder(object):
     <body>
     <div class="container">
     <div class="jumbotron">
-        <h1>Flawfinder</h1>
-        <p>Listed below are the check results from Flawfinder.</p>
+        <h1>Sim C++</h1>
+        <p>Sim C++ finds similarities within the code files.</p>
     </div>
     <p></p>
     </div>
