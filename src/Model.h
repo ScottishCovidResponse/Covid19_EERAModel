@@ -25,6 +25,17 @@ struct AgeGroupData
 };
 
 /**
+ * @brief Structure holding inferred and fixed parameters
+ * 
+ * Contains parameters used during the execution of the model itself
+ */
+struct RunParameters
+{
+	std::vector<params> fixed;			/*!< the fixed parameters (known parameters). */
+	std::vector<double> inferred; 		/*!< the inference parameters. */
+};
+
+/**
  * @brief Structure containing counters for different population categories
  * 
  * Integers to count the number of people within the different compartments within the model 
@@ -141,7 +152,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 		 const std::string& outDirPath,
 		 EERAModel::Utilities::logging_stream::Sptr log);
 
-void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
+void model_select(particle &outvec, const std::vector<params>& fixed_parameters,
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
@@ -163,7 +174,7 @@ void model_select(::EERAModel::particle &outvec, const std::vector<params>& fixe
  * 
  * @return Status of model after run
  */
-Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+Status RunModel(const RunParameters& run_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng);
 
@@ -240,7 +251,7 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
  * @param pops Population array containing compartments for each age group
  * @param shut State of lockdown
  */
-std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const RunParameters& run_parameters, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut);
 
 /**
@@ -258,8 +269,8 @@ std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<d
  * @param lambda Rate of spread
  */
 InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
-    const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
-    std::vector<double> parameter_set, std::vector<double> cfr_tab,
+    int n_hospitalised, const params& fixed_parameters, 
+    const std::vector<double>& parameter_set, const std::vector<double>& cfr_tab,
     double pf_val, double lambda);
 
 /**
@@ -277,8 +288,8 @@ InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, C
  * @param lambda Rate of spread
  */
 InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
-    const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
-    std::vector<double> parameter_set, std::vector<double> cfr_tab,
+    int n_hospitalised, const params& fixed_parameters, 
+    const std::vector<double>& parameter_set, const std::vector<double>& cfr_tab,
     double pf_val, double lambda);
 
 } // namespace Model

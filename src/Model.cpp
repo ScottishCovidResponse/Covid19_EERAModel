@@ -317,7 +317,7 @@ void Run(EERAModel::ModelInputParameters& modelInputParameters,
 	(*log) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
-void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
+void model_select(particle& outvec, const std::vector<params>& fixed_parameters,
 	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
@@ -329,9 +329,10 @@ void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_
 	//---------------------------------------
 
 	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
+	const RunParameters run_parameters = {fixed_parameters, outvec.parameter_set};
 	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
-	Status status = RunModel(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
+	Status status = RunModel(run_parameters, per_age_data, seedlist, day_shut,
 							agenums, n_sim_steps, structure, rng);
 
 	//---------------------------------------
@@ -483,7 +484,7 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     }
 }
 
-Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+Status RunModel(const RunParameters& run_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng) {
 
@@ -505,8 +506,8 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 	// Assumes that the number of age groups matches the size of the 'agenums' vector
 	std::vector<double> seed_pop = BuildPopulationSeed(agenums, structure);
 
-	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
-	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
+	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), run_parameters.inferred);	
+	parameter_fit[0][5] = run_parameters.fixed[0].juvp_s;
 
 //	std::cout<< "top1..\n";
 	std::vector<Compartments> poparray = BuildPopulationArray(rng, agenums, seedlist, structure);
@@ -529,15 +530,15 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 		//introduce disease from background infection until lockdown
 		if(!inLockdown && seedlist.seedmethod == "background")
 		{
-			const double bkg_lambda = parameter_set[parameter_set.size()-1];
+			const double bkg_lambda = run_parameters.inferred[run_parameters.inferred.size()-1];
 
 			//compute the total number of susceptible and the number of susceptible per age class			
 			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda, structure);
 		}
 
         //compute the forces of infection
-        std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
-            poparray, inLockdown);	
+        std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, run_parameters, 
+			per_age_data, poparray, inLockdown);	
 
         // step each agegroup through infections
         for ( int age{0}; age < n_agegroup; ++age) {	
@@ -545,12 +546,12 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
             if (ModelStructureId::ORIGINAL == structure) {
                 new_spread = 
                     GenerateInfectionSpreadOriginal(rng, poparray[age], infection_state.hospitalised,
-                        fixed_parameters[age],parameter_fit[age],
+                        run_parameters.fixed[age],parameter_fit[age],
                         per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
             } else {
                 new_spread = 
                     GenerateInfectionSpreadIrish(rng, poparray[age], infection_state.hospitalised,
-                        fixed_parameters[age],parameter_fit[age],
+                        run_parameters.fixed[age],parameter_fit[age],
                         per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
             }
 
@@ -573,8 +574,8 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
 }
 
 InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
-    const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
-    std::vector<double> cfr_tab, double pf_val, double lambda)
+    int n_hospitalised, const params& fixed_parameters, const std::vector<double>& parameter_set,
+    const std::vector<double>& cfr_tab, double pf_val, double lambda)
 {
     Compartments newpop(pop);
 
@@ -680,8 +681,8 @@ InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, C
 }
 
 InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
-    const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
-    std::vector<double> cfr_tab, double pf_val, double lambda)
+    int n_hospitalised, const params& fixed_parameters, const std::vector<double>& parameter_set,
+    const std::vector<double>& cfr_tab, double pf_val, double lambda)
 {
     Compartments newpop(pop);
 
@@ -786,15 +787,16 @@ InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Comp
     return infection_state;
 }
 
-std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const RunParameters& run_parameters, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut) 
 {
+	const double u_val = run_parameters.fixed[0].inf_asym;
 
-	double p_i = parameter_set[0];	
-	double p_hcw = parameter_set[1];	
-	double c_hcw = parameter_set[2];	
-	double d_val = parameter_set[3];					
-	double q_val = parameter_set[4];
+	double p_i = run_parameters.inferred[0];	
+	double p_hcw = run_parameters.inferred[1];	
+	double c_hcw = run_parameters.inferred[2];	
+	double d_val = run_parameters.inferred[3];					
+	double q_val = run_parameters.inferred[4];
 	
 	//lambda=rep(NA,nrow(pops))
 	int n_agegroup = age_data.waifw_norm.size();
