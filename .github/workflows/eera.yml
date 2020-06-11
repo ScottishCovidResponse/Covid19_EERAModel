@@ -39,7 +39,7 @@ jobs:
       run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
 
-    - name: Format Code
+    - name: Format Code (Ubuntu GCC)
       run: |
            git config --local user.email "action@github.com"
            git config --local user.name "GitHub Action"
@@ -94,6 +94,11 @@ jobs:
     - name: Run Flawfinder (Ubuntu GCC)
       run: |
         flawfinder src/ | tee flawfinder.log
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04'
+
+    - name: Run Sim C++ (Ubuntu GCC)
+      run: |
+        sim_c++ -aR -o "sim_cpp.log" src/*
       if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04'
 
     - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
