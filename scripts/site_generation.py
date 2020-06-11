@@ -5,20 +5,118 @@ class HTMLFileBuilder(object):
     def __init__(self, name="SCRC: COVID-19 EERA Model"):
         self._clang_tidy_data = {}
         self._name = name
-        self._pages = {'cppcheck' : {'source' : 'cppcheck/index.html',
-                             'title' : 'CPP Check',
-                             'filename' : 'cppcheck.html'},
-                      'doxygen' : {'source' : '../doxygen/html/index.html',
-                                  'title' : 'Doxygen Code Documentation',
-                                  'filename' : 'doxygen-docs.html'},
-                      'coverage' : {'source' : '../build/Covid19EERAModel_coverage/index.html',
-                                    'title' : 'Code Coverage',
-                                    'filename' : 'code-coverage.html'},
-                      'documentation' : {'source' : '../doc/eera_model_overview.html',
-                                          'title' : 'Model Overview',
-                                          'filename' : 'model_documentation.html'}}
-        self._flawfinder_data = {}
+        self._page_list = {'Documentation' : {'Doxygen Code Documentation' : 
+                                                  {'filename' : 'doxygen-docs.html',
+                                                   'source' : '../doxygen/html/index.html'
+                                                  },
+                                              'Model Overview' : 
+                                                  {'filename' : 'model_documentation.html',
+                                                    'source' : '../doc/eera_model_overview.html'
+                                                  }
+                                            },
+                            'CodeTools' : {'CPP Check' : 
+                                              {'filename' : 'cppcheck.html',
+                                                'source'  : 'cppcheck/index.html'
+                                              },
+                                          'Code Coverage' :
+                                              {'filename' : 'code-coverage.html',
+                                                'source' : '../build/Covid19EERAModel_coverage/index.html'
+                                              },
+                                          'Flawfinder' :
+                                              {
+                                                'filename' : 'flawfinder.html',
+                                                'source' : 'flawfinder.html'
+                                              },
+                                          'Sim C++' : 
+                                              {
+                                                'filename' : 'simcpp.html',
+                                                'source' : 'simcpp.html'
+                                              },
+                                          'Clang Tidy' :
+                                              {
+                                                'filename' : 'clang_tidy.html',
+                                                'source' : 'clang_tidy.html'
+                                              }
+                                          }
+                          }
+        self._extern_pages = ['Doxygen Code Documentation',
+                              'Model Overview',
+                              'CPP Check',
+                              'Code Coverage']
 
+        self._doc_imports = ['\t\t\t\t\t<a class="dropdown-item" href="site/{}">{}</a>'.format(self._page_list['Documentation'][n]['filename'], n) for n in self._page_list['Documentation']]
+        self._code_imports = ['\t\t\t\t\t<a class="dropdown-item" href="site/{}">{}</a>'.format(self._page_list['CodeTools'][n]['filename'], n) for n in self._page_list['CodeTools']]
+        self._header='''
+    <head>
+    <meta charset="UTF-8">
+    <!-- Redirect -->
+    <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    
+    <title>{site_name}</title>
+
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <!-- Brand -->
+      <a class="navbar-brand" href="{index_addr}">COVID-19 EERA Model</a>
+    
+      <!-- Links -->
+      <ul class="navbar-nav">
+        <!-- Dropdown -->
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+          Documentation
+        </a>
+        <div class="dropdown-menu">
+          {document_imports}
+        </div>
+      </li>
+        <!-- Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+            Code Checks
+          </a>
+          <div class="dropdown-menu">
+            {code_imports}
+          </div>
+        </li>
+      </ul>
+    </nav> 
+        
+</head>
+        '''.format(site_name=self._name,
+        index_addr='index.html',
+        document_imports='\n'.join(self._doc_imports), 
+        code_imports='\n'.join(self._code_imports))
+        self._flawfinder_data = {}
+        self._simcpp_data = []
+
+    def parse_simcpp(self, input_file):
+      _entry = {'file_1_lines' : [], 'file_2_lines' : []}
+      with open(input_file) as f:
+        for line in f:
+          try:
+            if 'src' in line:
+              if 'file_1' in  _entry:
+                self._simcpp_data.append(_entry)
+                _entry = {'file_1_lines' : [], 'file_2_lines' : []}
+              _file_addr_1, _file_addr_2 = line.split('|')
+              _file_addr_1 = _file_addr_1.strip()
+              _file_addr_2 = _file_addr_2.strip()
+              _entry['file_1'] = _file_addr_1
+              _entry['file_2'] = _file_addr_2
+            else:
+              _l1, _l2 = line.split('|')
+              _l1 = _l1.strip()
+              _l2 = _l2.strip()
+              _entry['file_1_lines'].append(_l1)
+              _entry['file_2_lines'].append(_l2)
+          except ValueError:
+            continue
     def parse_clangtidy(self, input_file):
         with open(input_file) as f:
             for line in f:
@@ -58,55 +156,12 @@ class HTMLFileBuilder(object):
             _lines_str += line
 
     def build_index(self):
+      _code_buttons = ['<a href="site/{}" class="btn btn-primary" role="button">{}</a>'.format(self._page_list['CodeTools'][n]['filename'], n) for n in self._page_list['CodeTools']]
+      _doc_buttons = ['<a href="site/{}" class="btn btn-primary" role="button">{}</a>'.format(self._page_list['Documentation'][n]['filename'], n) for n in self._page_list['Documentation']]
       _index_str='''
 <!DOCTYPE HTML>
 <html lang="en-GB">
-    <head>
-        <meta charset="UTF-8">
-        <!-- Redirect -->
-        <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-        
-        <title>{site_name}</title>
-
-        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-          <!-- Brand -->
-          <a class="navbar-brand" href="index.html">COVID-19 EERA Model</a>
-        
-          <!-- Links -->
-          <ul class="navbar-nav">
-            <!-- Dropdown -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                Documentation
-              </a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="site/model_documentation.html">Model Overview</a>
-                <a class="dropdown-item" href="site/doxygen-docs.html">Doxygen</a>
-              </div>
-            </li>
-
-            <!-- Dropdown -->
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                Code Checks
-              </a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="site/code-coverage.html">Code Coverage</a>
-                <a class="dropdown-item" href="site/clang_tidy.html">Clang Tidy</a>
-                <a class="dropdown-item" href="site/cppcheck.html">CPP Check</a>
-                <a class="dropdown-item" href="site/flawfinder.html">Flawfinder</a>
-              </div>
-            </li>
-          </ul>
-        </nav> 
-            
-    </head>
+    {header}
     <body>
         <div class="container">
             <div class="jumbotron">
@@ -116,15 +171,11 @@ class HTMLFileBuilder(object):
         </div>
         <div class="container">
           <h2>Documentation</h2>
-            <a href="site/model_documentation.html" class="btn btn-info" role="button">Model Overview</a>
-            <a href="site/doxygen-docs.html" class="btn btn-info" role="button">Doxygen Documentation Site</a>     
+            {doc_buttons}    
          </div>
         <div class="container">
-          <h2>Code Check Reports</h2>   
-            <a href="site/code-coverage.html" class="btn btn-primary" role="button">Code Coverage Report</a>   
-            <a href="site/clang_tidy.html" class="btn btn-primary" role="button">Clang Tidy Report</a>
-            <a href="site/cppcheck.html" class="btn btn-primary" role="button">CPP Check</a>
-            <a href="site/flawfinder.html" class="btn btn-primary" role="button">Flawfinder</a>
+          <h2>Code Check Reports</h2> 
+            {code_buttons}  
          </div>
         <div class="container">
             <p></p>
@@ -155,7 +206,8 @@ class HTMLFileBuilder(object):
           
     </body>
 </html>
-      '''.format(site_name=self._name)
+      '''.format(header=self._header.replace('index', '../index'), site_name=self._name,
+      code_buttons='\n'.join(_code_buttons), doc_buttons='\n'.join(_doc_buttons))
 
       with open('index.html', 'w') as f:
         f.write(_index_str)
@@ -165,51 +217,7 @@ class HTMLFileBuilder(object):
       template='''
       <!DOCTYPE HTML>
 <html lang="en-GB">
-  <head>
-    <meta charset="UTF-8">
-    <!-- Redirect -->
-    <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    
-    <title>{site_name}</title>
-
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-      <!-- Brand -->
-      <a class="navbar-brand" href="../index.html">COVID-19 EERA Model</a>
-    
-       <!-- Links -->
-       <ul class="navbar-nav">
-      <!-- Dropdown -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-          Documentation
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="{docs_addr}">Model Overview</a>
-          <a class="dropdown-item" href="{doxy_addr}">Doxygen</a>
-        </div>
-      </li>
-        <!-- Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="../index.html" id="navbardrop" data-toggle="dropdown">
-            Code Checks
-          </a>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="{cov_addr}">Code Coverage</a>
-            <a class="dropdown-item" href="{clang_addr}">Clang Tidy</a>
-            <a class="dropdown-item" href="{cppc_addr}">CPP Check</a>
-            <a class="dropdown-item" href="{ff_addr}">Flawfinder</a>
-          </div>
-        </li>
-      </ul>
-    </nav> 
-        
-</head>
+  {head}
     <body>
         <div class="container">
             <div class="jumbotron">
@@ -224,66 +232,18 @@ class HTMLFileBuilder(object):
 </html>
       '''
 
-      for page in self._pages:
-          with open('site/'+self._pages[page]['filename'], 'w') as f:
-            f.write(template.format(title=self._pages[page]['title'], 
-                                    docs_addr=os.path.join('..', 'site', self._pages['documentation']['filename']),
-                                    doxy_addr=os.path.join('..', 'site', self._pages['doxygen']['filename']),
-                                    cov_addr=os.path.join('..', 'site',self._pages['coverage']['filename']),
-                                    clang_addr=os.path.join('..', 'site', self._pages['cppcheck']['filename']).replace('cppcheck','clang_tidy'),
-                                    ff_addr=os.path.join('..', 'site', self._pages['cppcheck']['filename']).replace('cppcheck','flawfinder'),
-                                    cppc_addr=os.path.join('..', 'site', self._pages['cppcheck']['filename']),
-                                    address_of_source=self._pages[page]['source'], site_name=self._name))
+      for categ in self._page_list:
+        for other_page in self._page_list[categ]:
+          if other_page in self._extern_pages:
+            with open('site/'+self._page_list[categ][other_page]['filename'], 'w') as f:
+              f.write(template.format(title=other_page, head=self._header.replace('site/', '').replace('index', '../index'),
+                                      address_of_source=self._page_list[categ][other_page]['source']))
 
     def build_flawfinder_html(self):
       _body='''
 <!DOCTYPE HTML>
 <html lang="en-GB">
-    <head>
-    <meta charset="UTF-8">
-    <!-- Redirect -->
-    <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    
-    <title>{site_name}</title>
-
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-      <!-- Brand -->
-      <a class="navbar-brand" href="../index.html">COVID-19 EERA Model</a>
-    
-      <!-- Links -->
-      <ul class="navbar-nav">
-        <!-- Dropdown -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-          Documentation
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="../site/model_documentation.html">Model Overview</a>
-          <a class="dropdown-item" href="../site/doxygen-docs.html">Doxygen</a>
-        </div>
-      </li>
-        <!-- Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="../index.html" id="navbardrop" data-toggle="dropdown">
-            Code Checks
-          </a>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="../site/code-coverage.html">Code Coverage</a>
-            <a class="dropdown-item" href="../site/clang_tidy.html">Clang Tidy</a>
-            <a class="dropdown-item" href="../site/cppcheck.html">CPP Check</a>
-            <a class="dropdown-item" href="../site/flawfinder.html">Flawfinder</a>
-          </div>
-        </li>
-      </ul>
-    </nav> 
-        
-</head>
+    {header}
     <body>
     <div class="container">
     <div class="jumbotron">
@@ -324,59 +284,14 @@ class HTMLFileBuilder(object):
                             library=self._flawfinder_data[entry][address]['library'], message=self._flawfinder_data[entry][address]['message'])
         _table_body += entry_str
         
-        with open('site/flawfinder.html', 'w') as f:
-          f.write(_body.format(body=_table_body, site_name=self._name))
-
+        with open('site/{}'.format(self._page_list['CodeTools']['Flawfinder']['filename']), 'w') as f:
+          f.write(_body.format(body=_table_body, site_name=self._name, header=self._header.replace('index', '../index').replace('site/', '')))
 
     def build_clang_html(self):
         _body='''
 <!DOCTYPE HTML>
 <html lang="en-GB">
-    <head>
-    <meta charset="UTF-8">
-    <!-- Redirect -->
-    <!--<meta http-equiv="refresh" content="1;url=doxygen/html/index.html">-->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    
-    <title>{site_name}</title>
-
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-      <!-- Brand -->
-      <a class="navbar-brand" href="../index.html">COVID-19 EERA Model</a>
-    
-      <!-- Links -->
-      <ul class="navbar-nav">
-        <!-- Dropdown -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-          Documentation
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="../site/model_documentation.html">Model Overview</a>
-          <a class="dropdown-item" href="../site/doxygen-docs.html">Doxygen</a>
-        </div>
-      </li>
-        <!-- Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="../index.html" id="navbardrop" data-toggle="dropdown">
-            Code Checks
-          </a>
-          <div class="dropdown-menu">
-            <a class="dropdown-item" href="../site/code-coverage.html">Code Coverage</a>
-            <a class="dropdown-item" href="../site/clang_tidy.html">Clang Tidy</a>
-            <a class="dropdown-item" href="../site/cppcheck.html">CPP Check</a>
-            <a class="dropdown-item" href="../site/flawfinder.html">Flawfinder</a>
-          </div>
-        </li>
-      </ul>
-    </nav> 
-        
-</head>
+    {header}
     <body>
     <div class="container">
     <div class="jumbotron">
@@ -426,14 +341,59 @@ class HTMLFileBuilder(object):
                             library=self._clang_tidy_data[entry][address]['library'], message=self._clang_tidy_data[entry][address]['message'])
             _table_body += entry_str
         
-        with open('site/clang_tidy.html', 'w') as f:
-          f.write(_body.format(body=_table_body, site_name=self._name))
+        with open('site/{}'.format(self._page_list['CodeTools']['Clang Tidy']['filename']), 'w') as f:
+          f.write(_body.format(body=_table_body, site_name=self._name, header=self._header.replace('site/', '').replace('index', '../index')))
+
+    def build_simcpp_html(self):
+      _body='''
+<!DOCTYPE HTML>
+<html lang="en-GB">
+    {header}
+    <body>
+    <div class="container">
+    <div class="jumbotron">
+        <h1>Flawfinder</h1>
+        <p>Listed below are the check results from Flawfinder.</p>
+    </div>
+    <p></p>
+    </div>
+    <div class="container">
+    <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>File 1</th>
+        <th>File 2</th>
+      </tr>
+    </thead>
+    {body}
+    </container>
+    </body>
+</html>
+      '''
+      _table_body = ''
+      for i, entry in enumerate(self._simcpp_data):
+        entry_str='''
+        <tr class="table-dark text-dark">
+        <td style="text-align:center"><strong>{}</strong></td>
+        <td style="text-align:center"><strong>{}</strong></td>
+        </tr>
+        <tr>
+          <td>\t<code>{}</code></td>
+          <td>\t<code>{}</code></td>
+        </tr>
+        '''.format(entry['file_1'], entry['file_2'], '\n\t'.join(entry['file_1_lines']), '\n\t'.join(entry['file_2_lines']))
+        _table_body += entry_str
+
+      with open('site/{}'.format(self._page_list['CodeTools']['Sim C++']['filename']), 'w') as f:
+        f.write(_body.format(body=_table_body, header=self._header.replace('site/', '').replace('index', '../index')))
+        
     
     def Run(self):
       self.build_index()
       self.build_wrapper_pages()
       self.build_clang_html()
       self.build_flawfinder_html()
+      self.build_simcpp_html()
         
 
 if __name__ in "__main__":
@@ -443,12 +403,14 @@ if __name__ in "__main__":
 
     parser.add_argument('build_log', help='Build log file')
     parser.add_argument('flawfinder_log', help='Flaw Finder log file')
+    parser.add_argument('simcpp_log', help='sim_c++ output file')
 
     args = parser.parse_args()
 
     cl_parser = HTMLFileBuilder()
     cl_parser.parse_clangtidy(args.build_log)
     cl_parser.parse_flawfinder(args.flawfinder_log)
+    cl_parser.parse_simcpp(args.simcpp_log)
     cl_parser.Run()
     
     
