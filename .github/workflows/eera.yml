@@ -45,6 +45,7 @@ jobs:
            find . -iname *.h -o -iname *.cpp | xargs clang-format -style=file -i -fallback-style=none
            git add -u
            git commit -m "Applied Code Formatting `date`"
+      if: matrix.os == 'ubuntu-latest' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
     
     - name: Push format changes to Dev (Ubuntu GCC)
       uses: ad-m/github-push-action@master
