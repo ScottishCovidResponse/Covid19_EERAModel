@@ -27,12 +27,6 @@ void Trim(std::string& str, const std::string & ChrsToTrim = " \t\n\r", int Trim
 //    Trim(str, ChrsToTrim, 1);
 //}
 
-// A function to transform a string to uppercase if neccessary
-//void UCase(string& str, bool ucase)
-//{
-//	if(ucase) transform(str.begin(), str.end(), str.begin(), toupper);
-//}
-
 bool CIniFile::Load(string FileName, vector<Record>& content)
 {
 	string s;																// Holds the current line from the ini file

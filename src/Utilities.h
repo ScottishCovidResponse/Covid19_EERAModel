@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <memory>
 #include <cmath>
 
@@ -198,6 +199,7 @@ std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimite
 
 	return data;
 }
+std::string toUpper(std::string str);
 
 } // namespace Utilities
 } // namespace EERAModel

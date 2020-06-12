@@ -37,14 +37,20 @@
 #include "IrishModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
+#include "CMDParse.h"
+
 
 using namespace EERAModel;
 
-int main() {
+int main(int argc, char** argv) {	
+
+	ArgumentParser arg_parser(argc, argv);
 
 	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
 	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+	arg_parser.logArguments(logger);
 
 	// Read in the model's input parameters
 	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
@@ -55,7 +61,7 @@ int main() {
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 	
     // Read prior particle parameters if run type is "Prediction"
-	if (modelInputParameters.run_type == "Prediction")
+	if (modelInputParameters.run_type == ModelModeId::PREDICTION)
 	{
 		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
 		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
@@ -91,6 +97,7 @@ int main() {
 
     // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")
+    if (modelInputParameters.run_type == ModelModeId::PREDICTION)
     {
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, logger);
 
