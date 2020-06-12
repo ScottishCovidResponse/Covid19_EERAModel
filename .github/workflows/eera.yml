@@ -127,6 +127,8 @@ jobs:
     
     - name: Commit Doxygen files (Ubuntu GCC)
       run: |
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Action"
            git add -f doxygen/*
            git commit -m "Updated Doxygen Documentation `date`"
       if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
@@ -143,20 +145,6 @@ jobs:
       run: |
            git add -f build/Covid19EERAModel_coverage/*
            git commit -m "Updated LCOV report `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
-
-    - name: Build Doxygen Documentation (Ubuntu GCC)
-      run : |
-            mkdir -p doxygen
-            doxygen
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
-    
-    - name: Commit Doxygen files (Ubuntu GCC)
-      run: |
-           git config --local user.email "action@github.com"
-           git config --local user.name "GitHub Action"
-           git add -f doxygen/*
-           git commit -m "Updated Doxygen Documentation `date`"
       if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Build Website Files
