@@ -35,6 +35,11 @@ relative path `./data`.
 
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
 
+## Automated Code Formatting
+
+As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry
+about following a convention. Settings are given in the `.clang-format` file.
+
 ## Tests
 
 ### Regression tests
