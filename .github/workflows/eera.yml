@@ -53,7 +53,7 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: dev
-        force: true
+        force: false
       if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
     - name: Compile
