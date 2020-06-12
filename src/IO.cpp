@@ -3,6 +3,7 @@
 #include "CSV.h"
 #include "Model.h"
 
+#include <valarray>
 #include <fstream>
 #include <sstream>
 
@@ -111,19 +112,29 @@ EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePa
 	return modelInputParameters;
 }
 
-EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log)
 {
+	// Temporary matrix to hold data from input file
+	std::vector<std::vector<double>> lines;
+	char delimiter = ',';
+	
+	EERAModel::CSV::read_csv_double(lines, filePath, delimiter);
+
+	// Select line from input file and store result in another temporary vector
+	std::vector<double> line_select = lines[set_selection];
+
 	EERAModel::PosteriorParticleParameters posteriorParticleParameters;
 
-	std::ifstream infile(filePath.c_str());
-	std::string line;
-	
-	char delimiter = '\n';
-	while (std::getline(infile, line, delimiter))
-	{
-		posteriorParticleParameters.posterior_param_list.push_back(atof(line.c_str()));
-	}
-	
+	/** Extract posterior parameters from selected line
+	 * the slicing is relevant to the format of the output file
+	 * *output_abc-smc_particles_step* coming from the inference framework
+	 */
+	std::vector<double>::const_iterator first = line_select.begin() + 3;
+	std::vector<double>::const_iterator last = line_select.begin() + line_select.size() - 1;
+	std::vector<double> parameter_sets(first, last);
+
+	posteriorParticleParameters.posterior_param_list = parameter_sets;
+
 	return posteriorParticleParameters;
 }
 

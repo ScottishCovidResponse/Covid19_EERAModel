@@ -22,7 +22,7 @@ namespace IO {
 EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
 
-EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read in observations

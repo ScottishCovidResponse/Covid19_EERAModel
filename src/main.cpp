@@ -55,8 +55,15 @@ int main() {
     // Read posterior particle parameters if run type is "Prediction"
 	if (modelInputParameters.run_type == "Prediction")
 	{
-		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/src/posterior_particle_params.csv";
-		PosteriorParticleParameters PosteriorParticleParameters= IO::ReadPosteriorParametersFromFile(posterior_params_addr, logger);
+		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/src/example_posterior_parameter_sets.txt";
+
+		/** Currenty this just selects the row from the input file to read.
+		 * This can easily be incorporated into parameters.ini but due to the nature
+		 * of the regression tests, it's current set here.
+		 */
+		int posterior_parameter_select = 2;
+		
+		PosteriorParticleParameters PosteriorParticleParameters= IO::ReadPosteriorParametersFromFile(posterior_params_addr, posterior_parameter_select, logger);
 		modelInputParameters.posterior_param_list = PosteriorParticleParameters.posterior_param_list;
 	}
 
