@@ -4,3 +4,4 @@ outputs/*.txt
 data/*.csv
 data/parameters.ini
 outputs/logs/
+data/*.dat

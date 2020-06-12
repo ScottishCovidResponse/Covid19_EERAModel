@@ -17,363 +17,6 @@
 namespace EERAModel {
 namespace Model {
 
-/**
- * @brief Get the population of a region
- * 
- * Within the input cases data, the total population of the region is located in the first column
- * of the row corresponding to the region
- * 
- * @param obs Input observations
- * @param region_id Index of the region within the observation data set
- * 
- * @return The population of the region
- */
-static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id);
-
-/**
- * @brief Compute the agenums 
- * 
- * @param Npop Population
- * @param Nhcw Number of health care workers
- * @param obs Model observations
- * 
- * @return agenums
- */
-static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs);
-
-/**
- * @brief Compute the Kernel Window
- * 
- * @param nPar Number of parameters to compute kernel for
- * @param particleList List of previously accepted particles
- * @param kernelFactor Common kernel multiplicative factor
- * @param vlimitKernel Storage for the computed kernel
- * @param vect_Max Storage for maximum values of ranges
- * @param vect_Min Storage for minimum values of ranges
- */
-static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
-	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
-	std::vector<double>& vect_Min);
-
-/**
- * @brief Compute weight distribution
- * 
- * Create the discrete distribution of the weights for the "importance sampling" process
- * 
- * @param particleList List of previously accepted particles
- * 
- * @return Weight distribution
- */
-static std::discrete_distribution<int> ComputeWeightDistribution(
-	const std::vector<EERAModel::particle>& particleList);
-
-void Run(EERAModel::ModelInputParameters& modelInputParameters,
-         EERAModel::InputObservations observations,
-		 Random::RNGInterface::Sptr rng,
-		 const std::string& outDirPath,
-		 EERAModel::Utilities::logging_stream::Sptr log) {
-	/*---------------------------------------
-	 * Model parameters and fitting settings
-	 *---------------------------------------*/
-	//get the start time
-	clock_t startTime = clock();
-	clock_t time_taken1=0;
-
-    (*log) << "[Settings]:\n";
-	(*log) << "    number of parameters tested: "<< modelInputParameters.nPar << std::endl;
-    (*log) << "    seeding method: "<< modelInputParameters.seedlist.seedmethod<<  std::endl;
-	if (modelInputParameters.seedlist.seedmethod == "random"){
-		(*log) << "    number of seed: " << modelInputParameters.seedlist.nseed << std::endl;
-	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		(*log) << "    duration of the high risk period (hrp): " << modelInputParameters.seedlist.hrp << std::endl;
-	}
-    (*log) << "    model structure: " << 
-        ((modelInputParameters.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
-
-    (*log) << "[Fixed parameter values]:\n";
-	(*log) << "    latent period (theta_l): " << modelInputParameters.paramlist.T_lat <<std::endl;
-	(*log) << "    pre-clinical period (theta_i): " << modelInputParameters.paramlist.T_inf <<std::endl;
-	(*log) << "    asymptomatic period (theta_r): " << modelInputParameters.paramlist.T_rec <<std::endl;
-	(*log) << "    symptomatic period (theta_s): " << modelInputParameters.paramlist.T_sym <<std::endl;
-	(*log) << "    hospitalisation stay (theta_h): " << modelInputParameters.paramlist.T_hos <<std::endl;
-	(*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters.paramlist.juvp_s <<std::endl;
-	(*log) << "    bed capacity at hospital (K): " << modelInputParameters.paramlist.K <<std::endl;
-	(*log) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters.paramlist.inf_asym <<std::endl;
-	
-	//keep information for the health board if interest
-	std::vector<double> pf_byage = observations.pf_pop[modelInputParameters.herd_id - 1];//define frailty structure of the shb of interest.
-
-	//create vector of fixed parameters		
-	std::vector<params> fixed_parameters(observations.waifw_norm.size());	
-	for (unsigned int var = 0; var < fixed_parameters.size(); ++var) {
-		fixed_parameters[var] = modelInputParameters.paramlist;
-	}
-
-	//Separate case information for each herd_id
-	modelInputParameters.seedlist.day_intro=0;
-	int duration = 0;
-	int time_back;
-	if(modelInputParameters.seedlist.seedmethod == "background") {
-		time_back = modelInputParameters.seedlist.hrp;
-	} else {
-		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
-		
-		if (modelInputParameters.seedlist.seedmethod != "random") {
-			(*log) << "Warning!! Unknown seeding method - applying _random_ seed method\n";
-		}
-	}
-
-	int population = GetPopulationOfRegion(observations, modelInputParameters.herd_id);
-	
-	const std::vector<int>& regionalCases = observations.cases[modelInputParameters.herd_id];
-	const std::vector<int>& regionalDeaths = observations.deaths[modelInputParameters.herd_id];
-	const std::vector<int>& timeStamps = observations.cases[0];
-
-	std::vector<int> obsHosp, obsDeaths;
-	Observations::SelectObservations(duration, modelInputParameters.seedlist.day_intro, 
-		modelInputParameters.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
-		regionalDeaths, time_back, log);
-
-	//define age structure and number of hcw of the population at risk
-	//compute the number of hcw in the shb
-	int N_scot = 0;
-	for (unsigned int nn = 0; nn < observations.cases.size()-1; ++nn) {
-		N_scot += observations.cases[nn][0];  //compute number of scots in scotland
-	}
-	double prop_scot = (double)population / (double)N_scot;  //proportion of Scots in each shb
-	int N_hcw = round(modelInputParameters.totN_hcw * prop_scot); // modulate total number of hcw in Scotland to population in shb
-
-	std::vector<int> agenums = ComputeAgeNums(modelInputParameters.herd_id, population, N_hcw, observations);
-	
-    (*log) << "[Health Board settings]:\n";
-	(*log) << "    SHB id: " << modelInputParameters.herd_id <<'\n';
-	(*log) << "    Population size: " << population << '\n';
-	(*log) << "    Number of HCW: " << N_hcw << '\n';
-	(*log) << "    Simulation period: " << duration << "days\n";
-	(*log) << "    time step: " << modelInputParameters.tau << "days\n";
-	
-	const std::vector<double> flag1 = {
-		modelInputParameters.prior_pinf_shape1,
-	 	modelInputParameters.prior_phcw_shape1,
-		modelInputParameters.prior_chcw_mean, 
-		modelInputParameters.prior_d_shape1, 
-		modelInputParameters.prior_q_shape1,
-		modelInputParameters.prior_ps_shape1,
-		modelInputParameters.prior_rrd_shape1,		
-		modelInputParameters.prior_lambda_shape1
-	};	
-	const std::vector<double> flag2 = {
-		modelInputParameters.prior_pinf_shape2, 
-		modelInputParameters.prior_phcw_shape2, 
-		modelInputParameters.prior_chcw_mean, 
-		modelInputParameters.prior_d_shape2, 
-		modelInputParameters.prior_q_shape2,
-		modelInputParameters.prior_ps_shape2,
-		modelInputParameters.prior_rrd_shape2,		
-		modelInputParameters.prior_lambda_shape2
-	};
-
-    Inference::InferenceParameterGenerator inferenceParameterGenerator(
-        modelInputParameters.nPar, rng, flag1, flag2);
-
-	//declare vectors of outputs/inputs for ABC process
-	std::vector<particle > particleList, particleList1;
-
-	//initialise the number of accepted particles
-	int prevAcceptedParticleCount = 0;
-
-	/*--------------------------------------
-	 * abc-smc loop
-	 *-------------------------------------*/
-	(*log) << "[Simulations]:\n";
-	for (int smc = 0; smc < modelInputParameters.nsteps; ++smc) {//todo:
-
-		//the abort statement for keeping the number of particles less than 1000
-		bool aborting = false;
-
-		//initialise the counter for the number of simulation prior maximum particle is reached
-		int nsim_count = 0;
-
-		//initialise the number of accepted particles
-		int acceptedParticleCount = 0;
-
-		//initialise the weight and particle lists
-		std::vector<double> vect_Max(modelInputParameters.nPar, 0.0);
-		std::vector<double> vect_min(modelInputParameters.nPar, 0.0);
-		std::vector<double> vlimitKernel(modelInputParameters.nPar, 0.0);
-
-		if (smc > 0) {
-			//update the vectors
-			particleList = particleList1;
-			particleList1.clear();
-
-			ComputeKernelWindow(modelInputParameters.nPar, particleList, 
-				modelInputParameters.kernelFactor, vlimitKernel, vect_Max, vect_min);
-		}
-
-		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
-
-	/*---------------------------------------
-	 * simulate the infection data set
-	 *---------------------------------------*/
-		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
-		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
-		for (int sim = 0; sim < modelInputParameters.nSim; ++sim) {//todo
-			//abort statement if number of accepted particles reached nParticLimit particles
-			//#pragma omp flush (aborting)
-			if (!aborting) {
-
-				//Update progress
-				if (acceptedParticleCount >= modelInputParameters.nParticalLimit) {
-					aborting = true;
-					//#pragma omp flush (aborting)
-				}
-
-				//declare and initialise output variables
-				particle outs_vec;
-				outs_vec.iter = sim;
-				outs_vec.nsse_cases = 0.0;
-				outs_vec.nsse_deaths = 0.0;
-//				outs_vec.sum_sq = 1.e06;
-				for (int i{0}; i < modelInputParameters.nPar; ++i) {
-					outs_vec.parameter_set.push_back(0.0);
-				}
-				//pick the values of each particles
-				if (smc==0) {
-					//pick randomly and uniformly parameters' value from priors
-
-                    outs_vec.parameter_set = inferenceParameterGenerator.GenerateInitial();
-					
-				} else {
-					// sample 1 particle from the previously accepted particles
-                    // and given their weight (also named "importance sampling")
-				    int pick_val = weight_distr(rng->MT19937());
-				    outs_vec.parameter_set = inferenceParameterGenerator.GenerateWeighted(
-                        particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
-				}
-
-				//run the model and compute the different measures for each potential parameters value
-				model_select(outs_vec, fixed_parameters, observations.cfr_byage, pf_byage,
-							observations.waifw_norm, observations.waifw_sdist, observations.waifw_home,
-							agenums, modelInputParameters.tau, duration, modelInputParameters.seedlist,
-							modelInputParameters.day_shut, rng, obsHosp, obsDeaths, modelInputParameters.model_structure);
-
-				//count the number of simulations that were used to reach the maximum number of accepted particles
-				//#pragma omp critical
-					{
-						if (acceptedParticleCount < modelInputParameters.nParticalLimit) ++nsim_count;
-					}
-				//if the particle agrees with the different criteria defined for each ABC-smc step
-				if (
-					acceptedParticleCount < modelInputParameters.nParticalLimit &&
-					outs_vec.nsse_cases <= modelInputParameters.toleranceLimit[smc] &&
-					outs_vec.nsse_deaths <= modelInputParameters.toleranceLimit[smc]//*1.5
-					) {				
-						//#pragma omp critical
-						{
-							FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
-								vlimitKernel, modelInputParameters.nPar);
-							particleList1.push_back(outs_vec);
-							++acceptedParticleCount;
-							if (acceptedParticleCount % 10 == 0) (*log) << "|" << std::flush;
-							//(*log) << acceptedParticleCount << " " ;
-						}
-					
-				}			
-			}
-		}
-
-		prevAcceptedParticleCount = acceptedParticleCount;
-
-		//time taken per step
-		double time_taken;
-		if(smc == 0){
-			time_taken = double( clock() - startTime ) / (double)CLOCKS_PER_SEC;
-			time_taken1 = clock();
-		} else {
-			time_taken = double( clock() - time_taken1 ) / (double)CLOCKS_PER_SEC;
-			time_taken1 = clock();
-		}
-
-		/*---------------------------------------
-		 * Outputs
-		 *---------------------------------------*/
-		// Output on screen of the number of accepted particles, 
-		// the number of simulations and the computation time at each step
-		(*log) << "\nStep:" << smc
-			<< ", <number of accepted particles> " << prevAcceptedParticleCount
-			<< "; <number of simulations> " << nsim_count
-			<< "; <computation time> " <<  time_taken
-			<< " seconds.\n";
-
-		//break the ABC-smc at the step where no particles were accepted
-		if (prevAcceptedParticleCount > 0) {
-			IO::WriteOutputsToFiles(smc, modelInputParameters.herd_id, prevAcceptedParticleCount,
-				modelInputParameters.nPar, particleList1, outDirPath, log);
-		}
-	}
-
-	//output on screen the overall computation time
-	(*log) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
-}
-
-void model_select(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-	const std::vector<int>& obsDeaths, ModelStructureId structure) {
-
-	//---------------------------------------
-	// the root model
-	//---------------------------------------
-
-	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
-	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
-	
-	Status status = RunModel(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-							agenums, n_sim_steps, structure, rng);
-
-	//---------------------------------------
-	// compute the  sum of squared errors for daily observations
-	//---------------------------------------
-	double sum_sq_cases = Utilities::sse_calc<int>(status.simulation, obsHosp);
-
-	//---------------------------------------
-	// compute the  sum of squared errors for weekly observations
-	//---------------------------------------	
-	// aggregate daily values to weekly values 
-	// due to reporting process creating uncertaincies within weeks
-
-	const int week_length = 7;
-
-	const std::vector<int> obs_death_red = Utilities::AccumulateEveryN(obsDeaths, week_length);
-	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryN(status.hospital_deaths, week_length);
-	
-	double sum_sq_deaths = Utilities::sse_calc<int>(sim_hospital_death_red, obs_death_red);
-
-	//---------------------------------------
-	// Compute the deviation of the fit expressed as % total number of observations
-	//---------------------------------------
-	//total numbers of cases and deaths (at hospital)
-	int sum_obs_cases = std::accumulate(obsHosp.begin(), obsHosp.end(), 0);
-    //int sum_obs_deaths = std::accumulate(obsDeaths.begin(), obsDeaths.end(), 0);	
-	int sum_obs_deaths = std::accumulate(obs_death_red.begin(), obs_death_red.end(), 0);
-		
-	// std::cout <<"daily obs: " << sum_obs_deaths<< " , red: " << sum_obs_deaths_red << 
-	// " , length red: " <<	obs_death_red.size() << std::endl;
-	outvec.nsse_cases = sqrt(sum_sq_cases) / static_cast<double>(sum_obs_cases);
-	outvec.nsse_deaths = sqrt(sum_sq_deaths) / static_cast<double>(sum_obs_deaths);
-
-	//---------------------------------------
-	// Return all selection measures
-	//---------------------------------------
-	outvec.simu_outs = status.simulation;
-	outvec.hospital_death_outs = status.hospital_deaths;
-	outvec.death_outs = status.deaths;
-	outvec.end_comps = compartments_to_vector(status.ends);
-}
-
 std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums,  ModelStructureId structure)
 {
     unsigned int end_age = age_nums.size() - 1;
@@ -438,22 +81,17 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<Compartments>& poparray, std::vector<double>& seedarray,
     const double& bkg_lambda, ModelStructureId structure)
 {
-    int n_susc = 0;
-    if (ModelStructureId::ORIGINAL == structure)
-    {    
-        for (int age = 1; age < poparray.size() - 1; ++age) 
-        {
-            seedarray[age - 1] = static_cast<double>(poparray[age].S);
-            n_susc += poparray[age].S;	
-        }
-    }
-    else if (ModelStructureId::IRISH == structure)
+    unsigned int start_age = 1;
+    if (ModelStructureId::IRISH == structure)
     {
-        for (int age = 0; age < poparray.size() - 1; ++age) 
-        {
-            seedarray[age] = static_cast<double>(poparray[age].S);
-            n_susc += poparray[age].S;	
-        }
+        start_age = 0;
+    }
+	
+	int n_susc = 0;
+    for (int age = start_age; age < poparray.size() - 1; ++age) 
+    {
+        seedarray[age - start_age] = static_cast<double>(poparray[age].S);
+        n_susc += poparray[age].S;	
     }
 
     // how many diseased is introduced in each given day before lockdown
@@ -461,25 +99,16 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     // (not total population, only 20-70 individuals)
     int startdz = rng->Poisson(static_cast<double>(n_susc) * bkg_lambda);
 
-    unsigned int startdist[seedarray.size()];
-    rng->Multinomial(seedarray.size(), startdz, &seedarray[0], startdist); //distribute the diseased across the older age categories
+    //unsigned int startdist[seedarray.size()];
+    std::vector<unsigned int> startdist(seedarray.size(), 0);
+    rng->Multinomial(seedarray.size(), startdz, &seedarray[0], &startdist[0]); //distribute the diseased across the older age categories
     
-    if (ModelStructureId::ORIGINAL == structure)
-    {    
-        for (int age = 1; age < poparray.size() - 1; ++age) {
-            int nseed = startdist[age - 1];
-            poparray[age].S -=  nseed;	// take diseased out of S
-            poparray[age].E +=  nseed;	// put diseased in E
-        }
+    for (int age = start_age; age < poparray.size() - 1; ++age) {
+    	int nseed = startdist[age - start_age];
+    	poparray[age].S -=  nseed;	// take diseased out of S
+    	poparray[age].E +=  nseed;	// put diseased in E
     }
-    else if (ModelStructureId::IRISH == structure)
-    {
-        for (int age = 0; age < poparray.size() - 1; ++age) {
-            int nseed = startdist[age];
-            poparray[age].S -=  nseed;	// take diseased out of S
-            poparray[age].E +=  nseed;	// put diseased in E
-        }
-    }
+
 }
 
 Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
@@ -889,7 +518,7 @@ int Flow(Random::RNGInterface::Sptr rng, int pops_from_val, int pops_new_from_va
 	return outs;
 }
 
-static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
 	std::vector<int> agenums;
 	
 	// define age structure of the shb of interest. the -1 is to account for difference in number of
@@ -906,7 +535,7 @@ static std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const In
 	return agenums;
 }
 
-static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
 	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
 
 	//compute the kernel window
@@ -926,7 +555,7 @@ static void ComputeKernelWindow(int nPar, const std::vector<particle>& particleL
 	}	
 }
 
-static std::discrete_distribution<int> ComputeWeightDistribution(
+std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList) {
 	
 	std::vector<double> weight_val;
@@ -937,9 +566,51 @@ static std::discrete_distribution<int> ComputeWeightDistribution(
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
 }
 
-static inline int GetPopulationOfRegion(const InputObservations& obs, int region_id)
+int GetPopulationOfRegion(const InputObservations& obs, int region_id)
 {
 	return obs.cases[region_id][0];
+}
+
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations)
+{
+    int scotlandPopulation = 0;
+	for (unsigned int region = 0; region < observations.cases.size() - 1; ++region) {
+		scotlandPopulation += observations.cases[region][0];
+	}
+	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
+	
+    return static_cast<int>(round(totalHCW * regionalProportion)); 
+}
+
+std::vector<params> BuildFixedParameters(unsigned int size, params parameters)
+{
+    return std::vector<params>(size, parameters);
+}
+
+int accumulate_compartments(const Compartments& comp)
+{
+	int _total = 0;
+	_total += comp.S + comp.E + comp.E_t + comp.I_p;
+	_total += comp.I_t + comp.I1 + comp.I2 + comp.I3;
+	_total += comp.I4 + comp.I_s1 + comp.I_s2 + comp.I_s3;
+	_total += comp.I_s4 + comp.H + comp.R + comp.D;
+
+	return _total;
+}
+
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
 }
 
 } // namespace Model

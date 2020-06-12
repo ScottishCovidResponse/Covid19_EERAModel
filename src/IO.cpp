@@ -103,10 +103,30 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", filePath).c_str());
 	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
+	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
+	modelInputParameters.run_type = "Inference";
+	// modelInputParameters.run_type = "Prediction";
+
 	return modelInputParameters;
 }
 
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+{
+	EERAModel::PriorParticleParameters priorParticleParameters;
+
+	std::ifstream infile(filePath.c_str());
+	std::string line;
+	
+	char delimiter = '\n';
+	while (std::getline(infile, line, delimiter))
+	{
+		priorParticleParameters.prior_param_list.push_back(atof(line.c_str()));
+	}
+	
+	return priorParticleParameters;
+}
+
+EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
 {
 	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
