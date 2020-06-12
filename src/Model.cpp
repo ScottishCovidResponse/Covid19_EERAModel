@@ -202,6 +202,7 @@ Status RunModel(std::vector<double> parameter_set, std::vector<::EERAModel::para
             infection_state.detected += new_spread.detected;
         }
 
+        status.pop_array.push_back(poparray);
         status.simulation.push_back(infection_state.detected); 
         status.deaths.push_back(infection_state.deaths); 
         status.hospital_deaths.push_back(infection_state.hospital_deaths);

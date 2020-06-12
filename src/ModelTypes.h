@@ -167,6 +167,8 @@ struct Status
 	std::vector<int> deaths;					/*!< Overall number of incident deaths due to covid in each simulation step. */
 	std::vector<int> hospital_deaths;			/*!< Number of incident deaths reported at hospital due to covid in each simulation step. */
 	std::vector<Compartments> ends;				/*!< Population per epidemiological state and per age group on last day. */
+	std::vector<std::vector<Compartments>> 
+		pop_array;								/*!< Population per epidemiological state and per age group on every day. */
 };
 
 /**

@@ -1,6 +1,7 @@
 #include "IO.h"
 #include "IniFile.h"
 #include "CSV.h"
+#include "Model.h"
 
 #include <fstream>
 #include <sstream>
@@ -242,12 +243,14 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 
 void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {
-	std::stringstream namefile_simu, namefile_ends;
+	std::stringstream namefile_simu, namefile_ends, namefile_full;
 	namefile_simu << (outDirPath + "/output_prediction_simu_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
 	namefile_ends << (outDirPath + "/output_prediction_ends_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
+	namefile_full << (outDirPath + "/output_prediction_full_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
 
 	std::ofstream output_simu (namefile_simu.str().c_str());
 	std::ofstream output_ends (namefile_ends.str().c_str());
+	std::ofstream output_full (namefile_full.str().c_str());
 
 	output_simu << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death\n";
 
@@ -264,8 +267,46 @@ void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector
 		}
 	}
 
+	/** The first two lines are just markers for age group and compartments
+	 * similar to the first and second columns of output_ends. These can be 
+	 * removed if it'll make parsing easier.
+	 */
+	for (unsigned int age = 0; age < end_comps.size(); ++age) {
+		for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
+			output_full << age;
+			if (comp < end_comps[0].size() - 1) output_full << ", ";
+		}
+		output_full << "\t";
+	}
+	output_full << "\n";
+
+	for (unsigned int age = 0; age < end_comps.size(); ++age) {
+		for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
+			output_full << comp;
+			if (comp < end_comps[0].size() - 1) output_full << ", "; 
+		}
+		output_full << "\t";
+	}
+
+	output_full << '\n';
+	
+
+	std::vector<std::vector<int>> pop_array_compartment_to_vector;
+	for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
+		pop_array_compartment_to_vector = Model::compartments_to_vector(status.pop_array[var]);
+		for (unsigned int age = 0; age < pop_array_compartment_to_vector.size(); ++age) {
+			for (unsigned int comp = 0; comp < pop_array_compartment_to_vector[age].size(); ++comp) {
+				output_full << pop_array_compartment_to_vector[age][comp];
+				if (comp < pop_array_compartment_to_vector[age].size() - 1) output_full << ", ";
+			}
+			output_full << "\t";
+		}
+		if (var < status.pop_array.size() - 1) output_full << '\n';
+	}
+
 	output_simu.close();
 	output_ends.close();
+	output_full.close();
 }
 
 } // namespace IO
