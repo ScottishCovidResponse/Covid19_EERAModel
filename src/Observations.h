@@ -7,28 +7,59 @@ namespace EERAModel {
 namespace Observations {
 
 /**
+ * @brief Structure to hold deduced simulation time parameters
+ */
+struct SimTime
+{
+	int duration = 0;
+	int day_intro = 0;
+	int t_index = 0;
+};
+
+/**
+ * @brief Structure to hold observation selections
+ * 
+ * Contains information on data collection timing and number of cases/deaths
+ */
+struct ObsSelect
+{
+	SimTime sim_time;
+	std::vector<int> deaths;
+	std::vector<int> hospitalised;
+};
+
+/**
+ * @brief Calculates the duration of the current simulation
+ * 
+ * Uses the regional cases data to deduce the time structure of the observations.
+ * As the time series data may have negative incident events the function first determines
+ * the non-negative start and end points. Accounting for this is vital in terms of 
+ * future-proofing the inference.
+ * 
+ * @param time_back offset in start time (relative to first non-negative event)
+ * @param regional_cases vector of time series data for a given region
+ * 
+ * @return Struct containing the simulation time parameters
+ */
+SimTime GetSimDuration(int time_back, const std::vector<int>& regionalCases);
+
+/**
  * @brief Select observations to use from the regional input observations
  * 
  * Bsaed on the regional cases and deaths timeseries, this function computes the incidence of cases
  * and deaths, correcting for negative incidence records.
  * 
- * @param duration Duration of the simulation
- * @param day_into Determined first day of infection
  * @param day_shut ?
- * @param obsHosp Case incidence timeseries, corrected for negative incidences
- * @param obsDeaths Deaths incidence timeseries, corrected for negative incidences
  * @param timeStamps Reference times for other time series
  * @param regionalCases Observed timeseries of cases in the region
  * @param regionalDeaths Observed timeseries of deaths in the region
  * @param time_back ?
  * @param log Logger handle
+  * 
+ * @return Struct containing deduced observation selections
  */
-void SelectObservations(
-	int& duration,
-	int& day_intro,
+ObsSelect SelectObservations(
 	int& day_shut, 
-	std::vector<int>& obsHosp,
-	std::vector<int>& obsDeaths, 
 	const std::vector<int>& timeStamps,
 	const std::vector<int>& regionalCases,
 	const std::vector<int>& regionalDeaths,

@@ -28,6 +28,19 @@ public:
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
         Utilities::logging_stream::Sptr log);
+    
+    /**
+     * @brief Calculate the time offset for the dataset
+     * 
+     * Determines the offset for the start of the dataset based on
+     * the given parameters
+     * 
+     * @param modelInputParameters model parameters including seeding options
+     * @param log Logging stream
+     * 
+     * @return integer offset value
+     */
+    int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
 
     /**
      * @brief Run the model within the inference framework
@@ -39,12 +52,9 @@ private:
      * @private
      * @brief Run the model inside the inference framework
      */
-    void ModelSelect(::EERAModel::particle &outvec, const std::vector<params>& fixed_parameters,
-        const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-        const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-        const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-        int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-        const std::vector<int>& obsDeaths, ModelStructureId structure);
+    void ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
+	    const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
+	    seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths, ModelStructureId structure);
 
     /**
      * @private

@@ -77,6 +77,19 @@ std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
     return _temp;
 }
 
+int GetTimeOffSet(const ModelInputParameters& modelInputParameters)
+{
+	int time_back = 0;
+	if(modelInputParameters.seedlist.seedmethod == "background") {
+		time_back = modelInputParameters.seedlist.hrp;
+	} else {
+		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
+
+	}
+
+	return time_back;
+}
+
 void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<Compartments>& poparray, std::vector<double>& seedarray,
     const double& bkg_lambda, ModelStructureId structure)
