@@ -49,7 +49,6 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 if(CODE_COVERAGE)
-	set(COV_TEST_FLAGS "-s original -m prediction")
 	find_program( LCOV_PATH  NAMES lcov lcov.bat lcov.exe lcov.perl)
 	find_program( GENHTML_PATH NAMES genhtml genhtml.perl genhtml.bat )
 	find_program( GCOV_PATH gcov )
@@ -65,7 +64,7 @@ if(CODE_COVERAGE)
 		COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -c -i -d . -b ${PROJECT_SOURCE_DIR} -o ${PROJECT_NAME}.base
 	
 	        # Run executables
-		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel ${COV_TEST_FLAGS}
+		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel ${COV_TEST_FLAGS} -s original  -m prediction
 		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel-unit_tests
 	
 	        # Capturing lcov counters and generating report
