@@ -27,9 +27,17 @@ make
 ```
 
 ## Run the model
-Following build, the model executable is `build/bin/Covid19EERAModel`. It presently requires that it 
-is run from the top-level project directory, where the working input data files are located at 
-relative path `./data`.
+Following build, the model executable is `build/bin/Covid19EERAModel` and requires at least two arguments to run:
+```
+Brief USAGE: 
+   ./Covid19_EERAModel/build/bin/Covid19EERAModel  [-d <string>] -s
+                                        <original|irish> [-l <string>] [-m
+                                        <inference|prediction>] [--]
+                                        [--version] [-h]
+
+For complete USAGE and HELP type: 
+   ./Covid19_EERAModel/build/bin/Covid19EERAModel --help
+```
 
 ## Tests
 
