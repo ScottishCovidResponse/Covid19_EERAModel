@@ -56,6 +56,9 @@ enum class ModelStructureId
     IRISH
 };
 
+/**
+ * @brief Enumeration identifying which mode to run the model
+ */
 enum class ModelModeId
 {
 	INFERENCE,
