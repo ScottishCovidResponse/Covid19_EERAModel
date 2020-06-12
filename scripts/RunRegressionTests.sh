@@ -41,13 +41,17 @@ echo "==========================================================================
 for i in $(seq $FIRST $LAST) ; do   
   echo ""
   echo "***************** Running regression test #$i *****************"
+
+  STRUCT_FLAG=$([ $i -gt 6 ] && echo "-s irish " || echo "-s original")
+  MODE_FLAG=$( echo "-m inference" )
+  FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
   
   regression_test_dir=$REGRESSION_DIR/run$i
   
   $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data
   setup=$?
 
-  $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR
+  $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR $FLAGS
   run=$?
 
   $CHECK_SCRIPT $WORKING_OUTPUTS_DIR $regression_test_dir/outputs

@@ -106,8 +106,8 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
 
 	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	modelInputParameters.run_type = "Inference";
-	// modelInputParameters.run_type = "Prediction";
+	modelInputParameters.run_type = ModelModeId::INFERENCE;
+	// modelInputParameters.run_type = ModelModeId::PREDICTION;
 
 	modelInputParameters.posterior_parameter_select = atoi(parameters.GetValue("posterior_parameter_select", "Posterior Parameters Select", filePath).c_str());
 

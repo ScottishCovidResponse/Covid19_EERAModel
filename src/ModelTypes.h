@@ -56,6 +56,12 @@ enum class ModelStructureId
     IRISH
 };
 
+enum class ModelModeId
+{
+	INFERENCE,
+	PREDICTION
+};
+
 /**
  * @brief Structure containing the inputs to a model run
  */
@@ -92,9 +98,15 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
-	std::string run_type;
 	std::vector<double> posterior_param_list;
 	int posterior_parameter_select;
+	ModelModeId run_type;
+	std::vector<double> prior_param_list;
+};
+
+struct PriorParticleParameters
+{
+	std::vector<double> prior_param_list;
 };
 
 /**

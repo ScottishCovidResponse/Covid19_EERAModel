@@ -7,7 +7,7 @@ project(${PROJECT_NAME} VERSION 0.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\"")
+set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\" -DVERSION=\\\"${PROJECT_VERSION}\\\" ")
 
 # Enable or Disable Clang Tidy in Build
 option(CLANG_TIDY "Enable Clang Tidy in Build" OFF)
