@@ -205,6 +205,17 @@ std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimite
 
 	return data;
 }
+
+/**
+ * @brief Convert a string to upper case
+ * 
+ * Iterates through a string converting the output to be
+ * all upper case.
+ * 
+ * @param str string to be converted
+ * 
+ * @return upper case string
+ */
 std::string toUpper(std::string str);
 
 } // namespace Utilities
