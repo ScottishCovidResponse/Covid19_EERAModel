@@ -153,44 +153,51 @@ std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimite
 	std::string line;
 	std::vector<T> record;
 	
-	while (std::getline(infile, line,'\n') )
+	while (std::getline(infile, line,'\n'))
 	{
-		int linepos=0;
-		int inquotes=false;
+		int linepos = 0;
+		int inquotes = false;
 		char c;
-		int linemax=line.length();
+		int linemax = line.length();
 		std::string curstring;
 		record.clear();
-	while(line[linepos]!=0 && linepos < linemax)
-		{
-			c = line[linepos];
-			
-			if (!inquotes && curstring.length()==0 && c=='"'){ inquotes=true;}	//beginquotechar
-			else if (inquotes && c=='"')
-			{																	//quotechar
-				if ( (linepos+1 <linemax) && (line[linepos+1]=='"') )
-				{
-					curstring.push_back(c);										//encountered 2 double quotes in a row (resolves to 1 double quote)
-					linepos++;
-				}
-				else {inquotes=false;}											//endquotechar
-			}
-			else if (!inquotes && c==delimiter)
-			{																	//end of field
-				record.push_back(atof(curstring.c_str()) );
-				curstring="";
-			}
-			else
-			{
-				curstring.push_back(c);
-			}
-			linepos++;
-		}
-		record.push_back( atof(curstring.c_str()) );
-		data.push_back(record);
-	}
+        while(line[linepos] != 0 && linepos < linemax)
+        {
+            c = line[linepos];
+            
+            if (!inquotes && curstring.length() == 0 && c == '"') { 	//beginquotechar
+                 inquotes=true;
+            }
+            else if (inquotes && c=='"')
+            {																	//quotechar
+                if ( (linepos + 1 < linemax) && (line[linepos+1] == '"') )
+                {
+                    curstring.push_back(c);										//encountered 2 double quotes in a row (resolves to 1 double quote)
+                    linepos++;
+                }
+                else 
+                {
+                    inquotes=false;
+                }											//endquotechar
+            }
+            else if (!inquotes && c==delimiter)
+            {																	//end of field
+                record.push_back(static_cast<T>(atof(curstring.c_str())));
+                curstring="";
+            }
+            else
+            {
+                curstring.push_back(c);
+            }
+            linepos++;
+        }
+        
+        record.push_back(static_cast<T>(atof(curstring.c_str())));
+        data.push_back(record);    
+    }
 
 	return data;
 }
+
 } // namespace Utilities
 } // namespace EERAModel
