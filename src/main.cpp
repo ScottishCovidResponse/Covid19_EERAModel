@@ -82,14 +82,14 @@ int main() {
     Model::ModelInterface::Sptr model;
     if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
     {
-        model = std::make_shared<Model::OriginalModel>();
+        model = std::make_shared<Model::OriginalModel>(rng);
     }
     else
     {
-        model = std::make_shared<Model::IrishModel>();
+        model = std::make_shared<Model::IrishModel>(rng);
     }
 
-    // Slect the mode to run in - prediction or inference    
+    // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")
     {
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, logger);

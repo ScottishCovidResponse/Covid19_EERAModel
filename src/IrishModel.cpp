@@ -17,8 +17,8 @@ std::vector<double> IrishModel::BuildPopulationSeed(const std::vector<int>& age_
     return _temp;
 }
 
-std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface::Sptr rng,
-    const std::vector<int>& age_nums, const seed& seedlist)
+std::vector<Compartments> IrishModel::BuildPopulationArray(const std::vector<int>& age_nums,
+    const seed& seedlist)
 {
     unsigned int distribution_size = 7;
 
@@ -32,7 +32,7 @@ std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface:
     if(seedlist.seedmethod != "background")
     {        
         std::vector<int> startdist(distribution_size, 0);
-        startdist[static_cast<int>(rng->Flat(0, distribution_size))] = seedlist.nseed;
+        startdist[static_cast<int>(rng_->Flat(0, distribution_size))] = seedlist.nseed;
 
         for (unsigned int age = 0; age < age_nums.size() - 1; ++age)
         {
@@ -44,9 +44,8 @@ std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface:
     return _temp;
 }
 
-void IrishModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
-    std::vector<Compartments>& poparray, std::vector<double>& seedarray,
-    const double& bkg_lambda)
+void IrishModel::GenerateDiseasedPopulation(std::vector<Compartments>& poparray,
+    std::vector<double>& seedarray, const double& bkg_lambda)
 {
     unsigned int start_age = 0;
 
@@ -60,11 +59,11 @@ void IrishModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     // how many diseased is introduced in each given day before lockdown
     // as a proportion of number of Susceptible available for background infection
     // (not total population, only 20-70 individuals)
-    int startdz = rng->Poisson(static_cast<double>(n_susc) * bkg_lambda);
+    int startdz = rng_->Poisson(static_cast<double>(n_susc) * bkg_lambda);
 
     //unsigned int startdist[seedarray.size()];
     std::vector<unsigned int> startdist(seedarray.size(), 0);
-    rng->Multinomial(seedarray.size(), startdz, &seedarray[0], &startdist[0]); //distribute the diseased across the older age categories
+    rng_->Multinomial(seedarray.size(), startdz, &seedarray[0], &startdist[0]); //distribute the diseased across the older age categories
     
     for (int age = start_age; age < poparray.size() - 1; ++age) {
     	int nseed = startdist[age - start_age];
@@ -76,7 +75,7 @@ void IrishModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
 
 Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps, Random::RNGInterface::Sptr rng) {
+				int n_sim_steps) {
 
 
 ///	std::cout<< "top0..\n";
@@ -100,7 +99,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
-	std::vector<Compartments> poparray = BuildPopulationArray(rng, agenums, seedlist);
+	std::vector<Compartments> poparray = BuildPopulationArray(agenums, seedlist);
 	
 
 //	std::cout<< "top2..\n";
@@ -123,7 +122,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 			const double bkg_lambda = parameter_set[parameter_set.size()-1];
 
 			//compute the total number of susceptible and the number of susceptible per age class			
-			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda);
+			GenerateDiseasedPopulation(poparray, seed_pop, bkg_lambda);
 		}
 
         //compute the forces of infection
@@ -133,7 +132,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
         // step each agegroup through infections
         for ( int age{0}; age < n_agegroup; ++age) {	
             InfectionState new_spread = 
-                    GenerateInfectionSpread(rng, poparray[age], infection_state.hospitalised,
+                    GenerateInfectionSpread(poparray[age], infection_state.hospitalised,
                         fixed_parameters[age],parameter_fit[age],
                         per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
 
@@ -155,7 +154,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 	return status;
 }
 
-InfectionState IrishModel::GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState IrishModel::GenerateInfectionSpread(Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double pf_val, double lambda)
 {
@@ -178,76 +177,76 @@ InfectionState IrishModel::GenerateInfectionSpread(Random::RNGInterface::Sptr rn
     const double rrd= parameter_set[6];
 
     // hospitalized  - non-frail
-    const int newdeathsH= Flow(rng, pop.H, newpop.H, p_d * (1.0 / T_hos));
+    const int newdeathsH= Flow(rng_, pop.H, newpop.H, p_d * (1.0 / T_hos));
     newpop.H -= newdeathsH;
     newpop.D += newdeathsH;
 
-    const int recoverH = Flow(rng, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
+    const int recoverH = Flow(rng_, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
     newpop.H -= recoverH;
     newpop.R += recoverH;
 
     // symptomatic - non-frail
-    const int hospitalize = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
+    const int hospitalize = Flow(rng_, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
     newpop.I_s4 -= hospitalize;
     newpop.H += hospitalize;
 
-    const int newdeathsI_s = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
+    const int newdeathsI_s = Flow(rng_, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
     newpop.I_s4 -= newdeathsI_s;
     newpop.D += newdeathsI_s;
 
-    const int recoverI_s = Flow(rng, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
+    const int recoverI_s = Flow(rng_, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
     newpop.I_s4 -= recoverI_s;
     newpop.R += recoverI_s;
 
-    const int Is_from3_to_4 = Flow(rng, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
+    const int Is_from3_to_4 = Flow(rng_, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
     newpop.I_s3 -= Is_from3_to_4;
     newpop.I_s4 += Is_from3_to_4;
 
-    const int Is_from2_to_3 = Flow(rng, pop.I_s2, newpop.I_s2, (4.0 / T_sym));
+    const int Is_from2_to_3 = Flow(rng_, pop.I_s2, newpop.I_s2, (4.0 / T_sym));
     newpop.I_s2 -= Is_from2_to_3;
     newpop.I_s3 += Is_from2_to_3;
         
-    const int Is_from1_to_2 = Flow(rng, pop.I_s1, newpop.I_s1, (4.0 / T_sym));
+    const int Is_from1_to_2 = Flow(rng_, pop.I_s1, newpop.I_s1, (4.0 / T_sym));
     newpop.I_s1 -= Is_from1_to_2;
     newpop.I_s2 += Is_from1_to_2;
 
     //pre-clinical
-    const int showsymptoms = Flow(rng, pop.I_p, newpop.I_p, (1.0 / T_inf));
+    const int showsymptoms = Flow(rng_, pop.I_p, newpop.I_p, (1.0 / T_inf));
     newpop.I_p -= showsymptoms;
     newpop.I_s1 += showsymptoms;
 
     // asymptomatic
-    const int recoverI = Flow(rng, pop.I4, newpop.I4, ( 4.0 / T_rec ));
+    const int recoverI = Flow(rng_, pop.I4, newpop.I4, ( 4.0 / T_rec ));
     newpop.I4 -= recoverI;
     newpop.R += recoverI;
 
-    const int I_from3_to_4 = Flow(rng, pop.I3, newpop.I3, ( 4.0 / T_rec ));
+    const int I_from3_to_4 = Flow(rng_, pop.I3, newpop.I3, ( 4.0 / T_rec ));
     newpop.I3 -= I_from3_to_4;
     newpop.I4 += I_from3_to_4;
 
-    const int I_from2_to_3=Flow(rng, pop.I2, newpop.I2, ( 4.0 / T_rec ));
+    const int I_from2_to_3=Flow(rng_, pop.I2, newpop.I2, ( 4.0 / T_rec ));
     newpop.I2 -= I_from2_to_3;
     newpop.I3 += I_from2_to_3;
 
-    const int I_from1_to_2 = Flow(rng, pop.I1, newpop.I1, ( 4.0 / T_rec ));
+    const int I_from1_to_2 = Flow(rng_, pop.I1, newpop.I1, ( 4.0 / T_rec ));
     newpop.I1 -= I_from1_to_2;
     newpop.I2 += I_from1_to_2;
 
     // latent
-    const int newsymptomatic = Flow(rng, pop.E, newpop.E, p_s * ( 1.0 / T_lat ));
+    const int newsymptomatic = Flow(rng_, pop.E, newpop.E, p_s * ( 1.0 / T_lat ));
     newpop.E -= newsymptomatic;
     newpop.I_p += newsymptomatic;
 
-    const int newasymptomatic = Flow(rng, pop.E, newpop.E, (1.0 - p_s) * ( 1.0 / T_lat ));
+    const int newasymptomatic = Flow(rng_, pop.E, newpop.E, (1.0 - p_s) * ( 1.0 / T_lat ));
     newpop.E -= newasymptomatic;
     newpop.I1 += newasymptomatic;
 
-    const int infectious_t = Flow(rng, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
+    const int infectious_t = Flow(rng_, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
     newpop.E_t -= infectious_t;
     newpop.I_t += infectious_t;
 
     // susceptible
-    const int newinfection = Flow(rng, pop.S, newpop.S, lambda);
+    const int newinfection = Flow(rng_, pop.S, newpop.S, lambda);
     newpop.S -= newinfection;
     newpop.E += newinfection;
 

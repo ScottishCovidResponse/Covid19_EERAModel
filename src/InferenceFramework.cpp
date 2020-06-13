@@ -270,7 +270,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
 	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-							agenums, n_sim_steps, rng);
+							agenums, n_sim_steps);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations

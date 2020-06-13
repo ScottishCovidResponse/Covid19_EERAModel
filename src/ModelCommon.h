@@ -26,7 +26,7 @@ public:
      */
     virtual Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps, Random::RNGInterface::Sptr rng) = 0;
+				int n_sim_steps) = 0;
 };
 
 /**

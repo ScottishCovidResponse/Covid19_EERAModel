@@ -15,9 +15,9 @@ public:
     /**
      * @brief Constructor
      * 
-     * Placeholder - does nothing
+     * @param rng Random number generator to be used by the model
      */
-    IrishModel() = default;
+    IrishModel(Random::RNGInterface::Sptr rng) : rng_(rng) {}
 
     /**
      * @brief Run the model with the given parameters and configurations
@@ -29,13 +29,12 @@ public:
      * @param day_shut: day of the lock down
      * @param agenums: number of individuals in each age group in the study area
      * @param n_sim_steps: Number of steps to simulate
-     * @param rng: Seeded random number generator
      * 
      * @return Status of model after run
      */
     Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
                     AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-                    int n_sim_steps, Random::RNGInterface::Sptr rng) override;
+                    int n_sim_steps) override;
 
 private:
     /**
@@ -57,29 +56,26 @@ private:
      * Sets up an array for the population at each timestep in each age and disease category	
      * also set up the age distribution of old ages as target for disease introduction.
      * 
-     * @param rng Seeded random number generator
      * @param age_nums Vector containing the number of people in each age group
      * @param seedlist Seed object
      * 
      * @return Vector of vectors containing compartment populations
      */ 
-    std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
-        const std::vector<int>& age_nums, const seed& seedlist);
+    std::vector<Compartments> BuildPopulationArray(const std::vector<int>& age_nums,
+        const seed& seedlist);
 
     /**
      * @brief Introduced diseased to the population
      * 
      * Compute the total number of susceptible and the number of susceptible per age class
      * 
-     * @param rng Seeded random number generator
      * @param poparray Population array to be manipulated
      * @param seedarray Population seed array to be manipulated
      * @param bkg_lambda Lambda for generating number of diseased individuals
      * @param structure Model structure id
      */
-    void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
-        std::vector<Compartments>& poparray, std::vector<double>& seedarray,
-        const double& bkg_lambda);
+    void GenerateDiseasedPopulation(std::vector<Compartments>& poparray,
+        std::vector<double>& seedarray, const double& bkg_lambda);
 
     /**
      * @brief Generate vector of lambda values for the age groups
@@ -101,7 +97,6 @@ private:
      * 
      * Creates an infection spread state and counters number of people in different states
      * 
-     * @param rng Seeded random number generator
      * @param pop Particular population age group
      * @param n_hospitalised Number of people in hospital prior to new spread
      * @param fixed_parameters Fixed model parameters
@@ -110,11 +105,16 @@ private:
      * @param pf_val Frailty Probability
      * @param lambda Rate of spread
      */
-    InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
-        const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
+    InfectionState GenerateInfectionSpread(Compartments& pop, const int& n_hospitalised,
+        params fixed_parameters, 
         std::vector<double> parameter_set, std::vector<double> cfr_tab,
         double pf_val, double lambda);
-   
+
+    /**
+     * @private
+     * @brief Random number generator
+     */
+    Random::RNGInterface::Sptr rng_;
 };
 
 } // namespace Model
