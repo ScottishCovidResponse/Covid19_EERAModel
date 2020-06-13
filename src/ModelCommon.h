@@ -3,9 +3,31 @@
 #include "ModelTypes.h"
 #include "Random.h"
 #include <vector>
+#include <memory>
 
 namespace EERAModel {
 namespace Model {
+
+/**
+ * @class ModelInterface
+ * @brief Abstract interface to a model
+ */
+class ModelInterface 
+{
+public:
+    using Sptr = std::shared_ptr<ModelInterface>;
+
+    virtual ~ModelInterface() = default;
+
+    /**
+     * @brief Run interface
+     * 
+     * Interface to model-specific implementation
+     */
+    virtual Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
+				int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng) = 0;
+};
 
 /**
  * @brief Randomly assign movement of individuals between compartments

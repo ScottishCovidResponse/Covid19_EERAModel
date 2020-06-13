@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ModelCommon.h"
 #include "ModelTypes.h"
 #include "Random.h"
 #include "Utilities.h"
@@ -17,13 +18,15 @@ public:
     /**
      * @brief Framework constructor
      *
+     * @param model Model interface
      * @param modelInputParameters Model input parameters
      * @param observations Observations
      * @param rng Seeded random number generator
      * @param outDir Outputs directory path
      * @param log Logger
      */
-    InferenceFramework(const ModelInputParameters& modelInputParameters,
+    InferenceFramework(Model::ModelInterface::Sptr model,
+        const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
@@ -45,6 +48,12 @@ private:
         const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
         int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
         const std::vector<int>& obsDeaths, ModelStructureId structure);
+
+    /**
+     * @private
+     * @brief Model interface
+     */
+    Model::ModelInterface::Sptr model_;
 
     /**
      * @private

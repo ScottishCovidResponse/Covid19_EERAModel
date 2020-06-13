@@ -10,12 +10,14 @@
 namespace EERAModel {
 namespace Inference {
 
-InferenceFramework::InferenceFramework(const ModelInputParameters& modelInputParameters,
+InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
+    const ModelInputParameters& modelInputParameters,
     const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
-    : modelInputParameters_(modelInputParameters),
+    : model_(model),
+      modelInputParameters_(modelInputParameters),
       observations_(observations),
       rng_(rng),
       outDir_(outDir),
@@ -268,7 +270,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
 	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
-	Status status = Model::RunModel(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
+	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
 							agenums, n_sim_steps, structure, rng);
 
 	//---------------------------------------
