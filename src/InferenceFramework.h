@@ -47,7 +47,7 @@ private:
         const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
         const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
         int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-        const std::vector<int>& obsDeaths, ModelStructureId structure);
+        const std::vector<int>& obsDeaths);
 
     /**
      * @private

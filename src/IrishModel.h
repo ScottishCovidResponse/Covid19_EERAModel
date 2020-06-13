@@ -29,14 +29,13 @@ public:
      * @param day_shut: day of the lock down
      * @param agenums: number of individuals in each age group in the study area
      * @param n_sim_steps: Number of steps to simulate
-     * @param structure Model structure id
      * @param rng: Seeded random number generator
      * 
      * @return Status of model after run
      */
     Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
                     AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-                    int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng) override;
+                    int n_sim_steps, Random::RNGInterface::Sptr rng) override;
 
 private:
     /**

@@ -76,7 +76,7 @@ void IrishModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
 
 Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng) {
+				int n_sim_steps, Random::RNGInterface::Sptr rng) {
 
 
 ///	std::cout<< "top0..\n";

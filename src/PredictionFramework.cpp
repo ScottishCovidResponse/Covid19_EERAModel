@@ -44,7 +44,7 @@ void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationS
 {
     Status status = model_->Run(
         parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_, ageNums_,
-        nSimulationSteps, modelStructure_, rng_
+        nSimulationSteps, rng_
     );
 
     // To do: Write model prediction outputs here

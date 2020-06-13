@@ -196,7 +196,7 @@ void InferenceFramework::Run()
 				ModelSelect(outs_vec, fixed_parameters, observations_.cfr_byage, pf_byage,
 							observations_.waifw_norm, observations_.waifw_sdist, observations_.waifw_home,
 							agenums, modelInputParameters_.tau, duration, modelInputParameters_.seedlist,
-							modelInputParameters_.day_shut, rng_, obsHosp, obsDeaths, modelInputParameters_.model_structure);
+							modelInputParameters_.day_shut, rng_, obsHosp, obsDeaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
                 if (acceptedParticleCount < modelInputParameters_.nParticalLimit) ++nsim_count;
@@ -260,7 +260,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
 	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
 	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-	const std::vector<int>& obsDeaths, ModelStructureId structure) {
+	const std::vector<int>& obsDeaths) {
 
 	//---------------------------------------
 	// the root model
@@ -270,7 +270,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
 	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-							agenums, n_sim_steps, structure, rng);
+							agenums, n_sim_steps, rng);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
