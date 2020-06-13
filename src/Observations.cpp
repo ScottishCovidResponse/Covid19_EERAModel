@@ -5,65 +5,64 @@
 namespace EERAModel {
 namespace Observations {
 
-void SelectObservations(int& duration,
-	int& day_intro,
-	int& day_shut, 
-	std::vector<int>& obsHosp,
-	std::vector<int>& obsDeaths, 
+SimTime GetSimDuration(int time_back, const std::vector<int>& regional_cases)
+{
+	SimTime sim_time_pars;
+
+	// Find the last non-zero value within the Regional Cases dataset
+	auto max_time_itr = std::find_if(regional_cases.rbegin(), regional_cases.rend(), [](int n) {return n > 0;});
+	const int maximum_time = std::distance(max_time_itr, regional_cases.rend());
+
+	// Find the first positive increase in Regional Cases dataset after the start day
+	auto first_case_itr = std::find_if(regional_cases.begin()+1, regional_cases.end(), [](int n) {return n > 0;});
+	sim_time_pars.t_index = std::distance(regional_cases.begin(), first_case_itr);
+
+	// Apply Offset
+	sim_time_pars.day_intro = sim_time_pars.t_index - time_back;
+
+	// Add 1 to account for Day 0
+	sim_time_pars.day_intro += 1;
+
+	// If offset results in negative start time calculate disease duration using
+	// this start time, else duration is just the time of the last non-negative
+	// value for number of cases
+	sim_time_pars.duration = (sim_time_pars.day_intro < 0) ? maximum_time - sim_time_pars.day_intro : maximum_time;
+	
+	// Set start time to be zero if negative
+	sim_time_pars.day_intro = (sim_time_pars.day_intro < 0) ? 0 : sim_time_pars.day_intro;
+
+	return sim_time_pars;
+
+}
+
+ObsSelect SelectObservations(int& day_shut, 
 	const std::vector<int>& timeStamps,
 	const std::vector<int>& regionalCases,
 	const std::vector<int>& regionalDeaths,
 	int time_back,
 	Utilities::logging_stream::Sptr log) 
 {	
-	// Reference value of t_index for the first run through the loop - indicates that it hasn't
-	// been populated
-	int t_index = -1;
-	unsigned int maxTime = 0;
-	
-	// Create the vectors of observations based on the raw input observations
-	// This loop defines what data will be used for the rest of the model.
-	// It also define t_index, which is the time of the first detected cases within the health board
-	// of interest.
-	for (unsigned int t = 1; t < timeStamps.size(); ++t) {
-		
-		// This check is required because the input case timeseries may hve negative valuesre.
-		// Negative incident events shouldn't occur (ever) but unfortunately it does because cases
-		// are re-allocated between health board but the data collated before the re-allocation is
-		// not modified to account for these changes. These changes create negative incident events.
-		// These only occur few times for a few health boards but it has massive impact on the
-		// future-proofing of the inferences.
-		if (regionalCases[t] >= 0) {
-			maxTime = std::max(maxTime, t);
-			
-			obsHosp.push_back(regionalCases[t]);
-			obsDeaths.push_back(regionalDeaths[t]);
-			
-			//identify when the first case is detected/hospitalised 
-			if (regionalCases[t] > 0 && t_index < 0) {
-				t_index = t;
-			}		
+	ObsSelect obs_selections;
+
+	// Calculate time under the assumption that time stamps and regional cases data match in size
+	const SimTime time_info = GetSimDuration(time_back, regionalCases);
+	obs_selections.sim_time = time_info;
+
+	// Add only non-negative case data
+	for(int t{1}; t < regionalCases.size(); ++t)
+	{
+		if(regionalCases[t] >= 0)
+		{
+			obs_selections.hospitalised.push_back(regionalCases[t]);
+			obs_selections.deaths.push_back(regionalDeaths[t]);
 		}
 	}
 
 	(*log) << "[Observations]:\n";
-	(*log) << "    day first report (t_index): " << t_index << '\n';
-
-	// identify the first day of infectiousness for the index case, which will be the start of our
-	// simulation, and add days in the observation, and define duration of the disease process
-	int intro =  t_index + 1 - time_back;
-
-	// define the duration of the study period and day of the incursion
-	if (intro < 0) {
-		duration = static_cast<int>(maxTime) - intro + 1;
-		day_intro = 0;
-	} else {
-		duration = maxTime + 1;
-		day_intro = intro;
-	}
+	(*log) << "    day first report (t_index): " << time_info.t_index << '\n';
 		
 	// add the extra information on the observations
-	int timeSeriesLength = static_cast<int>(obsHosp.size());
+	int timeSeriesLength = static_cast<int>(obs_selections.hospitalised.size());
 	
 	// Pad the observations with zeroes up to the duration of the simulation
 	// extra_time is the number of days prior the first detection (index cases) which are
@@ -71,27 +70,29 @@ void SelectObservations(int& duration,
 	// period is informed by the parameter hrp.
 	// Because we are modelling observed/detected cases and deaths (not true presence),
 	// we therefore pad the observation time series with an initial run of zeros.
-	if (duration > timeSeriesLength){
-		int extra_time = duration - timeSeriesLength;
-		obsHosp.insert(obsHosp.begin(), extra_time, 0);
-		obsDeaths.insert(obsDeaths.begin(), extra_time, 0);		
+	if (obs_selections.sim_time.duration > timeSeriesLength){
+		int extra_time = obs_selections.sim_time.duration - timeSeriesLength;
+		obs_selections.hospitalised.insert(obs_selections.hospitalised.begin(), extra_time, 0);
+		obs_selections.deaths.insert(obs_selections.deaths.begin(), extra_time, 0);
 		day_shut = day_shut + extra_time;
 	}
 	
 	(*log) << "    Number of days of obs cases: " <<
-		obsHosp.size() << std::endl;
+		obs_selections.hospitalised.size() << std::endl;
 	(*log) << "    Number of days of obs deaths: " <<
-		obsDeaths.size() << std::endl;
+		obs_selections.deaths.size() << std::endl;
 	(*log) << "    Number of weeks of obs: " <<
-		static_cast<double>(obsDeaths.size()) / 7.0 << std::endl;
+		static_cast<double>(obs_selections.deaths.size()) / 7.0 << std::endl;
 
 	//transform  cumulative numbers into incident cases
-	std::vector<int> casesIncidence = ComputeIncidence(obsHosp);
-	obsHosp = CorrectIncidence(casesIncidence, obsHosp);	
+	std::vector<int> casesIncidence = ComputeIncidence(obs_selections.hospitalised);
+	obs_selections.hospitalised = CorrectIncidence(casesIncidence, obs_selections.hospitalised);	
 	
 	//transform  cumulative numbers into incident deaths
-	std::vector<int> deathsIncidence = ComputeIncidence(obsDeaths);
-	obsDeaths = CorrectIncidence(deathsIncidence, obsDeaths);	
+	std::vector<int> deathsIncidence = ComputeIncidence(obs_selections.deaths);
+	obs_selections.deaths = CorrectIncidence(deathsIncidence, obs_selections.deaths);	
+
+	return obs_selections;
 }
 
 std::vector<int> ComputeIncidence(const std::vector<int>& timeseries) 
