@@ -22,6 +22,19 @@ InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
       outDir_(outDir),
       log_(log) {}
 
+int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
+{
+	int time_back = 0;
+	if(modelInputParameters.seedlist.seedmethod == "background") {
+		time_back = modelInputParameters.seedlist.hrp;
+	} else {
+		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
+		
+	}
+
+	return time_back;
+}
+
 void InferenceFramework::Run()
 {
     	/*---------------------------------------
@@ -53,25 +66,16 @@ void InferenceFramework::Run()
 	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
 	
 	//keep information for the health board if interest
-	std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
+	const std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
+
+	const AgeGroupData per_age_data = {observations_.waifw_norm, observations_.waifw_home, observations_.waifw_sdist, 
+										observations_.cfr_byage, pf_byage};
 
 	//create vector of fixed parameters		
 	std::vector<params> fixed_parameters = Model::BuildFixedParameters(observations_.waifw_norm.size(),
         modelInputParameters_.paramlist);
     
-	//Separate case information for each herd_id
-	modelInputParameters_.seedlist.day_intro=0;
-	int duration = 0;
-	int time_back;
-	if(modelInputParameters_.seedlist.seedmethod == "background") {
-		time_back = modelInputParameters_.seedlist.hrp;
-	} else {
-		time_back = modelInputParameters_.paramlist.T_inf + modelInputParameters_.paramlist.T_sym;
-		
-		if (modelInputParameters_.seedlist.seedmethod != "random") {
-			(*log_) << "Warning!! Unknown seeding method - applying _random_ seed method\n";
-		}
-	}
+	const int time_back = GetTimeOffSet(modelInputParameters_);
 
 	int population = Model::GetPopulationOfRegion(observations_, modelInputParameters_.herd_id);
 	
@@ -79,10 +83,11 @@ void InferenceFramework::Run()
 	const std::vector<int>& regionalDeaths = observations_.deaths[modelInputParameters_.herd_id];
 	const std::vector<int>& timeStamps = observations_.cases[0];
 
-	std::vector<int> obsHosp, obsDeaths;
-	Observations::SelectObservations(duration, modelInputParameters_.seedlist.day_intro, 
-		modelInputParameters_.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
+	const Observations::ObsSelect obs_selections = Observations::SelectObservations(
+		modelInputParameters_.day_shut, timeStamps, regionalCases,
 		regionalDeaths, time_back, log_);
+	
+	modelInputParameters_.seedlist.day_intro = obs_selections.sim_time.day_intro;
 
 	int N_hcw = Model::ComputeNumberOfHCWInRegion(population, modelInputParameters_.totN_hcw, observations_);
 
@@ -92,8 +97,10 @@ void InferenceFramework::Run()
 	(*log_) << "    SHB id: " << modelInputParameters_.herd_id <<'\n';
 	(*log_) << "    Population size: " << population << '\n';
 	(*log_) << "    Number of HCW: " << N_hcw << '\n';
-	(*log_) << "    Simulation period: " << duration << "days\n";
+	(*log_) << "    Simulation period: " << obs_selections.sim_time.duration << "days\n";
 	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
+
+	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/modelInputParameters_.tau));
 	
 	const std::vector<double> flag1 = {
 		modelInputParameters_.prior_pinf_shape1,
@@ -193,10 +200,9 @@ void InferenceFramework::Run()
 				}
 
 				//run the model and compute the different measures for each potential parameters value
-				ModelSelect(outs_vec, fixed_parameters, observations_.cfr_byage, pf_byage,
-							observations_.waifw_norm, observations_.waifw_sdist, observations_.waifw_home,
-							agenums, modelInputParameters_.tau, duration, modelInputParameters_.seedlist,
-							modelInputParameters_.day_shut, rng_, obsHosp, obsDeaths);
+				ModelSelect(outs_vec, fixed_parameters, per_age_data,
+							agenums, n_sim_steps, modelInputParameters_.seedlist,
+							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
                 if (acceptedParticleCount < modelInputParameters_.nParticalLimit) ++nsim_count;
@@ -256,18 +262,13 @@ void InferenceFramework::Run()
 }
 
 void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
+	const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
+	seed seedlist, int day_shut, const std::vector<int>& obsHosp, 
 	const std::vector<int>& obsDeaths) {
 
 	//---------------------------------------
 	// the root model
 	//---------------------------------------
-
-	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
-	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
 	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
 							agenums, n_sim_steps);
