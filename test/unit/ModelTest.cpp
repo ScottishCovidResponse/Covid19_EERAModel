@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "Random.h"
-#include "Model.h"
+#include "ModelCommon.h"
 
 using namespace EERAModel::Model;
 using namespace EERAModel::Random;
