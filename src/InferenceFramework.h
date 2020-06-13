@@ -77,5 +77,31 @@ private:
     Utilities::logging_stream::Sptr log_;
 };
 
+/**
+ * @brief Compute the Kernel Window
+ * 
+ * @param nPar Number of parameters to compute kernel for
+ * @param particleList List of previously accepted particles
+ * @param kernelFactor Common kernel multiplicative factor
+ * @param vlimitKernel Storage for the computed kernel
+ * @param vect_Max Storage for maximum values of ranges
+ * @param vect_Min Storage for minimum values of ranges
+ */
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
+	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
+	std::vector<double>& vect_Min);
+
+/**
+ * @brief Compute weight distribution
+ * 
+ * Create the discrete distribution of the weights for the "importance sampling" process
+ * 
+ * @param particleList List of previously accepted particles
+ * 
+ * @return Weight distribution
+ */
+std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList);
+
 } // namespace Inference
 } // namespace EERAModel

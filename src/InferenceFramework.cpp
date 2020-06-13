@@ -4,6 +4,8 @@
 #include "InferenceParameters.h"
 #include "IO.h"
 #include "FittingProcess.h"
+#include <functional>
+#include <algorithm>
 
 namespace EERAModel {
 namespace Inference {
@@ -147,11 +149,11 @@ void InferenceFramework::Run()
 			particleList = particleList1;
 			particleList1.clear();
 
-			Model::ComputeKernelWindow(modelInputParameters_.nPar, particleList, 
+			ComputeKernelWindow(modelInputParameters_.nPar, particleList, 
 				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
-		std::discrete_distribution<int> weight_distr = Model::ComputeWeightDistribution(particleList);
+		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
 
 	/*---------------------------------------
 	 * simulate the infection data set
@@ -307,6 +309,38 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	outvec.hospital_death_outs = status.hospital_deaths;
 	outvec.death_outs = status.deaths;
 	outvec.end_comps = Model::compartments_to_vector(status.ends);
+}
+
+
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
+	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
+
+	//compute the kernel window
+	for (int i{0}; i < nPar; ++i) {
+		
+		std::function<bool(particle, particle)> compare = 
+			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
+
+		particle valMax1 = *std::max_element(particleList.begin(), particleList.end(), compare);
+		
+		particle valmin1 = *std::min_element(particleList.begin(), particleList.end(), compare);
+
+		vect_Max[i] = valMax1.parameter_set[i];
+		vect_Min[i] = valmin1.parameter_set[i];
+		
+		vlimitKernel[i] = kernelFactor * fabs(vect_Max[i] - vect_Min[i]);
+	}	
+}
+
+std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList) {
+	
+	std::vector<double> weight_val;
+	for (auto p : particleList) {
+		weight_val.push_back(p.weight);
+	}
+	
+	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
 }
 
 } // namespace Inference
