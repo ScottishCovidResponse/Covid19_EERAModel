@@ -40,22 +40,20 @@ public:
 
 private:
     /**
-     * @brief Construct the population seed, based on a choice of model structure
+     * @brief Construct the population seed
      * 
      * The population seed is constructed according to the following criteria:
      *    - The final age category (HCW) are omitted from the seeding always
-     *    - The first age category (< 20yo) are omiited in the original model structure; they are 
-     *      retained in the Irish model structure
+     *    - The first age category (< 20yo) are omitted 
      * 
      * @param age_nums Vector containing the number of people in each age category
-     * @param structure Model structure id
      * 
      * @return Seed population
      */
-    std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums, ModelStructureId structure);
+    std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
 
     /**
-     * @brief Construct the population array, based on a choice of model structure
+     * @brief Construct the population array
      * 
      * Sets up an array for the population at each timestep in each age and disease category	
      * also set up the age distribution of old ages as target for disease introduction.
@@ -63,15 +61,14 @@ private:
      * @param rng Seeded random number generator
      * @param age_nums Vector containing the number of people in each age group
      * @param seedlist Seed object
-     * @param structure Model structure id
      * 
      * @return Vector of vectors containing compartment populations
      */ 
     std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
-        const std::vector<int>& age_nums, const seed& seedlist, ModelStructureId structure);
+        const std::vector<int>& age_nums, const seed& seedlist);
 
     /**
-     * @brief Introduced diseased to the population, based on a choice of model structure
+     * @brief Introduced diseased to the population
      * 
      * Compute the total number of susceptible and the number of susceptible per age class
      * 
@@ -79,11 +76,10 @@ private:
      * @param poparray Population array to be manipulated
      * @param seedarray Population seed array to be manipulated
      * @param bkg_lambda Lambda for generating number of diseased individuals
-     * @param structure Model structure id
      */
     void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
         std::vector<Compartments>& poparray, std::vector<double>& seedarray,
-        const double& bkg_lambda, ModelStructureId structure);
+        const double& bkg_lambda);
 
     /**
      * @brief Generate vector of lambda values for the age groups
@@ -114,26 +110,7 @@ private:
      * @param pf_val Frailty Probability
      * @param lambda Rate of spread
      */
-    InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
-        const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
-        std::vector<double> parameter_set, std::vector<double> cfr_tab,
-        double pf_val, double lambda);
-
-    /**
-     * @brief Generate an infection spread as per the structure of the Irish model
-     * 
-     * Creates an infection spread state and counters number of people in different states
-     * 
-     * @param rng Seeded random number generator
-     * @param pop Particular population age group
-     * @param n_hospitalised Number of people in hospital prior to new spread
-     * @param fixed_parameters Fixed model parameters
-     * @param parameter_set Variable model parameters
-     * @param cfr_tab Case Fatality Ratio table
-     * @param pf_val Frailty Probability
-     * @param lambda Rate of spread
-     */
-    InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
+    InfectionState GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
         const int& n_hospitalised, ::EERAModel::params fixed_parameters, 
         std::vector<double> parameter_set, std::vector<double> cfr_tab,
         double pf_val, double lambda);
