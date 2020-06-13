@@ -1,22 +1,9 @@
-#include "Model.h"
-#include "IO.h"
-#include "ModelTypes.h"
-#include "FittingProcess.h"
-#include "Observations.h"
-#include "InferenceParameters.h"
-#include "ModelCommon.h"
-#include <algorithm>
-#include <iostream>
-#include <ostream>
-#include <numeric>
-#include <vector>
-#include <gsl/gsl_sf_gamma.h>
-#include <functional>
+#include "OriginalModel.h"
 
 namespace EERAModel {
 namespace Model {
 
-std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums,  ModelStructureId structure)
+std::vector<double> OriginalModel::BuildPopulationSeed(const std::vector<int>& age_nums,  ModelStructureId structure)
 {
     unsigned int end_age = age_nums.size() - 1;
     unsigned int start_age = 1;
@@ -34,7 +21,7 @@ std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums,  Model
     return _temp;
 }
 
-std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
+std::vector<Compartments> OriginalModel::BuildPopulationArray(Random::RNGInterface::Sptr rng,
     const std::vector<int>& age_nums, const seed& seedlist, ModelStructureId structure)
 {
     unsigned int distribution_size = 6;
@@ -76,7 +63,7 @@ std::vector<Compartments> BuildPopulationArray(Random::RNGInterface::Sptr rng,
     return _temp;
 }
 
-void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
+void OriginalModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<Compartments>& poparray, std::vector<double>& seedarray,
     const double& bkg_lambda, ModelStructureId structure)
 {
@@ -110,7 +97,7 @@ void GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
 
 }
 
-Status Model::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
+Status OriginalModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps, ModelStructureId structure, Random::RNGInterface::Sptr rng) {
 
@@ -199,7 +186,7 @@ Status Model::Run(std::vector<double> parameter_set, std::vector<::EERAModel::pa
 	return status;
 }
 
-InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState OriginalModel::GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double pf_val, double lambda)
 {
@@ -306,7 +293,7 @@ InfectionState GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, C
     return infection_state;
 }
 
-InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState OriginalModel::GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double pf_val, double lambda)
 {
@@ -413,7 +400,7 @@ InfectionState GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Comp
     return infection_state;
 }
 
-std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+std::vector<double> OriginalModel::GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut) 
 {
 

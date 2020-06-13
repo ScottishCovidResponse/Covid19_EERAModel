@@ -1,5 +1,4 @@
 #include "InferenceFramework.h"
-#include "Model.h"
 #include "Observations.h"
 #include "InferenceParameters.h"
 #include "IO.h"

@@ -33,7 +33,7 @@
 #include "IO.h"
 #include "Random.h"
 #include "ModelCommon.h"
-#include "Model.h"
+#include "OriginalModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
 
@@ -78,7 +78,7 @@ int main() {
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
     // Select the model structure to use
-    Model::ModelInterface::Sptr model = std::make_shared<Model::Model>();
+    Model::ModelInterface::Sptr model = std::make_shared<Model::OriginalModel>();
 
     // Slect the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")
