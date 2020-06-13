@@ -1,15 +1,16 @@
 #include "PredictionFramework.h"
-#include "Model.h"
 
 namespace EERAModel {
 namespace Prediction {
 
 PredictionFramework::PredictionFramework(
+    Model::ModelInterface::Sptr model,
     const ModelInputParameters& modelInputParameters,
     const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     Utilities::logging_stream::Sptr log)
-     : seedlist_(modelInputParameters.seedlist),
+     : model_(model),
+       seedlist_(modelInputParameters.seedlist),
        dayShut_(modelInputParameters.day_shut),
        modelStructure_(modelInputParameters.model_structure),
        rng_(rng)
@@ -41,10 +42,8 @@ PredictionFramework::PredictionFramework(
 
 void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationSteps)
 {
-    Status status = Model::RunModel(
-        parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_, ageNums_,
-        nSimulationSteps, modelStructure_, rng_
-    );
+    Status status = model_->Run(parameterSet, fixedParameters_, ageGroupData_, seedlist_, dayShut_,
+        ageNums_, nSimulationSteps);
 
     // To do: Write model prediction outputs here
 }

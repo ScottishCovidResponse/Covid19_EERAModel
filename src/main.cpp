@@ -32,7 +32,9 @@
 #include "ModelTypes.h"
 #include "IO.h"
 #include "Random.h"
-#include "Model.h"
+#include "ModelCommon.h"
+#include "OriginalModel.h"
+#include "IrishModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
 
@@ -76,9 +78,21 @@ int main() {
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
+    // Select the model structure to use
+    Model::ModelInterface::Sptr model;
+    if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
+    {
+        model = std::make_shared<Model::OriginalModel>(rng);
+    }
+    else
+    {
+        model = std::make_shared<Model::IrishModel>(rng);
+    }
+
+    // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")
     {
-        Prediction::PredictionFramework framework(modelInputParameters, observations, rng, logger);
+        Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, logger);
 
         int n_sim_steps = 10;
         std::vector<double> parameter_set(8, 0.0);
@@ -87,7 +101,7 @@ int main() {
     }
     else
     {
-        Inference::InferenceFramework framework(modelInputParameters, observations, rng, out_dir, logger);
+        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
         
         framework.Run();
     }
