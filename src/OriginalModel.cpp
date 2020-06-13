@@ -75,15 +75,6 @@ void OriginalModel::GenerateDiseasedPopulation(std::vector<Compartments>& poparr
 Status OriginalModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
 				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
 				int n_sim_steps) {
-
-
-///	std::cout<< "top0..\n";
-
-	//initialize saving of the detection for t=0 in simulations, deaths, hospital deaths
-	/**@todo status.deaths is unused anywhere (although it is populated in RunModel) 
-	* TP: yes, I had issues in memory to output it and write it in the output_abc-smc_simu file. 
-	* an output of this should be created similarly to status.deaths_hospital.
-	*/
 	Status status = {{0}, {0}, {0}, {}};
 
 	const int n_agegroup = per_age_data.waifw_norm.size();
@@ -97,20 +88,12 @@ Status OriginalModel::Run(std::vector<double> parameter_set, std::vector<::EERAM
 	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
-//	std::cout<< "top1..\n";
 	std::vector<Compartments> poparray = BuildPopulationArray(agenums, seedlist);
-	
 
-//	std::cout<< "top2..\n";
-
-//	std::cout<< "top3..\n";
-	
-	//run the simulation
 	for (int tt{1}; tt < n_sim_steps; ++tt) {
 		//initialize return value
 		InfectionState infection_state;	
 		
-//		std::cout<< "top4..\n";
 		//identify the lock down
 		if(tt > day_shut){ inLockdown = true; }
 		
@@ -285,69 +268,68 @@ std::vector<double> OriginalModel::GenerateForcesOfInfection(int& inf_hosp, cons
 	//age-dependent transmission rate
 	std::vector<std::vector<double>> beta(n_agegroup, std::vector<double> (n_agegroup));
 
-  if(shut)
-  {
-    for ( int from{0}; from < n_agegroup; ++from) 
+    if(shut)
     {
-      for ( int to{0}; to < n_agegroup; ++to) 
-      {
-        //contact network during shutdown period, assuming a proportion d will properly do it
-        waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
-      }
+        for ( int from{0}; from < n_agegroup; ++from) 
+        {
+            for ( int to{0}; to < n_agegroup; ++to) 
+            {
+                //contact network during shutdown period, assuming a proportion d will properly do it
+                waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];
+            }
+        }
     }
-  }
-  
-  for ( int from{0}; from < n_agegroup; ++from) {
-    for ( int to{0}; to < n_agegroup; ++to) 
-    {
-      if(waifw[from][to]>0)
-      {
-        quarantined += age_data.waifw_home[from][to]/waifw[from][to];
-      } 
-			
-      else
-      {
-         quarantined += 0;
-      }
-      beta[from][to] = waifw[from][to] * p_i ;
-	}
-  } 
-  
-  //mean proportion reduction in contacts due to quarantine accounting for compliance
-  quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
-  
-  //compute the pressure from infectious groups, normalizes by group size
-  //compute the pressure from hospitalised
-  for ( int from{0}; from < n_agegroup; ++from) {
-	if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
-	 	// are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
-		// asym are infectious pre-clinical and asymptomatic
-		// sym are infectious plus those that are tested positive
-		int tot_asym = pops[from].I_p + u_val * (pops[from].I1 + pops[from].I2 + pops[from].I3 + pops[from].I4 );
-		int tot_sym = pops[from].I_t + pops[from].I_s1 + pops[from].I_s2 + pops[from].I_s3 + pops[from].I_s4;
-		
-		I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
-		//normalisation shouldnt account for dead individuals	
-		const int tot_pop = accumulate_compartments(pops[from]);
-		I_mat[from] = (double)I_mat[from] / (double)(tot_pop); 
-				
-	}
-	//sum up of number of hospitalised cases (frail and non-frail)
-	inf_hosp+= pops[from].H ;
-  }
 
-  //sum up infectious pressure from each age group
-  for ( int to{0}; to < (n_agegroup); ++to) {
-	  for(int from{0}; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
-	  	lambda[to] += ( beta[to][from]*I_mat[from] );
-	  }
-  }
+    for ( int from{0}; from < n_agegroup; ++from) {
+        for ( int to{0}; to < n_agegroup; ++to) 
+        {
+            if(waifw[from][to]>0)
+            {
+                quarantined += age_data.waifw_home[from][to]/waifw[from][to];
+            } 
+                
+            else
+            {
+                quarantined += 0;
+            }
+            beta[from][to] = waifw[from][to] * p_i ;
+        }
+    } 
+  
+    //mean proportion reduction in contacts due to quarantine accounting for compliance
+    quarantined = 1 - (quarantined / (double)(n_agegroup * n_agegroup) ) * (1 - q_val);
 
-  const int tot_pop = accumulate_compartments(pops[n_agegroup-1]);
-  //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
-  lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+    //compute the pressure from infectious groups, normalizes by group size
+    //compute the pressure from hospitalised
+    for ( int from{0}; from < n_agegroup; ++from) {
+        if(from < (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)
+            // are considered those that are infectious pre-clinical, asymp, tested or symptomatic only
+            // asym are infectious pre-clinical and asymptomatic
+            // sym are infectious plus those that are tested positive
+            int tot_asym = pops[from].I_p + u_val * (pops[from].I1 + pops[from].I2 + pops[from].I3 + pops[from].I4 );
+            int tot_sym = pops[from].I_t + pops[from].I_s1 + pops[from].I_s2 + pops[from].I_s3 + pops[from].I_s4;
+            
+            I_mat[from] = (double)tot_asym + (1-quarantined) * (double)tot_sym;
+            //normalisation shouldnt account for dead individuals	
+            const int tot_pop = accumulate_compartments(pops[from]);
+            I_mat[from] = (double)I_mat[from] / (double)(tot_pop);            
+        }
+        //sum up of number of hospitalised cases (frail and non-frail)
+        inf_hosp+= pops[from].H ;
+    }
 
-  return lambda;
+    //sum up infectious pressure from each age group
+    for ( int to{0}; to < (n_agegroup); ++to) {
+        for(int from{0}; from < (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected
+            lambda[to] += ( beta[to][from]*I_mat[from] );
+        }
+    }
+
+    const int tot_pop = accumulate_compartments(pops[n_agegroup-1]);
+    //int rem_pop = pops[n_agegroup-1][4]+pops[n_agegroup-1][5]+pops[n_agegroup-1][6]+pops[n_agegroup-1][8];
+    lambda[n_agegroup-1] = p_hcw * c_hcw * ((double)inf_hosp/(double)(tot_pop) );
+
+    return lambda;
 }
 
 } // namespace Model
