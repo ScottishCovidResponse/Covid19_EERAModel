@@ -3,15 +3,11 @@
 namespace EERAModel {
 namespace Model {
 
-std::vector<double> IrishModel::BuildPopulationSeed(const std::vector<int>& age_nums,  ModelStructureId structure)
+std::vector<double> IrishModel::BuildPopulationSeed(const std::vector<int>& age_nums)
 {
     unsigned int end_age = age_nums.size() - 1;
-    unsigned int start_age = 1;
-    if (ModelStructureId::IRISH == structure)
-    {
-        start_age = 0;
-    }
-
+    unsigned int start_age = 0;
+    
     std::vector<double> _temp;
     for (unsigned int age = start_age; age < end_age; ++age)
     {
@@ -22,13 +18,9 @@ std::vector<double> IrishModel::BuildPopulationSeed(const std::vector<int>& age_
 }
 
 std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface::Sptr rng,
-    const std::vector<int>& age_nums, const seed& seedlist, ModelStructureId structure)
+    const std::vector<int>& age_nums, const seed& seedlist)
 {
-    unsigned int distribution_size = 6;
-    if (ModelStructureId::IRISH == structure)
-    {
-        distribution_size = 7;
-    }
+    unsigned int distribution_size = 7;
 
     std::vector<Compartments> _temp(age_nums.size(), Compartments());
     for (int age = 0; age < age_nums.size(); ++age) 
@@ -42,21 +34,10 @@ std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface:
         std::vector<int> startdist(distribution_size, 0);
         startdist[static_cast<int>(rng->Flat(0, distribution_size))] = seedlist.nseed;
 
-        if (ModelStructureId::ORIGINAL == structure)
+        for (unsigned int age = 0; age < age_nums.size() - 1; ++age)
         {
-            for (unsigned int age = 1; age < age_nums.size() - 1; ++age)
-            {
-                _temp[age].S -=  startdist[age - 1];	// take diseased out of S
-                _temp[age].I_p +=  startdist[age - 1];	// put diseased in I	
-            }
-        }
-        else if (ModelStructureId::IRISH == structure)
-        {
-            for (unsigned int age = 0; age < age_nums.size() - 1; ++age)
-            {
-                _temp[age].S -=  startdist[age];	// take diseased out of S
-                _temp[age].I_p +=  startdist[age];	// put diseased in I	
-            }
+            _temp[age].S -=  startdist[age];	// take diseased out of S
+            _temp[age].I_p +=  startdist[age];	// put diseased in I	
         }
     }
 
@@ -65,14 +46,10 @@ std::vector<Compartments> IrishModel::BuildPopulationArray(Random::RNGInterface:
 
 void IrishModel::GenerateDiseasedPopulation(Random::RNGInterface::Sptr rng,
     std::vector<Compartments>& poparray, std::vector<double>& seedarray,
-    const double& bkg_lambda, ModelStructureId structure)
+    const double& bkg_lambda)
 {
-    unsigned int start_age = 1;
-    if (ModelStructureId::IRISH == structure)
-    {
-        start_age = 0;
-    }
-	
+    unsigned int start_age = 0;
+
 	int n_susc = 0;
     for (int age = start_age; age < poparray.size() - 1; ++age) 
     {
@@ -117,13 +94,13 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 	bool inLockdown = false;
 
 	// Assumes that the number of age groups matches the size of the 'agenums' vector
-	std::vector<double> seed_pop = BuildPopulationSeed(agenums, structure);
+	std::vector<double> seed_pop = BuildPopulationSeed(agenums);
 
 	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
 	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
 
 //	std::cout<< "top1..\n";
-	std::vector<Compartments> poparray = BuildPopulationArray(rng, agenums, seedlist, structure);
+	std::vector<Compartments> poparray = BuildPopulationArray(rng, agenums, seedlist);
 	
 
 //	std::cout<< "top2..\n";
@@ -146,7 +123,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 			const double bkg_lambda = parameter_set[parameter_set.size()-1];
 
 			//compute the total number of susceptible and the number of susceptible per age class			
-			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda, structure);
+			GenerateDiseasedPopulation(rng, poparray, seed_pop, bkg_lambda);
 		}
 
         //compute the forces of infection
@@ -155,18 +132,10 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 
         // step each agegroup through infections
         for ( int age{0}; age < n_agegroup; ++age) {	
-            InfectionState new_spread;
-            if (ModelStructureId::ORIGINAL == structure) {
-                new_spread = 
-                    GenerateInfectionSpreadOriginal(rng, poparray[age], infection_state.hospitalised,
+            InfectionState new_spread = 
+                    GenerateInfectionSpread(rng, poparray[age], infection_state.hospitalised,
                         fixed_parameters[age],parameter_fit[age],
                         per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
-            } else {
-                new_spread = 
-                    GenerateInfectionSpreadIrish(rng, poparray[age], infection_state.hospitalised,
-                        fixed_parameters[age],parameter_fit[age],
-                        per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
-            }
 
             infection_state.deaths += new_spread.deaths;
             infection_state.hospital_deaths += new_spread.hospital_deaths;
@@ -186,114 +155,7 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 	return status;
 }
 
-InfectionState IrishModel::GenerateInfectionSpreadOriginal(Random::RNGInterface::Sptr rng, Compartments& pop,
-    const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
-    std::vector<double> cfr_tab, double pf_val, double lambda)
-{
-    Compartments newpop(pop);
-
-    // Fixed parameters
-    const double T_lat= fixed_parameters.T_lat;
-    const double T_inf= fixed_parameters.T_inf;
-    const double T_rec= fixed_parameters.T_rec;
-    const double T_sym= fixed_parameters.T_sym;
-    const double T_hos= fixed_parameters.T_hos;
-    const double K=fixed_parameters.K;
-
-    double capacity = n_hospitalised / K;
-    capacity = std::min(1.0, capacity);
-
-    const double p_h= cfr_tab[0];
-    const double p_d= cfr_tab[2];	
-    const double p_s= parameter_set[5];
-    const double rrd= parameter_set[6];
-
-    // hospitalized  - non-frail
-    const int newdeathsH= Flow(rng, pop.H, newpop.H, p_d * (1.0 / T_hos));
-    newpop.H -= newdeathsH;
-    newpop.D += newdeathsH;
-
-    const int recoverH = Flow(rng, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
-    newpop.H -= recoverH;
-    newpop.R += recoverH;
-
-    // symptomatic - non-frail
-    const int hospitalize = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
-    newpop.I_s4 -= hospitalize;
-    newpop.H += hospitalize;
-
-    const int newdeathsI_s = Flow(rng, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
-    newpop.I_s4 -= newdeathsI_s;
-    newpop.D += newdeathsI_s;
-
-    const int recoverI_s = Flow(rng, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
-    newpop.I_s4 -= recoverI_s;
-    newpop.R += recoverI_s;
-
-    const int Is_from3_to_4 = Flow(rng, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
-    newpop.I_s3 -= Is_from3_to_4;
-    newpop.I_s4 += Is_from3_to_4;
-
-    const int Is_from2_to_3 = Flow(rng, pop.I_s2, newpop.I_s2, (4.0 / T_sym));
-    newpop.I_s2 -= Is_from2_to_3;
-    newpop.I_s3 += Is_from2_to_3;
-        
-    const int Is_from1_to_2 = Flow(rng, pop.I_s1, newpop.I_s1, (4.0 / T_sym));
-    newpop.I_s1 -= Is_from1_to_2;
-    newpop.I_s2 += Is_from1_to_2;
-
-    // asymptomatic
-    const int recoverI = Flow(rng, pop.I4, newpop.I4, ( 4.0 / T_rec ));
-    newpop.I4 -= recoverI;
-    newpop.R += recoverI;
-
-    const int I_from3_to_4 = Flow(rng, pop.I3, newpop.I3, ( 4.0 / T_rec ));
-    newpop.I3 -= I_from3_to_4;
-    newpop.I4 += I_from3_to_4;
-
-    const int I_from2_to_3=Flow(rng, pop.I2, newpop.I2, ( 4.0 / T_rec ));
-    newpop.I2 -= I_from2_to_3;
-    newpop.I3 += I_from2_to_3;
-
-    const int I_from1_to_2 = Flow(rng, pop.I1, newpop.I1, ( 4.0 / T_rec ));
-    newpop.I1 -= I_from1_to_2;
-    newpop.I2 += I_from1_to_2;
-
-    // infectious - pre-clinical
-    int newasymptomatic = Flow(rng, pop.I_p, newpop.I_p, (1.0 - p_s) * ( 1.0 / T_inf ));
-    newpop.I_p -= newasymptomatic;
-    newpop.I1 += newasymptomatic;
-
-    const int newsymptomatic = Flow(rng, pop.I_p, newpop.I_p, p_s * ( 1.0 / T_inf ));
-    newpop.I_p -= newsymptomatic;
-    newpop.I_s1 += newsymptomatic;
-
-    // latent
-    const int infectious = Flow(rng, pop.E, newpop.E, ( 1.0 / T_lat ));
-    newpop.E -= infectious;
-    newpop.I_p += infectious;
-
-    const int infectious_t = Flow(rng, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));
-    newpop.E_t -= infectious_t;
-    newpop.I_t += infectious_t;
-
-    // susceptible
-    const int newinfection = Flow(rng, pop.S, newpop.S, lambda);
-    newpop.S -= newinfection;
-    newpop.E += newinfection;
-
-    pop = newpop;
-
-    // Define infection state for this spread
-    InfectionState infection_state;
-    infection_state.deaths              += (newdeathsH + newdeathsI_s);
-    infection_state.hospital_deaths     +=  newdeathsH;
-    infection_state.detected            += (hospitalize + infectious_t);
-
-    return infection_state;
-}
-
-InfectionState IrishModel::GenerateInfectionSpreadIrish(Random::RNGInterface::Sptr rng, Compartments& pop,
+InfectionState IrishModel::GenerateInfectionSpread(Random::RNGInterface::Sptr rng, Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double pf_val, double lambda)
 {
