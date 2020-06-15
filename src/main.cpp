@@ -97,7 +97,6 @@ int main(int argc, char** argv) {
     }
 
     // Select the mode to run in - prediction or inference    
-    if (modelInputParameters.run_type == "Prediction")
     if (modelInputParameters.run_type == ModelModeId::PREDICTION)
     {
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, logger);
