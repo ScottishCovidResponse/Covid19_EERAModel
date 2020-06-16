@@ -8,6 +8,7 @@ find_package(GSL REQUIRED)
 IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tclap )
     execute_process( COMMAND git archive --remote=git://git.code.sf.net/p/tclap/code HEAD:include -o tclap.zip )
     execute_process( COMMAND unzip -d ${CMAKE_CURRENT_SOURCE_DIR} tclap.zip )
+    execute_process( COMMAND rm -rf tclap.zip ${CMAKE_CURRENT_SOURCE_DIR}/Makefile.am )
 ENDIF()
 
 set (PROJECT_LIBS ${PROJECT_NAME}-lib)
