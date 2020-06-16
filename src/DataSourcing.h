@@ -14,6 +14,7 @@ namespace DataSourcing
 
     struct DataFiles
     {
+        std::string parameters;
         std::string data;
         std::string deaths;
         std::string ages;
@@ -27,6 +28,7 @@ namespace DataSourcing
         WAIFW waifw;
         std::string cfr_byage;
         std::string frail;
+        std::string prior_params;
     };
 
     class DataSource
@@ -39,6 +41,7 @@ namespace DataSourcing
     {
         public:
             Local() : DataSource({
+                std::string(ROOT_DIR)+"/data/parameters.ini",
                 std::string(ROOT_DIR)+"/data/scot_data.csv",
                 std::string(ROOT_DIR)+"/data/scot_deaths.csv",
                 std::string(ROOT_DIR)+"/data/scot_age.csv",
@@ -46,7 +49,8 @@ namespace DataSourcing
                  std::string(ROOT_DIR)+"/data/waifw_home.csv",
                  std::string(ROOT_DIR)+"/data/waifw_sdist.csv"},
                 std::string(ROOT_DIR)+"/data/cfr_byage.csv",
-                std::string(ROOT_DIR)+"/data/scot_frail.csv"
+                std::string(ROOT_DIR)+"/data/scot_frail.csv",
+                std::string(ROOT_DIR)+"/src/prior_particle_params.csv"
             }
             )
     };
