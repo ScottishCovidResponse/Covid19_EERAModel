@@ -82,4 +82,4 @@ pushing to the remote repository, from the repository root directory run:
 
 ## External Libraries
 
-The model uses the [TCLAP](http://tclap.sourceforge.net/) framework to handle command line arguments, this does not need to be downloaded/installed locally as the CMake build process handles fetching the required files from the remote git repository.
+The model uses the [TCLAP](http://tclap.sourceforge.net/) framework to handle command line arguments, this does not need to be downloaded/installed locally as the CMake build process handles fetching the required files from the remote git repository. If fetching of the repository fails, a copy of TCLAP will be needed. The contents of the `include/tclap` folder should be placed into `src/tclap` within this repository.
