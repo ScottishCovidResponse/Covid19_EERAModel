@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
-#include <functional>
+#include "ModelCommon.h"
 #include "ModelTypes.h"
 #include "Random.h"
 #include "Utilities.h"
+#include <vector>
+#include <functional>
 
 namespace EERAModel {
 namespace Prediction {
@@ -19,12 +20,14 @@ public:
     /**
      * @brief Framework constructor
      *
+     * @param model Model interface
      * @param modelInputParameters Model input parameters
      * @param observations Observations
      * @param rng Seeded random number generator
      * @param log Logger
      */
-    PredictionFramework(const ModelInputParameters& modelInputParameters,
+    PredictionFramework(Model::ModelInterface::Sptr model,
+        const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
@@ -41,6 +44,13 @@ public:
      void Run(std::vector<double> parameterSet, int nSimulationSteps);
 
 private:
+    
+    /**
+     * @private
+     * @brief Model interface
+     */
+    Model::ModelInterface::Sptr model_;
+
     /**
      * @private
      * @brief Fixed model parameters
@@ -119,6 +129,18 @@ private:
      */
     Utilities::logging_stream::Sptr log_;
 };
+
+/**
+ * @brief Convert Vector of Compartments struct to a vector of integers
+ * 
+ * NOTE: This is a temporary function to allow compatibility
+ * converts the Compartments struct to a vector of integers
+ * 
+ * @param cmps_vec Vector of compartments struct containing population per category
+ * 
+ * @return Vector of population counters
+ */
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 } // namespace Prediction
 } // namespace EERAModel

@@ -1,7 +1,7 @@
 #include "IO.h"
 #include "IniFile.h"
-#include "CSV.h"
-#include "Model.h"
+#include "ModelCommon.h"
+#include "Utilities.h"
 
 #include <valarray>
 #include <fstream>
@@ -10,7 +10,7 @@
 namespace EERAModel {
 namespace IO {
 
-EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
 	ModelInputParameters modelInputParameters;
 
@@ -118,7 +118,7 @@ EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std
 	std::vector<std::vector<double>> lines;
 	char delimiter = ',';
 	
-	EERAModel::CSV::read_csv_double(lines, filePath, delimiter);
+	lines = Utilities::read_csv<double>(filePath, delimiter);
 
 	// Select line from input file and store result in another temporary vector
 	std::vector<double> line_select = lines[set_selection];
@@ -140,7 +140,7 @@ EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std
 
 EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
 {
-	EERAModel::InputObservations observations;
+	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
 
 	const std::string scot_data_file = std::string(ROOT_DIR)+"/data/scot_data.csv";
@@ -158,7 +158,7 @@ EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_
 	//last row is for all of scotland
 	
 	(*log) << "\t- " << scot_data_file << std::endl;
-	EERAModel::CSV::read_csv_int(observations.cases,scot_data_file,',');
+	observations.cases = Utilities::read_csv<int>(scot_data_file,',');
 	
 	//Uploading observed death data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
@@ -166,26 +166,26 @@ EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_
 	//last row is for all of scotland
 	
 	(*log) << "\t- " << scot_deaths_file << std::endl;
-	EERAModel::CSV::read_csv_int(observations.deaths,scot_deaths_file,',');
+	observations.deaths = Utilities::read_csv<int>(scot_deaths_file,',');
 	
 	//Uploading population per age group
 	//columns are for each individual Health Borad
 	//last column is for Scotland
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	(*log) << "\t- " << scot_ages_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.age_pop,scot_ages_file,',');	
+	observations.age_pop = Utilities::read_csv<double>(scot_ages_file,',');	
 	
 	//mean number of daily contacts per age group (overall)	
 	(*log) << "\t- " << waifw_norm_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.waifw_norm,waifw_norm_file,',');
+	observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file,',');
 
 	//mean number of daily contacts per age group (home only)		
 	(*log) << "\t- " << waifw_home_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.waifw_home,waifw_home_file,',');
+	observations.waifw_home = Utilities::read_csv<double>(waifw_home_file,',');
 	
 	//mean number of daily contacts per age group (not school, not work)			
 	(*log) << "\t- " << waifw_sdist_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.waifw_sdist,waifw_sdist_file,',');	
+	observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file,',');	
 	
 	//Upload cfr by age group
 	//col0: p_h: probability of hospitalisation
@@ -193,20 +193,20 @@ EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_
 	//col2: p_d: probability of death, given hospitalisation
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	(*log) << "\t- " << cfr_byage_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.cfr_byage,cfr_byage_file,',');	
+	observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file,',');	
 		
 	//Upload frailty probability p_f by age group
 	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	//rows are for each individual Health Borad
 	//last row is for Scotland
 	(*log) << "\t- " << scot_frail_file << std::endl;
-	EERAModel::CSV::read_csv_double(observations.pf_pop,scot_frail_file,',');	
+	observations.pf_pop = Utilities::read_csv<double>(scot_frail_file,',');	
 
 	return observations;
 }
 
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
-	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
+	const std::vector<particle>& particleList, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {
 	std::stringstream namefile, namefile_simu, namefile_ends;
 	namefile << (outDirPath + "/output_abc-smc_particles_step") << smc << "_shb"<< herd_id << "_" << log->getLoggerTime() << ".txt";
@@ -304,7 +304,7 @@ void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector
 
 	std::vector<std::vector<int>> pop_array_compartment_to_vector;
 	for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
-		pop_array_compartment_to_vector = Model::compartments_to_vector(status.pop_array[var]);
+		pop_array_compartment_to_vector = compartments_to_vector(status.pop_array[var]);
 		for (unsigned int age = 0; age < pop_array_compartment_to_vector.size(); ++age) {
 			for (unsigned int comp = 0; comp < pop_array_compartment_to_vector[age].size(); ++comp) {
 				output_full << pop_array_compartment_to_vector[age][comp];
@@ -318,6 +318,21 @@ void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector
 	output_simu.close();
 	output_ends.close();
 	output_full.close();
+}
+
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
 }
 
 } // namespace IO

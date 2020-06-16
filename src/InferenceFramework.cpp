@@ -1,23 +1,39 @@
 #include "InferenceFramework.h"
-#include "Model.h"
 #include "Observations.h"
 #include "InferenceParameters.h"
 #include "IO.h"
 #include "FittingProcess.h"
+#include <functional>
+#include <algorithm>
 
 namespace EERAModel {
 namespace Inference {
 
-InferenceFramework::InferenceFramework(const ModelInputParameters& modelInputParameters,
+InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
+    const ModelInputParameters& modelInputParameters,
     const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
-    : modelInputParameters_(modelInputParameters),
+    : model_(model),
+      modelInputParameters_(modelInputParameters),
       observations_(observations),
       rng_(rng),
       outDir_(outDir),
       log_(log) {}
+
+int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
+{
+	int time_back = 0;
+	if(modelInputParameters.seedlist.seedmethod == "background") {
+		time_back = modelInputParameters.seedlist.hrp;
+	} else {
+		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
+		
+	}
+
+	return time_back;
+}
 
 void InferenceFramework::Run()
 {
@@ -50,25 +66,16 @@ void InferenceFramework::Run()
 	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
 	
 	//keep information for the health board if interest
-	std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
+	const std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
+
+	const AgeGroupData per_age_data = {observations_.waifw_norm, observations_.waifw_home, observations_.waifw_sdist, 
+										observations_.cfr_byage, pf_byage};
 
 	//create vector of fixed parameters		
 	std::vector<params> fixed_parameters = Model::BuildFixedParameters(observations_.waifw_norm.size(),
         modelInputParameters_.paramlist);
     
-	//Separate case information for each herd_id
-	modelInputParameters_.seedlist.day_intro=0;
-	int duration = 0;
-	int time_back;
-	if(modelInputParameters_.seedlist.seedmethod == "background") {
-		time_back = modelInputParameters_.seedlist.hrp;
-	} else {
-		time_back = modelInputParameters_.paramlist.T_inf + modelInputParameters_.paramlist.T_sym;
-		
-		if (modelInputParameters_.seedlist.seedmethod != "random") {
-			(*log_) << "Warning!! Unknown seeding method - applying _random_ seed method\n";
-		}
-	}
+	const int time_back = GetTimeOffSet(modelInputParameters_);
 
 	int population = Model::GetPopulationOfRegion(observations_, modelInputParameters_.herd_id);
 	
@@ -76,10 +83,11 @@ void InferenceFramework::Run()
 	const std::vector<int>& regionalDeaths = observations_.deaths[modelInputParameters_.herd_id];
 	const std::vector<int>& timeStamps = observations_.cases[0];
 
-	std::vector<int> obsHosp, obsDeaths;
-	Observations::SelectObservations(duration, modelInputParameters_.seedlist.day_intro, 
-		modelInputParameters_.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
+	const Observations::ObsSelect obs_selections = Observations::SelectObservations(
+		modelInputParameters_.day_shut, timeStamps, regionalCases,
 		regionalDeaths, time_back, log_);
+	
+	modelInputParameters_.seedlist.day_intro = obs_selections.sim_time.day_intro;
 
 	int N_hcw = Model::ComputeNumberOfHCWInRegion(population, modelInputParameters_.totN_hcw, observations_);
 
@@ -89,8 +97,10 @@ void InferenceFramework::Run()
 	(*log_) << "    SHB id: " << modelInputParameters_.herd_id <<'\n';
 	(*log_) << "    Population size: " << population << '\n';
 	(*log_) << "    Number of HCW: " << N_hcw << '\n';
-	(*log_) << "    Simulation period: " << duration << "days\n";
+	(*log_) << "    Simulation period: " << obs_selections.sim_time.duration << "days\n";
 	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
+
+	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/modelInputParameters_.tau));
 	
 	const std::vector<double> flag1 = {
 		modelInputParameters_.prior_pinf_shape1,
@@ -147,11 +157,11 @@ void InferenceFramework::Run()
 			particleList = particleList1;
 			particleList1.clear();
 
-			Model::ComputeKernelWindow(modelInputParameters_.nPar, particleList, 
+			ComputeKernelWindow(modelInputParameters_.nPar, particleList, 
 				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
-		std::discrete_distribution<int> weight_distr = Model::ComputeWeightDistribution(particleList);
+		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
 
 	/*---------------------------------------
 	 * simulate the infection data set
@@ -190,10 +200,9 @@ void InferenceFramework::Run()
 				}
 
 				//run the model and compute the different measures for each potential parameters value
-				ModelSelect(outs_vec, fixed_parameters, observations_.cfr_byage, pf_byage,
-							observations_.waifw_norm, observations_.waifw_sdist, observations_.waifw_home,
-							agenums, modelInputParameters_.tau, duration, modelInputParameters_.seedlist,
-							modelInputParameters_.day_shut, rng_, obsHosp, obsDeaths, modelInputParameters_.model_structure);
+				ModelSelect(outs_vec, fixed_parameters, per_age_data,
+							agenums, n_sim_steps, modelInputParameters_.seedlist,
+							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
                 if (acceptedParticleCount < modelInputParameters_.nParticalLimit) ++nsim_count;
@@ -253,21 +262,16 @@ void InferenceFramework::Run()
 }
 
 void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	const std::vector<std::vector<double>>& cfr_byage, const std::vector<double>& pf_byage, 
-	const std::vector<std::vector<double>>& waifw_norm, const std::vector<std::vector<double>>& waifw_sdist,
-	const std::vector<std::vector<double>>& waifw_home, std::vector <int> agenums, double tau,
-	int duration, seed seedlist, int day_shut, Random::RNGInterface::Sptr rng, const std::vector<int>& obsHosp,
-	const std::vector<int>& obsDeaths, ModelStructureId structure) {
+	const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
+	seed seedlist, int day_shut, const std::vector<int>& obsHosp, 
+	const std::vector<int>& obsDeaths) {
 
 	//---------------------------------------
 	// the root model
 	//---------------------------------------
-
-	const AgeGroupData per_age_data = {waifw_norm, waifw_home, waifw_sdist, cfr_byage, pf_byage};
-	const int n_sim_steps = static_cast<int>(ceil(duration/tau));
 	
-	Status status = Model::RunModel(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-							agenums, n_sim_steps, structure, rng);
+	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
+							agenums, n_sim_steps);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations
@@ -306,7 +310,54 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	outvec.simu_outs = status.simulation;
 	outvec.hospital_death_outs = status.hospital_deaths;
 	outvec.death_outs = status.deaths;
-	outvec.end_comps = Model::compartments_to_vector(status.ends);
+	outvec.end_comps = compartments_to_vector(status.ends);
+}
+
+
+void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
+	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
+
+	//compute the kernel window
+	for (int i{0}; i < nPar; ++i) {
+		
+		std::function<bool(particle, particle)> compare = 
+			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
+
+		particle valMax1 = *std::max_element(particleList.begin(), particleList.end(), compare);
+		
+		particle valmin1 = *std::min_element(particleList.begin(), particleList.end(), compare);
+
+		vect_Max[i] = valMax1.parameter_set[i];
+		vect_Min[i] = valmin1.parameter_set[i];
+		
+		vlimitKernel[i] = kernelFactor * fabs(vect_Max[i] - vect_Min[i]);
+	}	
+}
+
+std::discrete_distribution<int> ComputeWeightDistribution(
+	const std::vector<EERAModel::particle>& particleList) {
+	
+	std::vector<double> weight_val;
+	for (auto p : particleList) {
+		weight_val.push_back(p.weight);
+	}
+	
+	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
+}
+
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
 }
 
 } // namespace Inference

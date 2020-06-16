@@ -1,5 +1,5 @@
 #include "PredictionFramework.h"
-#include "Model.h"
+#include "ModelCommon.h"
 #include "Observations.h"
 #include "IO.h"
 
@@ -7,12 +7,14 @@ namespace EERAModel {
 namespace Prediction {
 
 PredictionFramework::PredictionFramework(
+    Model::ModelInterface::Sptr model,
     const ModelInputParameters& modelInputParameters,
     const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
-     : modelInputParameters_(modelInputParameters),
+     : model_(model),
+       modelInputParameters_(modelInputParameters),
        observations_(observations),
        rng_(rng),
        outDir_(outDir),
@@ -86,8 +88,7 @@ void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationS
 	const std::vector<int>& timeStamps = observations_.cases[0];
 
     std::vector<int> obsHosp, obsDeaths;
-    Observations::SelectObservations(duration, modelInputParameters_.seedlist.day_intro,
-        modelInputParameters_.day_shut, obsHosp, obsDeaths, timeStamps, regionalCases,
+    Observations::SelectObservations(modelInputParameters_.day_shut, timeStamps, regionalCases,
         regionalDeaths, time_back, log_);
 
     (*log_) << "[Health Board settings]:\n";
@@ -97,22 +98,32 @@ void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationS
 	(*log_) << "    Simulation period: " << duration << "days\n";
 	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
 
-    const int n_sim_steps = static_cast<int>(ceil(duration/modelInputParameters_.tau));
-
-    Status status = Model::RunModel(
-        parameterSet, fixedParameters_, ageGroupData_, modelInputParameters_.seedlist, modelInputParameters_.day_shut, ageNums_,
-        n_sim_steps, modelInputParameters_.model_structure, rng_
-    );
-
+    Status status = model_->Run(parameterSet, fixedParameters_, ageGroupData_, modelInputParameters_.seedlist,
+        modelInputParameters_.day_shut, ageNums_, nSimulationSteps);
     double time_taken;
     time_taken = double(clock() - startTime)/(double)CLOCKS_PER_SEC;
 
     (*log_) << "\n <computation time> " << time_taken << " seconds.\n";
 
     std::vector< std::vector<int> > end_comps;
-	end_comps = Model::compartments_to_vector(status.ends);
+	end_comps = compartments_to_vector(status.ends);
 
     IO::WritePredictionsToFiles(status, modelInputParameters_.herd_id, end_comps, outDir_, log_);
+}
+
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
+{
+	std::vector<std::vector<int>> _temp;
+
+	for(auto cmps : cmps_vec)
+	{
+		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
+						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
+						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
+						cmps.I_s4, cmps.H, cmps.R, cmps.D});
+	}
+
+	return _temp;
 }
 
 } // namespace Prediction
