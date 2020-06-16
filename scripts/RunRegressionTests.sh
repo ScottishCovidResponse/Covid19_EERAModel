@@ -44,7 +44,8 @@ for i in $(seq $FIRST $LAST) ; do
 
   STRUCT_FLAG=$([ $i -gt 6 ] && echo "-s irish " || echo "-s original")
   MODE_FLAG=$( echo "-m inference" )
-  DATA_LOC_FLAG=$( echo "-l $WORKING_DIR" )
+  DATA_LOC_FLAG=$( echo "-l $WORKING_DATA_DIR" )
+  OUTDIR_FLAG=$( echo "-o $WORKING_OUTPUTS_DIR" )
   FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
   
   regression_test_dir=$REGRESSION_DIR/run$i

@@ -47,9 +47,7 @@ int main(int argc, char** argv) {
 
 	ArgumentParser arg_parser(argc, argv);
 
-	const std::string out_dir = arg_parser.localSourceDir()+"/outputs";
-
-	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(arg_parser.outputDir());
 
 	// Read in the model's input parameters
 	arg_parser.logArguments(logger);
@@ -112,7 +110,7 @@ int main(int argc, char** argv) {
     }
     else
     {
-        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
+        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, arg_parser.outputDir(), logger);
         
         framework.Run();
     }

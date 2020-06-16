@@ -31,7 +31,7 @@ EERAModel::ArgumentParser::ArgumentParser(int argc, char** argv)
 		_args.stucture = (Utilities::toUpper(structureArg.getValue()) == "IRISH") ? ModelStructureId::IRISH : ModelStructureId::ORIGINAL;
 		_args.mode = (Utilities::toUpper(modeArg.getValue()) == "INFERENCE") ? ModelModeId::INFERENCE : ModelModeId::PREDICTION;
         _args.isLocal = dataLocArg.getValue().empty();
-        _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
+        _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR)+"/data";
 	}
 	catch(const std::exception& e)
 	{
