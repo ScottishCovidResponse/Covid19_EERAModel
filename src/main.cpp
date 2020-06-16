@@ -53,21 +53,6 @@ int main() {
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
-	
-    // Read posterior particle parameters if run type is "Prediction"
-	if (modelInputParameters.run_type == "Prediction")
-	{
-		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/src/example_posterior_parameter_sets.txt";
-
-		/** Currenty this just selects the row from the input file to read.
-		 * This can easily be incorporated into parameters.ini but due to the nature
-		 * of the regression tests, it's current set here.
-		 */
-		int posterior_parameter_select = 2;
-		
-		PosteriorParticleParameters PosteriorParticleParameters= IO::ReadPosteriorParametersFromFile(posterior_params_addr, posterior_parameter_select, logger);
-		modelInputParameters.posterior_param_list = PosteriorParticleParameters.posterior_param_list;
-	}
 
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
@@ -99,12 +84,17 @@ int main() {
     // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")
     {
+		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
+		
+		modelInputParameters.posterior_param_list = 
+			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
+												modelInputParameters.posterior_parameter_select, 
+												logger);
+
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
 
         int n_sim_steps = 100;
-        std::vector<double> parameter_set(8, 0.0);
 
-        // framework.Run(parameter_set, n_sim_steps);
 		framework.Run(modelInputParameters.posterior_param_list, n_sim_steps);
     }
     else

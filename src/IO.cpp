@@ -109,10 +109,12 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.run_type = "Inference";
 	// modelInputParameters.run_type = "Prediction";
 
+	modelInputParameters.posterior_parameter_select = atoi(parameters.GetValue("posterior_parameter_select", "Posterior Parameters Select", filePath).c_str());
+
 	return modelInputParameters;
 }
 
-EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log)
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log)
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
@@ -121,24 +123,27 @@ EERAModel::PosteriorParticleParameters ReadPosteriorParametersFromFile(const std
 	lines = Utilities::read_csv<double>(filePath, delimiter);
 
 	// Select line from input file and store result in another temporary vector
+	if (set_selection >= lines.size()){
+		throw std::overflow_error(std::string("Parameter set selection out of bounds! Please select between 0-" + std::to_string(lines.size() - 1) + " ..."));
+	}
 	std::vector<double> line_select = lines[set_selection];
-
-	EERAModel::PosteriorParticleParameters posteriorParticleParameters;
 
 	/** Extract posterior parameters from selected line
 	 * the slicing is relevant to the format of the output file
 	 * *output_abc-smc_particles_step* coming from the inference framework
 	 */
-	std::vector<double>::const_iterator first = line_select.begin() + 3;
-	std::vector<double>::const_iterator last = line_select.begin() + line_select.size() - 1;
+	auto first = line_select.cbegin() + 3;
+	auto last = line_select.cend() - 1;
+	if ((last - line_select.begin()) - (first - line_select.begin()) < 8) {
+		throw std::runtime_error(std::string("Please check formatting of posterior parameter input file, 8 parameter values are needed..."));
+	}
+
 	std::vector<double> parameter_sets(first, last);
 
-	posteriorParticleParameters.posterior_param_list = parameter_sets;
-
-	return posteriorParticleParameters;
+	return parameter_sets;
 }
 
-EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
+InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
 {
 	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
@@ -218,13 +223,13 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	std::ofstream output_ends (namefile_ends.str().c_str());
 	
 	//add the column names for each output list of particles
-	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro,weight\n";
+	output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro,weight" << std::endl;
 
 	//add the column names for each output list of chosen simulations
-	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death\n";
+	output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
 	
 	//add the column names for each output list of the compartment values of the last day of the chosen simulations
-	output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value\n";		
+	output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value" << std::endl;		
 
 	// outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
 	for (int kk = 0; kk < Nparticle; ++kk) {
@@ -252,20 +257,20 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 	output_ends.close();
 }
 
-void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
+void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {
 	std::stringstream namefile_simu, namefile_ends, namefile_full;
-	namefile_simu << (outDirPath + "/output_prediction_simu_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
-	namefile_ends << (outDirPath + "/output_prediction_ends_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
-	namefile_full << (outDirPath + "/output_prediction_full_shb") << herd_id << "_" << log->getLoggerTime() << ".txt";
+	namefile_simu << (outDirPath + "/output_prediction_simu") << "_" << log->getLoggerTime() << ".txt";
+	namefile_ends << (outDirPath + "/output_prediction_ends") << "_" << log->getLoggerTime() << ".txt";
+	namefile_full << (outDirPath + "/output_prediction_full") << "_" << log->getLoggerTime() << ".txt";
 
 	std::ofstream output_simu (namefile_simu.str().c_str());
 	std::ofstream output_ends (namefile_ends.str().c_str());
 	std::ofstream output_full (namefile_full.str().c_str());
 
-	output_simu << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death\n";
+	output_simu << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
 
-	output_ends << "age_group" << "," << "comparts" << "," << "value\n";
+	output_ends << "age_group" << "," << "comparts" << "," << "value" << std::endl;
 
 	for (unsigned int var = 0; var < status.simulation.size(); ++var) {
 		output_simu << var << ", " << status.simulation[var] << ", "\
@@ -289,7 +294,7 @@ void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector
 		}
 		output_full << "\t";
 	}
-	output_full << "\n";
+	output_full << std::endl;
 
 	for (unsigned int age = 0; age < end_comps.size(); ++age) {
 		for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
@@ -299,12 +304,11 @@ void WritePredictionsToFiles(Status status, int herd_id, std::vector<std::vector
 		output_full << "\t";
 	}
 
-	output_full << '\n';
+	output_full << std::endl;
 	
 
-	std::vector<std::vector<int>> pop_array_compartment_to_vector;
 	for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
-		pop_array_compartment_to_vector = compartments_to_vector(status.pop_array[var]);
+		std::vector<std::vector<int>> pop_array_compartment_to_vector = compartments_to_vector(status.pop_array[var]);
 		for (unsigned int age = 0; age < pop_array_compartment_to_vector.size(); ++age) {
 			for (unsigned int comp = 0; comp < pop_array_compartment_to_vector[age].size(); ++comp) {
 				output_full << pop_array_compartment_to_vector[age][comp];
