@@ -36,10 +36,6 @@ namespace EERAModel
     class ArgumentParser
     {
         private:
-            std::map<std::string, int> _int_args;
-            std::map<std::string, std::string> _str_args;
-            std::map<std::string, double> _dbl_args;
-            std::map<std::string, bool> _bool_args;
             Arguments _args;
         public:
             ArgumentParser(int argc, char** argv);
