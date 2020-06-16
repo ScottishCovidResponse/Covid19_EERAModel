@@ -15,6 +15,15 @@
 
 namespace EERAModel
 {
+    struct Arguments
+    {
+        bool isLocal = false;
+        std::string local_location=std::string(ROOT_DIR);
+        ModelStructureId stucture;
+        ModelModeId mode = ModelModeId::INFERENCE;
+        std::string output_dir = std::string(ROOT_DIR)+"/outputs";
+    };
+
     /**
      * @brief Class for parsing model command line arguments
      * 
@@ -31,6 +40,7 @@ namespace EERAModel
             std::map<std::string, std::string> _str_args;
             std::map<std::string, double> _dbl_args;
             std::map<std::string, bool> _bool_args;
+            Arguments _args;
         public:
             ArgumentParser(int argc, char** argv);
 
@@ -54,36 +64,14 @@ namespace EERAModel
              */
             void AppendOptions(ModelInputParameters& input_params);
 
-            /**
-             * @brief Returns the value of a given parameter by name
-             * 
-             * Return the value for a given parameter using the allocated
-             * label.
-             * 
-             * @param name parameter name
-             */
-            template<typename T>
-            T getArg(std::string name)
-            {
-                if(_str_args.find(name) != _str_args.end())
-                {
-                    return T(_str_args[name]);
-                }
+            bool runLocal() const {return _args.isLocal;}
+            
+            std::string localSourceDir() const {return _args.local_location;}
 
-                else if(_bool_args.find(name) != _bool_args.end())
-                {
-                    return T(_bool_args[name]);
-                }
+            ModelModeId runMode() const {return _args.mode;}
 
-                else if(_dbl_args.find(name) != _dbl_args.end())
-                {
-                    return T(_dbl_args.end());
-                }
-                
-                else
-                {
-                    return T(0);
-                }
-            }
+            ModelStructureId modelStructure() const {return _args.stucture;}
+
+            std::string outputDir() const {return _args.output_dir;}
     };
 };
