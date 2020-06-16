@@ -32,6 +32,7 @@
 #include "ModelTypes.h"
 #include "IO.h"
 #include "Random.h"
+#include "DataSourcing.h"
 #include "ModelCommon.h"
 #include "OriginalModel.h"
 #include "IrishModel.h"
@@ -46,31 +47,34 @@ int main(int argc, char** argv) {
 
 	ArgumentParser arg_parser(argc, argv);
 
-	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+	const std::string out_dir = arg_parser.localSourceDir()+"/outputs";
 
 	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
 	// Read in the model's input parameters
 	arg_parser.logArguments(logger);
 
-	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
+    // Ordering of enum class SourceID important for this line as here we convert boolean isLocal to
+    // the SourceID LOCAL/REMOTE
+    const DataSourcing::DataSource data_source = DataSourcing::getSource( DataSourcing::SourceID(arg_parser.runLocal()),
+                                                                         arg_parser.localSourceDir() );
 
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
+    ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(data_source, logger);
     arg_parser.AppendOptions(modelInputParameters);
 
-	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
+
+	(*logger) << "[Parameters File]:\n    " << data_source.data_files.parameters << std::endl;
 	
     // Read prior particle parameters if run type is "Prediction"
 	if (modelInputParameters.run_type == ModelModeId::PREDICTION)
 	{
-		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
-		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
+		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(data_source, logger);
 		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
 	}
 
 	// Read in the observations
-	InputObservations observations = IO::ReadObservationsFromFiles(logger);
+	InputObservations observations = IO::ReadObservationsFromFiles(data_source, logger);
 
 	// Set up the random number generator, deciding what kind of seed to use
 	unsigned long randomiser_seed;

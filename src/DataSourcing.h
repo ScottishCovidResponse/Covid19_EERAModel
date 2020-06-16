@@ -6,12 +6,6 @@ namespace EERAModel
 {
 namespace DataSourcing
 {
-    enum class SourceID
-    {
-        LOCAL,
-        REMOTE
-    };
-
     struct DataFiles
     {
         std::string parameters;
@@ -37,29 +31,17 @@ namespace DataSourcing
             const DataFiles data_files;
     };
 
-    class Local : DataSource
+    DataSource Local(const std::string root_dir=std::string(ROOT_DIR));
+
+    const DataSource Remote;
+
+    enum class SourceID
     {
-        public:
-            Local() : DataSource({
-                std::string(ROOT_DIR)+"/data/parameters.ini",
-                std::string(ROOT_DIR)+"/data/scot_data.csv",
-                std::string(ROOT_DIR)+"/data/scot_deaths.csv",
-                std::string(ROOT_DIR)+"/data/scot_age.csv",
-                {std::string(ROOT_DIR)+"/data/waifw_norm.csv",
-                 std::string(ROOT_DIR)+"/data/waifw_home.csv",
-                 std::string(ROOT_DIR)+"/data/waifw_sdist.csv"},
-                std::string(ROOT_DIR)+"/data/cfr_byage.csv",
-                std::string(ROOT_DIR)+"/data/scot_frail.csv",
-                std::string(ROOT_DIR)+"/src/prior_particle_params.csv"
-            }
-            )
+        REMOTE,
+        LOCAL
     };
 
-    class Remote : DataSource
-    {
+    const DataSource getSource(SourceID source_id, const std::string local_data_location="");
 
-    };
-
-    DataSource* fetchData(SourceID source_id);
 };
 };

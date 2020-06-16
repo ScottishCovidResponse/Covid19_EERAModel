@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "DataSourcing.h"
 
 #include <string>
 #include "Utilities.h"
@@ -19,10 +20,10 @@ namespace IO {
  * 
  * @return Model parameters
  */
-EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+EERAModel::ModelInputParameters ReadParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
 
 
-EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read in observations
@@ -31,7 +32,7 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string
  * 
  * @return Observations
  */
-EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
+EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief  Write outputs to files
