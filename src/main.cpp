@@ -59,6 +59,8 @@ int main(int argc, char** argv) {
 
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
+    arg_parser.AppendOptions(modelInputParameters);
+
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 	
     // Read prior particle parameters if run type is "Prediction"
