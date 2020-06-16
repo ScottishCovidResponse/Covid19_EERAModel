@@ -80,3 +80,6 @@ pushing to the remote repository, from the repository root directory run:
 `cppcheck --language=c++ --std=c++11 <address-of-code-file(s)>`
 
 
+## External Libraries
+
+The model uses the [TCLAP](http://tclap.sourceforge.net/) framework to handle command line arguments, this does not need to be downloaded/installed locally as the CMake build process handles fetching the required files from the remote git repository.
