@@ -31,7 +31,7 @@ EERAModel::ArgumentParser::ArgumentParser(int argc, char** argv)
 		_args.stucture = (Utilities::toUpper(structureArg.getValue()) == "IRISH") ? ModelStructureId::IRISH : ModelStructureId::ORIGINAL;
 		_args.mode = (Utilities::toUpper(modeArg.getValue()) == "INFERENCE") ? ModelModeId::INFERENCE : ModelModeId::PREDICTION;
         _args.isLocal = dataLocArg.getValue().empty();
-        _args.local_location = (_bool_args["Local"]) ? dataLocArg.getValue() : "scrc";
+        _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
 	}
 	catch(const std::exception& e)
 	{
@@ -42,20 +42,11 @@ EERAModel::ArgumentParser::ArgumentParser(int argc, char** argv)
 void EERAModel::ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Arguments]:" << std::endl;
-    for(auto& a : _str_args)
-    {
-        (*log) << "\t" << a.first << ": " << a.second << std::endl;
-    }
-
-    for(auto& a : _bool_args)
-    {
-        (*log) << "\t" << a.first << ": " << ((a.second) ? "True" : "False") << std::endl;
-    }
-
-    for(auto& a : _dbl_args)
-    {
-        (*log) << "\t" << a.first << ": " << a.second << std::endl;
-    }
+    (*log) << "\t" << "Local: " << ((_args.isLocal) ? "True" : "False") << std::endl;
+    if(_args.isLocal){(*log) << "\t" << "Local Directory: " << _args.local_location << std::endl;}
+    (*log) << "\t" << "Structure: " << ((_args.stucture == ModelStructureId::IRISH) ? "Irish" : "Original") << std::endl;
+    (*log) << "\t" << "Mode: " << ((_args.mode == ModelModeId::INFERENCE) ? "Inference" : "Prediction") << std::endl;
+    (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
 }
 
 void EERAModel::ArgumentParser::AppendOptions(EERAModel::ModelInputParameters& input_params)
