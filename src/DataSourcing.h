@@ -29,14 +29,62 @@ namespace DataSourcing
             PriorParticleParameters _prior_params;
             Utilities::logging_stream::Sptr _log;
         public:
+            /**
+             * @brief Constructor for Data Source object
+             * 
+             * @param log shared pointer for logger
+             */
             DataSource(Utilities::logging_stream::Sptr log) : _log(log) {}
+
+            /**
+             * @brief Fetch input observations
+             * 
+             * @return current read input observations
+             */
             InputObservations getInputObservations() const {return _input_obs;}
+
+            /**
+             * @brief Fetch input parameters
+             * 
+             * @return current read input parameters
+             */
             ModelInputParameters getInputParameters() const {return _input_params;}
+
+            /**
+             * @brief Fetch prior parameters
+             * 
+             * @return current prior parameters
+             */
             PriorParticleParameters getPriorParameters() const {return _prior_params;}
+
+            /**
+             * @brief Fetch current logger
+             * 
+             * @return shared pointer to current logger
+             */
             Utilities::logging_stream::Sptr getLogger() const {return _log;}
+
+            /**
+             * @brief Set the current input observations
+             */
             void setInputObservations(const InputObservations& input_obs) {_input_obs = input_obs;}
+
+            /**
+             * @brief Set the current input parameters
+             */
             void setModelInputParameters(const ModelInputParameters& model_input) {_input_params = model_input;}
+
+            /**
+             * @brief Set the current prior parameters
+             */
             void setPriors(const PriorParticleParameters& priors) {_prior_params = priors;}
+
+            /**
+             * @brief Run global setup
+             * 
+             * Runs setup/initialisation that is relevant to all model runs independent
+             * of the data source location. Must be called at appropriate time within each subclass.
+             */
             void Setup();
     };
 
@@ -77,6 +125,11 @@ namespace DataSourcing
                 Setup();
             }
 
+            /**
+             * @brief Fetch local data files
+             * 
+             * @return struct containing local data file locations
+             */
             DataFiles getDataFiles() const {return _data_files;}
     };
 

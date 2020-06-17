@@ -5,7 +5,7 @@ namespace EERAModel
 namespace DataSourcing
 {
 /**
-     * @brief Structure containing file addresses
+     * @brief Structure containing local file addresses
      * 
      * All file locations for the given data source form
      * be it local or remote are defined in this structure.
