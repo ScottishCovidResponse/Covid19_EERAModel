@@ -28,12 +28,23 @@ void LocalSource::_extract_data()
 
 void Remote::_extract_data()
 {
-    /* Add API Retrieval Methods here.*/
+
+    setModelInputParameters(API::ReadParametersFromAPI(_api_info, getLogger()));
+
+    if(getInputParameters().run_type == ModelModeId::PREDICTION)
+    {
+        setPriors(API::ReadPriorParametersFromAPI(_api_info, getLogger()));
+    }
+
+    setInputObservations(API::ReadObservationsFromAPI(_api_info, getLogger()));
+    
 }
 
-const DataSource getSource(SourceID source_id, Utilities::logging_stream::Sptr log,  std::string local_data_location)
+const DataSource getSource(SourceID source_id, Utilities::logging_stream::Sptr log,  std::string data_location)
 {
-    return (source_id == SourceID::LOCAL) ? DataSource(LocalSource(local_data_location, log)) : DataSource(Remote(log));
+    return (source_id == SourceID::LOCAL) ? DataSource(LocalSource(data_location, log)) : DataSource(Remote(data_location, log));
 }
+
+void PushOutputs() {}
 };
 };

@@ -5,6 +5,7 @@
 #include "ModelTypes.h"
 #include "LocalFileStructure.h"
 #include "IO.h"
+#include "Remote.h"
 
 namespace EERAModel
 {
@@ -153,8 +154,11 @@ namespace DataSourcing
              * Extract the data from the API
              */
             void _extract_data();
+            const std::string _api_info = "<dummy-info>";
         public:
-            Remote(Utilities::logging_stream::Sptr log) : DataSource(log)
+            Remote(const std::string APIInfo, Utilities::logging_stream::Sptr log) : 
+                DataSource(log),
+                _api_info(APIInfo)
         {
             _extract_data();
             Setup();
@@ -177,7 +181,7 @@ namespace DataSourcing
      * for performing the model run.
      * 
      * @param source_id whether the data is remote or local
-     * @param local_data_location if the data is local, the data root directory
+     * @param data_location if the data is local, the data root directory else the API info
      * 
      * @return an appropriate data source object for the options specified.
      */
