@@ -145,7 +145,7 @@ namespace DataSourcing
      * This subclass of DataSource handles the procedure for processing
      * and importing data from the API.
      */
-    class Remote : public DataSource
+    class RemoteSource : public DataSource
     {
         private:
             /**
@@ -156,7 +156,7 @@ namespace DataSourcing
             void _extract_data();
             const std::string _api_info = "<dummy-info>";
         public:
-            Remote(const std::string APIInfo, Utilities::logging_stream::Sptr log) : 
+            RemoteSource(const std::string APIInfo, Utilities::logging_stream::Sptr log) : 
                 DataSource(log),
                 _api_info(APIInfo)
         {

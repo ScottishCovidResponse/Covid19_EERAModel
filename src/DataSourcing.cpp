@@ -26,7 +26,7 @@ void LocalSource::_extract_data()
     setInputObservations(IO::ReadObservationsFromFiles(_data_files, getLogger()));
 }
 
-void Remote::_extract_data()
+void RemoteSource::_extract_data()
 {
 
     setModelInputParameters(API::ReadParametersFromAPI(_api_info, getLogger()));
@@ -42,7 +42,7 @@ void Remote::_extract_data()
 
 const DataSource getSource(SourceID source_id, Utilities::logging_stream::Sptr log,  std::string data_location)
 {
-    return (source_id == SourceID::LOCAL) ? DataSource(LocalSource(data_location, log)) : DataSource(Remote(data_location, log));
+    return (source_id == SourceID::LOCAL) ? DataSource(LocalSource(data_location, log)) : DataSource(RemoteSource(data_location, log));
 }
 
 void PushOutputs() {}
