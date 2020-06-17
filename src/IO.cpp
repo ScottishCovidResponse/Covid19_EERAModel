@@ -308,7 +308,7 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	
 
 	for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
-		std::vector<std::vector<int>> pop_array_compartment_to_vector = compartments_to_vector(status.pop_array[var]);
+		std::vector<std::vector<int>> pop_array_compartment_to_vector = Model::compartments_to_vector(status.pop_array[var]);
 		for (unsigned int age = 0; age < pop_array_compartment_to_vector.size(); ++age) {
 			for (unsigned int comp = 0; comp < pop_array_compartment_to_vector[age].size(); ++comp) {
 				output_full << pop_array_compartment_to_vector[age][comp];
@@ -322,21 +322,6 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	output_simu.close();
 	output_ends.close();
 	output_full.close();
-}
-
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
-{
-	std::vector<std::vector<int>> _temp;
-
-	for(auto cmps : cmps_vec)
-	{
-		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
-						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
-						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
-						cmps.I_s4, cmps.H, cmps.R, cmps.D});
-	}
-
-	return _temp;
 }
 
 } // namespace IO

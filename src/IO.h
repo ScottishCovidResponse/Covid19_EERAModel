@@ -50,17 +50,6 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
 	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
 
-/**
- * @brief Convert Vector of Compartments struct to a vector of integers
- * 
- * NOTE: This is a temporary function to allow compatibility
- * converts the Compartments struct to a vector of integers
- * 
- * @param cmps_vec Vector of compartments struct containing population per category
- * 
- * @return Vector of population counters
- */
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 } // namespace IO
 } // namespace EERAModel

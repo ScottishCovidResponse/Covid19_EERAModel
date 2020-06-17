@@ -79,18 +79,7 @@ private:
      * @private
      * @brief TBC
      */
-    seed seedlist_;
 
-    /**
-     * @private
-     * @brief Day at which the lockdown took effect
-     */
-    int dayShut_;
-
-    /**
-     * @private
-     * @brief Regional population number
-     */
     int regionalPopulation_;
 
     /**
@@ -104,12 +93,6 @@ private:
      * @brief Numbers inside each age group
      */
     std::vector<int> ageNums_;
-
-    /**
-     * @private
-     * @brief Which model structure to use
-     */
-    ModelStructureId modelStructure_;
 
     /**
      * @private
@@ -129,18 +112,6 @@ private:
      */
     Utilities::logging_stream::Sptr log_;
 };
-
-/**
- * @brief Convert Vector of Compartments struct to a vector of integers
- * 
- * NOTE: This is a temporary function to allow compatibility
- * converts the Compartments struct to a vector of integers
- * 
- * @param cmps_vec Vector of compartments struct containing population per category
- * 
- * @return Vector of population counters
- */
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 } // namespace Prediction
 } // namespace EERAModel
