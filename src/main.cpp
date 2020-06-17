@@ -26,10 +26,6 @@
  *
  */
 
-
-#include <iostream>
-#include <time.h>
-#include "ModelTypes.h"
 #include "Random.h"
 #include "DataSourcing.h"
 #include "ModelCommon.h"

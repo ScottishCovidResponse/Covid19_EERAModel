@@ -40,12 +40,24 @@ namespace DataSourcing
             void Setup();
     };
 
+    /**
+     * @brief Local data source sub-class
+     * 
+     * This subclass of DataSource handles the procedure for processing
+     * and importing data locally.
+     */
     class LocalSource : public DataSource
     {
        private:
             const DataFiles _data_files;
             void _extract_data();
        public:
+            /**
+             * @brief Constructor for Local Data Source object
+             * 
+             * @param root_dir the root directory of the data files
+             * @param log shared pointer for logger
+             */
             LocalSource(const std::string root_dir, Utilities::logging_stream::Sptr log) : 
                 DataSource(log),
                 _data_files({
