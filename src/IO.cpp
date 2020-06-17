@@ -1,30 +1,25 @@
 #include "IO.h"
-#include "IniFile.h"
-#include "Utilities.h"
-
-#include <fstream>
-#include <sstream>
 
 namespace EERAModel {
 namespace IO {
 
-ModelInputParameters ReadParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log)
+ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
 {
 	ModelInputParameters modelInputParameters;
 
 	CIniFile parameters;
 
 	//Settings
-	modelInputParameters.herd_id = atoi(parameters.GetValue("shb_id", "Settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.herd_id = atoi(parameters.GetValue("shb_id", "Settings", data_files.parameters).c_str());
 
 	//time step for the modelling process
-	modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", data_files.parameters).c_str());
 
 	//number of threads used for computation
-	modelInputParameters.num_threads = atoi(parameters.GetValue("num_threads", "Settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.num_threads = atoi(parameters.GetValue("num_threads", "Settings", data_files.parameters).c_str());
 
     // Model structure
-    std::string model_structure(parameters.GetValue("model", "Settings", data_source.data_files.parameters));
+    std::string model_structure(parameters.GetValue("model", "Settings", data_files.parameters));
     if ("irish" == model_structure) {
         modelInputParameters.model_structure = ModelStructureId::IRISH;
     } else {
@@ -32,27 +27,27 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataSource& data
     }
 
 	//Seed settings
-	modelInputParameters.seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", data_source.data_files.parameters).c_str();
+	modelInputParameters.seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", data_files.parameters).c_str();
 	if(modelInputParameters.seedlist.seedmethod == "random"){
-		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", data_source.data_files.parameters).c_str());
+		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", data_files.parameters).c_str());
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		modelInputParameters.seedlist.hrp = atoi(parameters.GetValue("hrp", "Seed settings", data_source.data_files.parameters).c_str());
+		modelInputParameters.seedlist.hrp = atoi(parameters.GetValue("hrp", "Seed settings", data_files.parameters).c_str());
 	} else {
 		(*log) << "Warning!!! Unknown method - using random seed method instead." << endl;
-		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", data_source.data_files.parameters).c_str());
+		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", data_files.parameters).c_str());
 	}
 	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
-		atoi(parameters.GetValue("use_fixed_seed", "Seed settings", data_source.data_files.parameters).c_str())
+		atoi(parameters.GetValue("use_fixed_seed", "Seed settings", data_files.parameters).c_str())
 	);
 	modelInputParameters.seedlist.seed_value = strtoul(
-		parameters.GetValue("seed_value", "Seed settings", data_source.data_files.parameters).c_str(), NULL, 0
+		parameters.GetValue("seed_value", "Seed settings", data_files.parameters).c_str(), NULL, 0
 	);
 	
 	//Fit settings
-	modelInputParameters.nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.nParticalLimit = atoi(parameters.GetValue("nParticLimit", "Fit settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.nSim = atoi(parameters.GetValue("nSim", "Fit settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.kernelFactor = atof(parameters.GetValue("kernelFactor", "Fit settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", data_files.parameters).c_str());
+	modelInputParameters.nParticalLimit = atoi(parameters.GetValue("nParticLimit", "Fit settings", data_files.parameters).c_str());
+	modelInputParameters.nSim = atoi(parameters.GetValue("nSim", "Fit settings", data_files.parameters).c_str());
+	modelInputParameters.kernelFactor = atof(parameters.GetValue("kernelFactor", "Fit settings", data_files.parameters).c_str());
 
 	//Tolerance settings
 	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
@@ -60,61 +55,61 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataSource& data
 	}
 
 	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
-		if(ii==1) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key1", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==2) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key2", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==3) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key3", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==4) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key4", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==5) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key5", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==6) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key6", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==7) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key7", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==8) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key8", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==9) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key9", "Tolerance settings", data_source.data_files.parameters).c_str());
-		if(ii==10) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key10", "Tolerance settings", data_source.data_files.parameters).c_str());
+		if(ii==1) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key1", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==2) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key2", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==3) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key3", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==4) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key4", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==5) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key5", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==6) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key6", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==7) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key7", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==8) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key8", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==9) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key9", "Tolerance settings", data_files.parameters).c_str());
+		if(ii==10) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key10", "Tolerance settings", data_files.parameters).c_str());
 	}
 
 	//Fixed parameters
-	modelInputParameters.paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.T_sym = atof(parameters.GetValue("T_sym", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.T_hos = atof(parameters.GetValue("T_hos", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.K = atoi(parameters.GetValue("K", "Fixed parameters", data_source.data_files.parameters).c_str());
-	modelInputParameters.paramlist.inf_asym = atof(parameters.GetValue("inf_asym", "Fixed parameters", data_source.data_files.parameters).c_str());
+	modelInputParameters.paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.T_sym = atof(parameters.GetValue("T_sym", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.T_hos = atof(parameters.GetValue("T_hos", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.K = atoi(parameters.GetValue("K", "Fixed parameters", data_files.parameters).c_str());
+	modelInputParameters.paramlist.inf_asym = atof(parameters.GetValue("inf_asym", "Fixed parameters", data_files.parameters).c_str());
 
 	//priors settings
-	modelInputParameters.nPar = atoi(parameters.GetValue("nPar", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_pinf_shape1 = atof(parameters.GetValue("prior_pinf_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_pinf_shape2 = atof(parameters.GetValue("prior_pinf_shape2", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_phcw_shape1 = atof(parameters.GetValue("prior_phcw_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_phcw_shape2 = atof(parameters.GetValue("prior_phcw_shape2", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_chcw_mean = atof(parameters.GetValue("prior_chcw_mean", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_d_shape1 = atof(parameters.GetValue("prior_d_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_d_shape2 = atof(parameters.GetValue("prior_d_shape2", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_q_shape1 = atof(parameters.GetValue("prior_q_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.nPar = atoi(parameters.GetValue("nPar", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_pinf_shape1 = atof(parameters.GetValue("prior_pinf_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_pinf_shape2 = atof(parameters.GetValue("prior_pinf_shape2", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_phcw_shape1 = atof(parameters.GetValue("prior_phcw_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_phcw_shape2 = atof(parameters.GetValue("prior_phcw_shape2", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_chcw_mean = atof(parameters.GetValue("prior_chcw_mean", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_d_shape1 = atof(parameters.GetValue("prior_d_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_d_shape2 = atof(parameters.GetValue("prior_d_shape2", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_q_shape1 = atof(parameters.GetValue("prior_q_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", data_files.parameters).c_str());
 	
-	modelInputParameters.prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", data_source.data_files.parameters).c_str());
-	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", data_source.data_files.parameters).c_str());
+	modelInputParameters.prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", data_files.parameters).c_str());
+	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", data_files.parameters).c_str());
 
-	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", data_source.data_files.parameters).c_str();
+	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", data_files.parameters).c_str();
 	modelInputParameters.run_type = ModelModeId::INFERENCE;
 	// modelInputParameters.run_type = ModelModeId::PREDICTION;
 
 	return modelInputParameters;
 }
 
-EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log)
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
 {
 	EERAModel::PriorParticleParameters priorParticleParameters;
 
-	std::ifstream infile(data_source.data_files.parameters.c_str());
+	std::ifstream infile(data_files.parameters.c_str());
 	std::string line;
 	
 	char delimiter = '\n';
@@ -126,7 +121,7 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcin
 	return priorParticleParameters;
 }
 
-EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log)
+EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
 {
 	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
@@ -136,50 +131,50 @@ EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataS
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	
-	(*log) << "\t- " << data_source.data_files.data << std::endl;
-	observations.cases = Utilities::read_csv<int>(data_source.data_files.data,',');
+	(*log) << "\t- " << data_files.data << std::endl;
+	observations.cases = Utilities::read_csv<int>(data_files.data,',');
 	
 	//Uploading observed death data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	
-	(*log) << "\t- " << data_source.data_files.deaths << std::endl;
-	observations.deaths = Utilities::read_csv<int>(data_source.data_files.deaths,',');
+	(*log) << "\t- " << data_files.deaths << std::endl;
+	observations.deaths = Utilities::read_csv<int>(data_files.deaths,',');
 	
 	//Uploading population per age group
 	//columns are for each individual Health Borad
 	//last column is for Scotland
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << data_source.data_files.ages << std::endl;
-	observations.age_pop = Utilities::read_csv<double>(data_source.data_files.ages,',');	
+	(*log) << "\t- " << data_files.ages << std::endl;
+	observations.age_pop = Utilities::read_csv<double>(data_files.ages,',');	
 	
 	//mean number of daily contacts per age group (overall)	
-	(*log) << "\t- " << data_source.data_files.waifw.norm << std::endl;
-	observations.waifw_norm = Utilities::read_csv<double>(data_source.data_files.waifw.norm,',');
+	(*log) << "\t- " << data_files.waifw.norm << std::endl;
+	observations.waifw_norm = Utilities::read_csv<double>(data_files.waifw.norm,',');
 
 	//mean number of daily contacts per age group (home only)		
-	(*log) << "\t- " << data_source.data_files.waifw.home << std::endl;
-	observations.waifw_home = Utilities::read_csv<double>(data_source.data_files.waifw.home,',');
+	(*log) << "\t- " << data_files.waifw.home << std::endl;
+	observations.waifw_home = Utilities::read_csv<double>(data_files.waifw.home,',');
 	
 	//mean number of daily contacts per age group (not school, not work)			
-	(*log) << "\t- " << data_source.data_files.waifw.sdist << std::endl;
-	observations.waifw_sdist = Utilities::read_csv<double>(data_source.data_files.waifw.sdist,',');	
+	(*log) << "\t- " << data_files.waifw.sdist << std::endl;
+	observations.waifw_sdist = Utilities::read_csv<double>(data_files.waifw.sdist,',');	
 	
 	//Upload cfr by age group
 	//col0: p_h: probability of hospitalisation
 	//col1: cfr: case fatality ratio
 	//col2: p_d: probability of death, given hospitalisation
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << data_source.data_files.cfr_byage << std::endl;
-	observations.cfr_byage = Utilities::read_csv<double>(data_source.data_files.cfr_byage,',');	
+	(*log) << "\t- " << data_files.cfr_byage << std::endl;
+	observations.cfr_byage = Utilities::read_csv<double>(data_files.cfr_byage,',');	
 		
 	//Upload frailty probability p_f by age group
 	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	//rows are for each individual Health Borad
 	//last row is for Scotland
-	(*log) << "\t- " << data_source.data_files.frail << std::endl;
-	observations.pf_pop = Utilities::read_csv<double>(data_source.data_files.frail,',');	
+	(*log) << "\t- " << data_files.frail << std::endl;
+	observations.pf_pop = Utilities::read_csv<double>(data_files.frail,',');	
 
 	return observations;
 }

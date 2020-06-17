@@ -30,7 +30,6 @@
 #include <iostream>
 #include <time.h>
 #include "ModelTypes.h"
-#include "IO.h"
 #include "Random.h"
 #include "DataSourcing.h"
 #include "ModelCommon.h"
@@ -54,42 +53,28 @@ int main(int argc, char** argv) {
 
     // Ordering of enum class SourceID important for this line as here we convert boolean isLocal to
     // the SourceID LOCAL/REMOTE
-    const DataSourcing::DataSource data_source = DataSourcing::getSource( DataSourcing::SourceID(arg_parser.runLocal()),
+    DataSourcing::DataSource data_source = DataSourcing::getSource( DataSourcing::SourceID(arg_parser.runLocal()),
+                                                                        logger,         
                                                                          arg_parser.localSourceDir() );
 
-
-    ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(data_source, logger);
-    arg_parser.AppendOptions(modelInputParameters);
-
-
-	(*logger) << "[Parameters File]:\n    " << data_source.data_files.parameters << std::endl;
-	
-    // Read prior particle parameters if run type is "Prediction"
-	if (modelInputParameters.run_type == ModelModeId::PREDICTION)
-	{
-		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(data_source, logger);
-		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
-	}
-
-	// Read in the observations
-	InputObservations observations = IO::ReadObservationsFromFiles(data_source, logger);
+    arg_parser.AppendOptions(data_source);
 
 	// Set up the random number generator, deciding what kind of seed to use
 	unsigned long randomiser_seed;
-	if (modelInputParameters.seedlist.use_fixed_seed) {
-		randomiser_seed = modelInputParameters.seedlist.seed_value;
+	if (data_source.getInputParameters().seedlist.use_fixed_seed) {
+		randomiser_seed = data_source.getInputParameters().seedlist.seed_value;
 	} else {
         randomiser_seed = time(nullptr);
 	}
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
 
 	(*logger) << "[Seed]:\n    Type: ";
-    (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
+    (*logger) << ((data_source.getInputParameters().seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
-    if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
+    if (ModelStructureId::ORIGINAL == data_source.getInputParameters().model_structure)
     {
         model = std::make_shared<Model::OriginalModel>(rng);
     }
@@ -99,9 +84,10 @@ int main(int argc, char** argv) {
     }
 
     // Select the mode to run in - prediction or inference    
-    if (modelInputParameters.run_type == ModelModeId::PREDICTION)
+    if (data_source.getInputParameters().run_type == ModelModeId::PREDICTION)
     {
-        Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, logger);
+        Prediction::PredictionFramework framework(model, data_source.getInputParameters(), data_source.getInputObservations(), 
+                                                    rng, logger);
 
         int n_sim_steps = 10;
         std::vector<double> parameter_set(8, 0.0);
@@ -110,7 +96,8 @@ int main(int argc, char** argv) {
     }
     else
     {
-        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, arg_parser.outputDir(), logger);
+        Inference::InferenceFramework framework(model, data_source.getInputParameters(), 
+                                                data_source.getInputObservations(), rng, arg_parser.outputDir(), logger);
         
         framework.Run();
     }

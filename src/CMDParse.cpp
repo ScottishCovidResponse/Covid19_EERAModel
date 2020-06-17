@@ -48,9 +48,13 @@ void EERAModel::ArgumentParser::logArguments(Utilities::logging_stream::Sptr log
     (*log) << "\t" << "Mode: " << ((_args.mode == ModelModeId::INFERENCE) ? "Inference" : "Prediction") << std::endl;
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
 }
-void EERAModel::ArgumentParser::AppendOptions(ModelInputParameters& input_params)
+void EERAModel::ArgumentParser::AppendOptions(DataSourcing::DataSource& data_source)
 {
-    input_params.model_structure = _args.stucture;
+    EERAModel::ModelInputParameters _temp = data_source.getInputParameters();
 
-    input_params.run_type = _args.mode;
+    _temp.model_structure = _args.stucture;
+
+    _temp.run_type = _args.mode;
+
+    data_source.setModelInputParameters(_temp);
 }

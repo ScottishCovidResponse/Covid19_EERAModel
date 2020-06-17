@@ -4,26 +4,31 @@ namespace EERAModel
 {
 namespace DataSourcing
 {
-DataSource Local(const std::string root_dir)
+void DataSource::Setup()
 {
-
-    return DataSource({
-        root_dir+"/parameters.ini",
-        root_dir+"/scot_data.csv",
-        root_dir+"/scot_deaths.csv",
-        root_dir+"/scot_age.csv",
-        {root_dir+"/waifw_norm.csv",
-            root_dir+"/waifw_home.csv",
-            root_dir+"/waifw_sdist.csv"},
-        root_dir+"/cfr_byage.csv",
-        root_dir+"/scot_frail.csv",
-        root_dir+"/src/prior_particle_params.csv"});
-
+    // Read prior particle parameters if run type is "Prediction"
+    if(_input_params.run_type == ModelModeId::PREDICTION)
+    {
+        _input_params.prior_param_list = _prior_params.prior_param_list;
+    }
 }
 
-const DataSource getSource(SourceID source_id, const std::string local_data_location)
+void LocalSource::_extract_data()
+{  
+    setModelInputParameters(IO::ReadParametersFromFile(_data_files, getLogger()));
+
+    // Read prior particle parameters if run type is "Prediction"
+    if(getInputParameters().run_type == ModelModeId::PREDICTION)
+    {
+        setPriors(IO::ReadPriorParametersFromFile(_data_files, getLogger()));
+    }
+
+    setInputObservations(IO::ReadObservationsFromFiles(_data_files, getLogger()));
+}
+
+const DataSource getSource(SourceID source_id, Utilities::logging_stream::Sptr log,  std::string local_data_location)
 {
-    return (source_id == SourceID::LOCAL) ? Local(local_data_location) : Remote;
+    return (source_id == SourceID::LOCAL) ? LocalSource(local_data_location, log) : Remote;
 }
 };
 };

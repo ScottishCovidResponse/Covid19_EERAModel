@@ -7,6 +7,7 @@
 
 #include "Utilities.h"
 #include "ModelTypes.h"
+#include "DataSourcing.h"
 
 #ifndef VERSION
 #error Macro VERSION must be defined!
@@ -58,7 +59,7 @@ namespace EERAModel
              * 
              * @param input_params model input parameter object to update
              */
-            void AppendOptions(ModelInputParameters& input_params);
+            void AppendOptions(DataSourcing::DataSource& data_source);
 
             bool runLocal() const {return _args.isLocal;}
             

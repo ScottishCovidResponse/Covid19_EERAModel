@@ -1,9 +1,10 @@
 #pragma once
 
+#include "IniFile.h"
 #include "ModelTypes.h"
-#include "DataSourcing.h"
 
 #include <string>
+#include <sstream>
 #include "Utilities.h"
 
 #ifndef ROOT_DIR
@@ -11,6 +12,10 @@
 #endif
 
 namespace EERAModel {
+namespace DataSourcing
+{
+	class LocalSource;
+}
 namespace IO {
 
 /**
@@ -20,10 +25,10 @@ namespace IO {
  * 
  * @return Model parameters
  */
-EERAModel::ModelInputParameters ReadParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
+EERAModel::ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log);
 
 
-EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
+EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read in observations
@@ -32,7 +37,7 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const DataSourcin
  * 
  * @return Observations
  */
-EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataSource& data_source, const Utilities::logging_stream::Sptr& log);
+EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief  Write outputs to files
