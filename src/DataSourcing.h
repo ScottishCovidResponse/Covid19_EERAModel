@@ -98,6 +98,11 @@ namespace DataSourcing
     {
        private:
             const DataFiles _data_files;
+            /**
+             * @brief Extracts the data using the IO library
+             * 
+             * Extract the data from local files using the EERAModel::IO library
+             */
             void _extract_data();
        public:
             /**
@@ -134,9 +139,27 @@ namespace DataSourcing
     };
 
     /**
-     * @brief Remote file source initialisation
+     * @brief Remote data source sub-class
+     * 
+     * This subclass of DataSource handles the procedure for processing
+     * and importing data from the API.
      */
-    const DataSource Remote({});
+    class Remote : public DataSource
+    {
+        private:
+            /**
+             * @brief Extracts the data from the API
+             * 
+             * Extract the data from the API
+             */
+            void _extract_data();
+        public:
+            Remote(Utilities::logging_stream::Sptr log) : DataSource(log)
+        {
+            _extract_data();
+            Setup();
+        }
+    };
 
     /**
      * @brief Selection of local or remote file source

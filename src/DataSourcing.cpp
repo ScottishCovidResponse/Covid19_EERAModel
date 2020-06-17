@@ -26,9 +26,14 @@ void LocalSource::_extract_data()
     setInputObservations(IO::ReadObservationsFromFiles(_data_files, getLogger()));
 }
 
+void Remote::_extract_data()
+{
+    /* Add API Retrieval Methods here.*/
+}
+
 const DataSource getSource(SourceID source_id, Utilities::logging_stream::Sptr log,  std::string local_data_location)
 {
-    return (source_id == SourceID::LOCAL) ? LocalSource(local_data_location, log) : Remote;
+    return (source_id == SourceID::LOCAL) ? DataSource(LocalSource(local_data_location, log)) : DataSource(Remote(log));
 }
 };
 };
