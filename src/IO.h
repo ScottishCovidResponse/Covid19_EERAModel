@@ -2,6 +2,7 @@
 
 #include "IniFile.h"
 #include "ModelTypes.h"
+#include "LocalFileStructure.h"
 
 #include <string>
 #include <sstream>
@@ -12,10 +13,7 @@
 #endif
 
 namespace EERAModel {
-namespace DataSourcing
-{
-	class LocalSource;
-}
+
 namespace IO {
 
 /**
