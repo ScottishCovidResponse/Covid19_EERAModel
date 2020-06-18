@@ -5,19 +5,7 @@
 #include <vector>
 #include <memory>
 
-/**
- * @brief Namespace for the EERA COVID-19 Model and member functions
- *
- * This namespace includes functions and variables used to access data,
- * initiate, run and evaluate the model.
- */
 namespace EERAModel {
-/**
- * @brief Namespace containing the model definitions and execution
- *
- * This namespace contains functions which run the model using the given
- * setup/parameters.
- */
 namespace Model {
 
 /**

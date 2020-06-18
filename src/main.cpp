@@ -35,6 +35,7 @@
 #include "ModelCommon.h"
 #include "OriginalModel.h"
 #include "IrishModel.h"
+#include "TempModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
 
@@ -84,10 +85,14 @@ int main() {
     {
         model = std::make_shared<Model::OriginalModel>(rng);
     }
-    else
+/*    else if(ModelStructureId::IRISH == modelInputParameters.model_structure)
     {
         model = std::make_shared<Model::IrishModel>(rng);
     }
+*/		else
+	{
+		model = std::make_shared<Model::TempModel>(rng);
+	}
 
     // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == "Prediction")

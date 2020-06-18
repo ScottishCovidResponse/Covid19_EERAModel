@@ -8,12 +8,6 @@
 #include "Random.h"
 
 namespace EERAModel {
-/**
- * @brief Namespace handling inference paramaters
- *
- * This namespace contains functions to manage and generate
- * inference parameter sets which setup the model behaviour.
- */
 namespace Inference {
 
 /**

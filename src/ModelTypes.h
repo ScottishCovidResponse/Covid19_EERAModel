@@ -53,7 +53,8 @@ struct seed {
 enum class ModelStructureId
 {
     ORIGINAL,
-    IRISH
+    IRISH,
+	TEMP
 };
 
 /**

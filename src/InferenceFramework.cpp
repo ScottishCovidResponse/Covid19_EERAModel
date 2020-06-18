@@ -52,8 +52,17 @@ void InferenceFramework::Run()
 	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
 		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
 	}
-    (*log_) << "    model structure: " << 
-        ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
+	
+	if (modelInputParameters_.model_structure == ModelStructureId::ORIGINAL){
+		(*log_) << "    model structure: Original" <<std::endl;
+	} else if(modelInputParameters_.model_structure == ModelStructureId::IRISH){
+		(*log_) << "    model structure: Irish"  <<std::endl;
+	} else {
+		(*log_) << "    model structure: Temporary" <<std::endl; 
+	}	
+	
+ //   (*log_) << "    model structure: " << 
+ //       ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish" << std::endl;
 
     (*log_) << "[Fixed parameter values]:\n";
 	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
@@ -210,7 +219,7 @@ void InferenceFramework::Run()
                 //if the particle agrees with the different criteria defined for each ABC-smc step
                 if (
                     acceptedParticleCount < modelInputParameters_.nParticalLimit &&
-                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
+//                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
                     outs_vec.nsse_deaths <= modelInputParameters_.toleranceLimit[smc]//*1.5
                     ) {				
                         //#pragma omp critical

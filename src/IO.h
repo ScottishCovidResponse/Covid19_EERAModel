@@ -10,12 +10,6 @@
 #endif
 
 namespace EERAModel {
-/**
- * @brief Namespace containing functions related to input/output of data
- *
- * This namespace contains functions which handle the reading of data from
- * various input files.
- */
 namespace IO {
 
 /**
