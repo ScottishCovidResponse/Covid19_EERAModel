@@ -25,10 +25,10 @@ namespace IO {
  * 
  * @return Model parameters
  */
-EERAModel::ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
 
-EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read in observations
@@ -37,7 +37,7 @@ EERAModel::PriorParticleParameters ReadPriorParametersFromFile(const std::string
  * 
  * @return Observations
  */
-EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
+InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief  Write outputs to files
@@ -52,6 +52,10 @@ EERAModel::InputObservations ReadObservationsFromFiles(const Utilities::logging_
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
 	const std::vector<EERAModel::particle>& particleList, const std::string& outDirPath,
 	const Utilities::logging_stream::Sptr& log);
+
+void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
+	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
+
 
 } // namespace IO
 } // namespace EERAModel

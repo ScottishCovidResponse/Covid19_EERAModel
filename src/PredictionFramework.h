@@ -30,6 +30,7 @@ public:
         const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
+        const std::string& outDir,
         Utilities::logging_stream::Sptr log);
 
     /**
@@ -64,29 +65,52 @@ private:
 
     /**
      * @private
+     * @brief Model input parameters
+     */
+    ModelInputParameters modelInputParameters_;
+
+    /**
+     * @private
+     * @brief Model input observations
+     */
+    InputObservations observations_;
+
+    /**
+     * @private
      * @brief TBC
      */
-    seed seedlist_;
+
+    int regionalPopulation_;
 
     /**
      * @private
-     * @brief Day at which the lockdown took effect
+     * @brief Number of health workers
      */
-    int dayShut_;
+    int healthCareWorkers_;
 
+    /**
+     * @private
+     * @brief Numbers inside each age group
+     */
     std::vector<int> ageNums_;
-
-    /**
-     * @private
-     * @brief Which model structure to use
-     */
-    ModelStructureId modelStructure_;
 
     /**
      * @private
      * @brief Random number generator
      */
     Random::RNGInterface::Sptr rng_;
+
+    /**
+     * @private
+     * @brief Outputs directory path
+     */
+    std::string outDir_;
+
+    /**
+     * @private
+     * @brief Logger
+     */
+    Utilities::logging_stream::Sptr log_;
 };
 
 } // namespace Prediction
