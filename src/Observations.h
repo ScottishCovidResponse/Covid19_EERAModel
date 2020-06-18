@@ -4,6 +4,12 @@
 #include <vector>
 
 namespace EERAModel {
+/**
+ * @brief Namespace holding objects and functions relating to observations
+ *
+ * This namespace contains structs and functions which handle the data
+ * read from data files, adjusting for different input structures.
+ */
 namespace Observations {
 
 /**
@@ -67,7 +73,7 @@ ObsSelect SelectObservations(
 	Utilities::logging_stream::Sptr log);
 
 /**
- * @brief Transform the timeseries of cummulative cases into incidence
+ * @brief Transform the timeseries of cumulative cases into incidence
  * 
  * A timeseries of cumulative cases represents the number of cases reported to exist at any given
  * time in the timeseries. The incidence represents the change in the number of cases between two
