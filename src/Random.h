@@ -5,6 +5,13 @@
 #include <gsl/gsl_rng.h>
 
 namespace EERAModel {
+/**
+ * @brief Namespace containing objects related to random number generation
+ *
+ * This namespace contains a wrapper interace to existing random number
+ * generation libraries in order for them to be used within all
+ * model functions.
+ */
 namespace Random {
 
 /**
