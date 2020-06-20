@@ -219,7 +219,7 @@ void InferenceFramework::Run()
                 //if the particle agrees with the different criteria defined for each ABC-smc step
                 if (
                     acceptedParticleCount < modelInputParameters_.nParticalLimit &&
-//                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
+                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
                     outs_vec.nsse_deaths <= modelInputParameters_.toleranceLimit[smc]//*1.5
                     ) {				
                         //#pragma omp critical
