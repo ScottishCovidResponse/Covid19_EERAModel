@@ -1,6 +1,5 @@
 #include "InferenceFramework.h"
 #include "Observations.h"
-#include "InferenceParameters.h"
 #include "IO.h"
 #include "FittingProcess.h"
 #include "ModelCommon.h"
@@ -130,8 +129,9 @@ void InferenceFramework::Run()
 
 	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/modelInputParameters_.tau));
 
-	//declare vectors of outputs/inputs for ABC process
-	std::vector<particle > particleList, particleList1;
+	// currentParticles is the list of particles accepted on the current ABC-smc loop
+    // previousParticles is the list accepted on the previous loop
+	std::vector<particle> currentParticles, previousParticles;
 
 	//initialise the number of accepted particles
 	int prevAcceptedParticleCount = 0;
@@ -156,16 +156,17 @@ void InferenceFramework::Run()
 		std::vector<double> vect_min(nInferenceParams, 0.0);
 		std::vector<double> vlimitKernel(nInferenceParams, 0.0);
 
-		if (smc > 0) {
+        
+        if (smc > 0) {
 			//update the vectors
-			particleList = particleList1;
-			particleList1.clear();
+			previousParticles = currentParticles;
+			currentParticles.clear();
 
-			ComputeKernelWindow(nInferenceParams, particleList, 
+			ComputeKernelWindow(nInferenceParams, previousParticles, 
 				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
-		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
+		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(previousParticles);
 
 	/*---------------------------------------
 	 * simulate the infection data set
@@ -200,7 +201,7 @@ void InferenceFramework::Run()
                     // and given their weight (also named "importance sampling")
 				    int pick_val = weight_distr(rng_->MT19937());
 				    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateWeighted(
-                        particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
+                        previousParticles[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
 				}
 
 				//run the model and compute the different measures for each potential parameters value
@@ -216,9 +217,9 @@ void InferenceFramework::Run()
                     if (ParticlePassesTolerances(outs_vec, smc)) {				
                         //#pragma omp critical
                         {
-                            FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
+                            FittingProcess::weight_calc(smc, prevAcceptedParticleCount, previousParticles, outs_vec, 
                                 vlimitKernel, nInferenceParams);
-                            particleList1.push_back(outs_vec);
+                            currentParticles.push_back(outs_vec);
                             ++acceptedParticleCount;
                             if (acceptedParticleCount % 10 == 0) (*log_) << "|" << std::flush;
                             //(*log_) << acceptedParticleCount << " " ;
@@ -254,7 +255,7 @@ void InferenceFramework::Run()
 		//break the ABC-smc at the step where no particles were accepted
 		if (prevAcceptedParticleCount > 0) {
 			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, prevAcceptedParticleCount,
-				nInferenceParams, particleList1, outDir_, log_);
+				nInferenceParams, currentParticles, outDir_, log_);
 		}
 	}
 

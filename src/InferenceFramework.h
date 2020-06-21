@@ -4,6 +4,7 @@
 #include "ModelTypes.h"
 #include "Random.h"
 #include "Utilities.h"
+#include "InferenceParameters.h"
 
 namespace EERAModel {
 namespace Inference {
