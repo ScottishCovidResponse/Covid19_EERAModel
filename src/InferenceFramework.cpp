@@ -70,36 +70,17 @@ void InferenceFramework::Run()
 	clock_t startTime = clock();
 	clock_t time_taken1=0;
 
-    (*log_) << "[Settings]:\n";
-	(*log_) << "    number of parameters tested: "<< nInferenceParams << std::endl;
-    (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
-	if (modelInputParameters_.seedlist.seedmethod == "random"){
-		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
-	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
-		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
-	}
-    (*log_) << "    model structure: " << 
-        ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
+    logSettings(modelInputParameters_, log_);
+    logFixedParameters(modelInputParameters_, log_);
 
-    (*log_) << "[Fixed parameter values]:\n";
-	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
-	(*log_) << "    pre-clinical period (theta_i): " << modelInputParameters_.paramlist.T_inf <<std::endl;
-	(*log_) << "    asymptomatic period (theta_r): " << modelInputParameters_.paramlist.T_rec <<std::endl;
-	(*log_) << "    symptomatic period (theta_s): " << modelInputParameters_.paramlist.T_sym <<std::endl;
-	(*log_) << "    hospitalisation stay (theta_h): " << modelInputParameters_.paramlist.T_hos <<std::endl;
-	(*log_) << "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters_.paramlist.juvp_s <<std::endl;
-	(*log_) << "    bed capacity at hospital (K): " << modelInputParameters_.paramlist.K <<std::endl;
-	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
-	
 	//keep information for the health board if interest
 	const std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
 
 	const AgeGroupData per_age_data = {observations_.waifw_norm, observations_.waifw_home, observations_.waifw_sdist, 
 										observations_.cfr_byage, pf_byage};
 
-	//create vector of fixed parameters		
-	std::vector<params> fixed_parameters = Model::BuildFixedParameters(observations_.waifw_norm.size(),
-        modelInputParameters_.paramlist);
+	std::vector<params> fixed_parameters = Model::BuildFixedParameters(
+        observations_.waifw_norm.size(), modelInputParameters_.paramlist);
     
 	const int time_back = GetTimeOffSet(modelInputParameters_);
 
@@ -179,14 +160,10 @@ void InferenceFramework::Run()
 				//declare and initialise output variables
 				particle outs_vec;
 				outs_vec.iter = sim;				
-//				outs_vec.sum_sq = 1.e06;
-				for (int i{0}; i < nInferenceParams; ++i) {
-					outs_vec.parameter_set.push_back(0.0);
-				}
-				//pick the values of each particles
-				if (smc==0) {
-					//pick randomly and uniformly parameters' value from priors
 
+				//pick the values of each particles
+				if (smc == 0) {
+					//pick randomly and uniformly parameters' value from priors
                     outs_vec.parameter_set = inferenceParameterGenerator_->GenerateInitial();
 					
 				} else {
@@ -231,18 +208,12 @@ void InferenceFramework::Run()
 			time_taken1 = clock();
 		}
 
-		/*---------------------------------------
-		 * Outputs
-		 *---------------------------------------*/
-		// Output on screen of the number of accepted particles, 
-		// the number of simulations and the computation time at each step
 		(*log_) << "\nStep:" << smc
 			<< ", <number of accepted particles> " << currentParticles.size()
 			<< "; <number of simulations> " << nsim_count
 			<< "; <computation time> " <<  time_taken
 			<< " seconds.\n";
 
-		//break the ABC-smc at the step where no particles were accepted
 		if (currentParticles.size() > 0) {
 			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, currentParticles.size(),
 				nInferenceParams, currentParticles, outDir_, log_);
@@ -377,6 +348,33 @@ std::discrete_distribution<int> ComputeWeightDistribution(
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
+}
+
+void logSettings(const ModelInputParameters& params, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Settings]:\n";
+	(*log) << "    number of parameters tested: "<< params.nPar << std::endl;
+    (*log) << "    seeding method: "<< params.seedlist.seedmethod<<  std::endl;
+	if (params.seedlist.seedmethod == "random"){
+		(*log) << "    number of seed: " << params.seedlist.nseed << std::endl;
+	} else if(params.seedlist.seedmethod == "background"){
+		(*log) << "    duration of the high risk period (hrp): " << params.seedlist.hrp << std::endl;
+	}
+    (*log) << "    model structure: " << 
+        ((params.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
+}
+
+void logFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Fixed parameter values]:\n";
+	(*log) << "    latent period (theta_l): " << params.paramlist.T_lat <<std::endl;
+	(*log) << "    pre-clinical period (theta_i): " << params.paramlist.T_inf <<std::endl;
+	(*log) << "    asymptomatic period (theta_r): " << params.paramlist.T_rec <<std::endl;
+	(*log) << "    symptomatic period (theta_s): " << params.paramlist.T_sym <<std::endl;
+	(*log) << "    hospitalisation stay (theta_h): " << params.paramlist.T_hos <<std::endl;
+	(*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << params.paramlist.juvp_s <<std::endl;
+	(*log) << "    bed capacity at hospital (K): " << params.paramlist.K <<std::endl;
+	(*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
 }
 
 } // namespace Inference

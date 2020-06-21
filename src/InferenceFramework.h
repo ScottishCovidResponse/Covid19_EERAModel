@@ -183,6 +183,21 @@ void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
 std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList);
 
+/**
+ * @brief Log the model settings
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void logSettings(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Log the model fixed parameters
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void logFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
 
 } // namespace Inference
 } // namespace EERAModel
