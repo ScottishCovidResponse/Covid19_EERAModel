@@ -210,14 +210,8 @@ void InferenceFramework::Run()
                     if (ParticlePassesTolerances(outs_vec, smc)) {				
                         //#pragma omp critical
                         {
-                            if (smc == 0)
-                            {
-                                outs_vec.weight = 1;
-                            }
-                            else
-                            {
-                                ComputeParticleWeight(previousParticles, outs_vec, vlimitKernel);
-                            }
+                            outs_vec.weight = ComputeParticleWeight(smc, previousParticles, outs_vec, vlimitKernel);
+
                             currentParticles.push_back(outs_vec);
                             
                             if (currentParticles.size() % 10 == 0) (*log_) << "|" << std::flush;
@@ -315,34 +309,43 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	outvec.end_comps = Model::compartments_to_vector(status.ends);
 }
 
-void InferenceFramework::ComputeParticleWeight(std::vector<EERAModel::particle> pastPart,
-	EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel) {
+double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& pastPart,
+	const EERAModel::particle& currentPart, const std::vector<double>& vlimitKernel) {
 
+    double weight;
+    
     int pastNpart = pastPart.size();
     unsigned int nPar = vlimitKernel.size();
     double denom = 0;
-    for (int jj = 0; jj < pastNpart; ++jj) {
-        int rval_dist=0;
-        double m = 0.0;
-        //for each parameter of each particle
-        for (int ii = 0; ii < nPar; ++ii) {
-            //compute the distance between the jjth previous particle and the chosen particle for the iith parameters
-            m= std::fabs(currentPart.parameter_set[ii] - pastPart[jj].parameter_set[ii]);
-            //add 1 to rval_dist if iith parameter is within the range of the corresponding parameters of the jjth particle
-            if(m <= vlimitKernel[ii]){
-                ++rval_dist;
+    
+    if (smc == 0) {
+        weight = 1.0;
+    } else {
+        for (int jj = 0; jj < pastNpart; ++jj) {
+            int rval_dist=0;
+            double m = 0.0;
+            //for each parameter of each particle
+            for (int ii = 0; ii < nPar; ++ii) {
+                //compute the distance between the jjth previous particle and the chosen particle for the iith parameters
+                m= std::fabs(currentPart.parameter_set[ii] - pastPart[jj].parameter_set[ii]);
+                //add 1 to rval_dist if iith parameter is within the range of the corresponding parameters of the jjth particle
+                if(m <= vlimitKernel[ii]){
+                    ++rval_dist;
+                }
+            }
+            //if all values of parameter of the particle are within the range of perturbation of all parameters of a given source particle
+            if(rval_dist==nPar){
+                //add the weight of this particle to denom
+                denom += pastPart[jj].weight;
             }
         }
-        //if all values of parameter of the particle are within the range of perturbation of all parameters of a given source particle
-        if(rval_dist==nPar){
-            //add the weight of this particle to denom
-            denom += pastPart[jj].weight;
-        }
+
+        if(denom == 0) denom = 1.0 ;
+        //the weight of each particle is 1 over the sum of the weights from the particles at s-1 that may generate this particle
+        weight = 1.0 / denom;
     }
 
-    if(denom == 0) denom = 1.0 ;
-    //the weight of each particle is 1 over the sum of the weights from the particles at s-1 that may generate this particle
-    currentPart.weight = 1.0 / denom;
+    return weight;
 }
 
 void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
