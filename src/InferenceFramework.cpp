@@ -21,7 +21,8 @@ InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
       observations_(observations),
       rng_(rng),
       outDir_(outDir),
-      log_(log) {}
+      log_(log),
+      toleranceLimits_(modelInputParameters.toleranceLimit) {}
 
 int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
 {
@@ -206,15 +207,12 @@ void InferenceFramework::Run()
 							agenums, n_sim_steps, modelInputParameters_.seedlist,
 							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
-                //count the number of simulations that were used to reach the maximum number of accepted particles
-                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) ++nsim_count;
-                
-                //if the particle agrees with the different criteria defined for each ABC-smc step
-                if (
-                    acceptedParticleCount < modelInputParameters_.nParticalLimit &&
-                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
-                    outs_vec.nsse_deaths <= modelInputParameters_.toleranceLimit[smc]//*1.5
-                    ) {				
+                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) {
+                    //count the number of simulations that were used to reach the maximum number of accepted particles
+                    ++nsim_count;
+
+                    // Record the particle if it passes the tolerance criteria
+                    if (ParticlePassesTolerances(outs_vec, smc)) {				
                         //#pragma omp critical
                         {
                             FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
@@ -224,8 +222,8 @@ void InferenceFramework::Run()
                             if (acceptedParticleCount % 10 == 0) (*log_) << "|" << std::flush;
                             //(*log_) << acceptedParticleCount << " " ;
                         }
-						
-				}			
+                    }
+                }			
 			}
 		}
 
@@ -261,6 +259,10 @@ void InferenceFramework::Run()
 
 	//output on screen the overall computation time
 	(*log_) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
+}
+
+bool InferenceFramework::ParticlePassesTolerances(const particle& p, int smc) {
+    return p.nsse_cases <= toleranceLimits_[smc] && p.nsse_deaths <= toleranceLimits_[smc];
 }
 
 void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,

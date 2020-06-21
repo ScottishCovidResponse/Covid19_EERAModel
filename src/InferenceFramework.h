@@ -58,6 +58,24 @@ private:
     void ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
 	    const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
 	    seed seedlist, int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths);
+
+    /**
+     * @private
+     * @brief Check if an inference particle passes the tolerance limits
+     * 
+     * A particle passes the tolerance limits if:
+     *   - The sum of squared errors (SSE) between the observed and simulated hospitalisations
+     * is less than the configured tolerance limit for the given @p smc step
+     *   - The sum of squared errors between the observed and simulated deaths is less than the
+     * configured tolerance limit for the given @p smc step
+     * 
+     * @param p Particle under consideration
+     * @param smc NUmber of the inference step ongoing
+     * 
+     * @return True if the particle passes the tolerance limits; otherwise false
+     */
+    bool ParticlePassesTolerances(const particle& p, int smc);
+    
     /**
      * @private
      * @brief Model interface
@@ -93,6 +111,12 @@ private:
      * @brief Logger
      */
     Utilities::logging_stream::Sptr log_;
+
+    /**
+     * @private
+     * @brief Tolerance limits for accepting particles
+     */
+    std::vector<double> toleranceLimits_;
 };
 
 /**
