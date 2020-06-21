@@ -132,9 +132,6 @@ void InferenceFramework::Run()
     // previousParticles is the list accepted on the previous loop
 	std::vector<particle> currentParticles, previousParticles;
 
-	//initialise the number of accepted particles
-	int prevAcceptedParticleCount = 0;
-
 	/*--------------------------------------
 	 * abc-smc loop
 	 *-------------------------------------*/
@@ -146,9 +143,6 @@ void InferenceFramework::Run()
 
 		//initialise the counter for the number of simulation prior maximum particle is reached
 		int nsim_count = 0;
-
-		//initialise the number of accepted particles
-		int acceptedParticleCount = 0;
 
 		//initialise the weight and particle lists
 		std::vector<double> vect_Max(nInferenceParams, 0.0);
@@ -177,7 +171,7 @@ void InferenceFramework::Run()
 			//#pragma omp flush (aborting)
 			if (!aborting) {
 				//Update progress
-				if (acceptedParticleCount >= modelInputParameters_.nParticalLimit) {
+				if (currentParticles.size() >= modelInputParameters_.nParticalLimit) {
 					aborting = true;
 					//#pragma omp flush (aborting)
 				}
@@ -208,7 +202,7 @@ void InferenceFramework::Run()
 							agenums, n_sim_steps, modelInputParameters_.seedlist,
 							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
-                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) {
+                if (currentParticles.size() < modelInputParameters_.nParticalLimit) {
                     //count the number of simulations that were used to reach the maximum number of accepted particles
                     ++nsim_count;
 
@@ -225,16 +219,13 @@ void InferenceFramework::Run()
                                 ComputeParticleWeight(previousParticles, outs_vec, vlimitKernel);
                             }
                             currentParticles.push_back(outs_vec);
-                            ++acceptedParticleCount;
                             
-                            if (acceptedParticleCount % 10 == 0) (*log_) << "|" << std::flush;
+                            if (currentParticles.size() % 10 == 0) (*log_) << "|" << std::flush;
                         }
                     }
                 }			
 			}
 		}
-
-		prevAcceptedParticleCount = acceptedParticleCount;
 
 		//time taken per step
 		double time_taken;
@@ -252,14 +243,14 @@ void InferenceFramework::Run()
 		// Output on screen of the number of accepted particles, 
 		// the number of simulations and the computation time at each step
 		(*log_) << "\nStep:" << smc
-			<< ", <number of accepted particles> " << prevAcceptedParticleCount
+			<< ", <number of accepted particles> " << currentParticles.size()
 			<< "; <number of simulations> " << nsim_count
 			<< "; <computation time> " <<  time_taken
 			<< " seconds.\n";
 
 		//break the ABC-smc at the step where no particles were accepted
-		if (prevAcceptedParticleCount > 0) {
-			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, prevAcceptedParticleCount,
+		if (currentParticles.size() > 0) {
+			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, currentParticles.size(),
 				nInferenceParams, currentParticles, outDir_, log_);
 		}
 	}
