@@ -22,7 +22,31 @@ InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
       rng_(rng),
       outDir_(outDir),
       log_(log),
-      toleranceLimits_(modelInputParameters.toleranceLimit) {}
+      toleranceLimits_(modelInputParameters.toleranceLimit) {
+    
+    std::vector<double> flag1 = {
+		modelInputParameters.prior_pinf_shape1,
+	 	modelInputParameters.prior_phcw_shape1,
+		modelInputParameters.prior_chcw_mean, 
+		modelInputParameters.prior_d_shape1, 
+		modelInputParameters.prior_q_shape1,
+		modelInputParameters.prior_ps_shape1,
+		modelInputParameters.prior_rrd_shape1,		
+		modelInputParameters.prior_lambda_shape1
+	};	
+	std::vector<double> flag2 = {
+		modelInputParameters.prior_pinf_shape2, 
+		modelInputParameters.prior_phcw_shape2, 
+		modelInputParameters.prior_chcw_mean, 
+		modelInputParameters.prior_d_shape2, 
+		modelInputParameters.prior_q_shape2,
+		modelInputParameters.prior_ps_shape2,
+		modelInputParameters.prior_rrd_shape2,		
+		modelInputParameters.prior_lambda_shape2
+	};
+
+    inferenceParameterGenerator_ = std::make_shared<InferenceParameterGenerator>(rng, flag1, flag2);
+}
 
 int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
 {
@@ -105,29 +129,6 @@ void InferenceFramework::Run()
 	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
 
 	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/modelInputParameters_.tau));
-	
-	const std::vector<double> flag1 = {
-		modelInputParameters_.prior_pinf_shape1,
-	 	modelInputParameters_.prior_phcw_shape1,
-		modelInputParameters_.prior_chcw_mean, 
-		modelInputParameters_.prior_d_shape1, 
-		modelInputParameters_.prior_q_shape1,
-		modelInputParameters_.prior_ps_shape1,
-		modelInputParameters_.prior_rrd_shape1,		
-		modelInputParameters_.prior_lambda_shape1
-	};	
-	const std::vector<double> flag2 = {
-		modelInputParameters_.prior_pinf_shape2, 
-		modelInputParameters_.prior_phcw_shape2, 
-		modelInputParameters_.prior_chcw_mean, 
-		modelInputParameters_.prior_d_shape2, 
-		modelInputParameters_.prior_q_shape2,
-		modelInputParameters_.prior_ps_shape2,
-		modelInputParameters_.prior_rrd_shape2,		
-		modelInputParameters_.prior_lambda_shape2
-	};
-
-    InferenceParameterGenerator inferenceParameterGenerator(rng_, flag1, flag2);
 
 	//declare vectors of outputs/inputs for ABC process
 	std::vector<particle > particleList, particleList1;
@@ -192,13 +193,13 @@ void InferenceFramework::Run()
 				if (smc==0) {
 					//pick randomly and uniformly parameters' value from priors
 
-                    outs_vec.parameter_set = inferenceParameterGenerator.GenerateInitial();
+                    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateInitial();
 					
 				} else {
 					// sample 1 particle from the previously accepted particles
                     // and given their weight (also named "importance sampling")
 				    int pick_val = weight_distr(rng_->MT19937());
-				    outs_vec.parameter_set = inferenceParameterGenerator.GenerateWeighted(
+				    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateWeighted(
                         particleList[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
 				}
 

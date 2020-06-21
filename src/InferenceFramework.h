@@ -117,6 +117,12 @@ private:
      * @brief Tolerance limits for accepting particles
      */
     std::vector<double> toleranceLimits_;
+
+    /**
+     * @private
+     * Inference parameter generator
+     */
+    InferenceParameterGenerator::Sptr inferenceParameterGenerator_;
 };
 
 /**
