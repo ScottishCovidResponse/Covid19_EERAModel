@@ -82,8 +82,8 @@ private:
      * @brief Compute the weight of a particle
      * 
      */
-    void ComputeParticleWeight(int smc,int pastNpart, std::vector<::EERAModel::particle> pastPart,
-	    EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel, int nPar);
+    void ComputeParticleWeight(std::vector<::EERAModel::particle> pastPart,
+	    EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel);
     
     /**
      * @private
