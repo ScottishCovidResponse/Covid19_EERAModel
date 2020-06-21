@@ -76,6 +76,14 @@ private:
      * @return True if the particle passes the tolerance limits; otherwise false
      */
     bool ParticlePassesTolerances(const particle& p, int smc);
+
+    /**
+     * @private
+     * @brief Compute the weight of a particle
+     * 
+     */
+    void ComputeParticleWeight(int smc,int pastNpart, std::vector<::EERAModel::particle> pastPart,
+	    EERAModel::particle &currentPart, const std::vector<double>& vlimitKernel, int nPar);
     
     /**
      * @private
