@@ -309,43 +309,43 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	outvec.end_comps = Model::compartments_to_vector(status.ends);
 }
 
-double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& pastPart,
-	const EERAModel::particle& currentPart, const std::vector<double>& vlimitKernel) {
+double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& previousParticles,
+	const particle& currentParticle, const std::vector<double>& vlimitKernel) {
 
-    double weight;
-    
-    int pastNpart = pastPart.size();
-    unsigned int nPar = vlimitKernel.size();
-    double denom = 0;
-    
-    if (smc == 0) {
-        weight = 1.0;
-    } else {
-        for (int jj = 0; jj < pastNpart; ++jj) {
-            int rval_dist=0;
-            double m = 0.0;
-            //for each parameter of each particle
-            for (int ii = 0; ii < nPar; ++ii) {
-                //compute the distance between the jjth previous particle and the chosen particle for the iith parameters
-                m= std::fabs(currentPart.parameter_set[ii] - pastPart[jj].parameter_set[ii]);
-                //add 1 to rval_dist if iith parameter is within the range of the corresponding parameters of the jjth particle
-                if(m <= vlimitKernel[ii]){
-                    ++rval_dist;
-                }
-            }
-            //if all values of parameter of the particle are within the range of perturbation of all parameters of a given source particle
-            if(rval_dist==nPar){
-                //add the weight of this particle to denom
-                denom += pastPart[jj].weight;
-            }
+    double weight = 1.0;
+       
+    if (smc > 0) 
+    {
+        double denom = 0;
+        
+        for (const auto& previousParticle : previousParticles) 
+        {
+            if (ParticlesAreClose(currentParticle, previousParticle, vlimitKernel))
+                denom += previousParticle.weight;
         }
 
-        if(denom == 0) denom = 1.0 ;
-        //the weight of each particle is 1 over the sum of the weights from the particles at s-1 that may generate this particle
+        if (denom == 0) 
+            denom = 1.0;
+        
         weight = 1.0 / denom;
     }
 
     return weight;
+}
+
+bool InferenceFramework::ParticlesAreClose(const particle& first, const particle& second,
+    const std::vector<double>& vlimitKernel) {
+       
+    bool close = true;
+    for (unsigned int i = 0; i < first.parameter_set.size(); ++i) 
+    {
+        double distance = std::fabs(first.parameter_set[i] - second.parameter_set[i]);
+        
+        if (distance > vlimitKernel[i]) 
+            close = false;
+    }
+
+    return close;
 }
 
 void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
