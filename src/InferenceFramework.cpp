@@ -45,6 +45,9 @@ InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
 	};
 
     inferenceParameterGenerator_ = std::make_shared<InferenceParameterGenerator>(rng, flag1, flag2);
+
+    inferenceParticleGenerator_ = std::make_shared<InferenceParticleGenerator>(
+        static_cast<unsigned int>(modelInputParameters_.nPar), modelInputParameters.kernelFactor, rng);
 }
 
 int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
@@ -126,19 +129,12 @@ void InferenceFramework::Run()
 		//initialise the counter for the number of simulation prior maximum particle is reached
 		int nsim_count = 0;
 
-		//initialise the weight and particle lists
-		std::vector<KernelWindow> kernelWindows;
-        
         if (smc > 0) {
-			//update the vectors
 			previousParticles = currentParticles;
 			currentParticles.clear();
 
-			kernelWindows = ComputeKernelWindow(nInferenceParams, previousParticles, 
-				modelInputParameters_.kernelFactor);
+            inferenceParticleGenerator_->Update(previousParticles);
 		}
-
-		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(previousParticles);
 
 	/*---------------------------------------
 	 * simulate the infection data set
@@ -155,25 +151,12 @@ void InferenceFramework::Run()
 					//#pragma omp flush (aborting)
 				}
 
-				//declare and initialise output variables
-				particle outs_vec;
-				outs_vec.iter = sim;				
-
-				//pick the values of each particles
-				if (smc == 0) {
-					//pick randomly and uniformly parameters' value from priors
-                    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateInitial();
-					
-				} else {
-					// sample 1 particle from the previously accepted particles
-                    // and given their weight (also named "importance sampling")
-				    int pick_val = weight_distr(rng_->MT19937());
-				    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateWeighted(
-                        previousParticles[pick_val].parameter_set, kernelWindows);
-				}
+				// Generate a new inference particle
+				particle par = inferenceParticleGenerator_->GenerateNew(smc, sim,
+                    inferenceParameterGenerator_, previousParticles);
 
 				//run the model and compute the different measures for each potential parameters value
-				ModelSelect(outs_vec, fixed_parameters, per_age_data,
+				ModelSelect(par, fixed_parameters, per_age_data,
 							agenums, n_sim_steps, modelInputParameters_.seedlist,
 							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
@@ -182,12 +165,13 @@ void InferenceFramework::Run()
                     ++nsim_count;
 
                     // Record the particle if it passes the tolerance criteria
-                    if (ParticlePassesTolerances(outs_vec, smc)) {				
+                    if (ParticlePassesTolerances(par, smc)) {				
                         //#pragma omp critical
                         {
-                            outs_vec.weight = ComputeParticleWeight(smc, previousParticles, outs_vec, kernelWindows);
+                            par.weight = ComputeParticleWeight(smc, previousParticles,
+                                par, inferenceParticleGenerator_->KernelWindows());
 
-                            currentParticles.push_back(outs_vec);
+                            currentParticles.push_back(par);
                             
                             if (currentParticles.size() % 10 == 0) (*log_) << "|" << std::flush;
                         }
@@ -375,6 +359,35 @@ void logFixedParameters(const ModelInputParameters& params, Utilities::logging_s
 	(*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << params.paramlist.juvp_s <<std::endl;
 	(*log) << "    bed capacity at hospital (K): " << params.paramlist.K <<std::endl;
 	(*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
+}
+
+InferenceParticleGenerator::InferenceParticleGenerator(unsigned int nInferenceParams, double kernelFactor,
+        Random::RNGInterface::Sptr rng)
+         : nInferenceParams_(nInferenceParams),
+           kernelFactor_(kernelFactor),
+           rng_(rng) {}
+
+void InferenceParticleGenerator::Update(std::vector<particle> particles)
+{
+    kernelWindows_ = ComputeKernelWindow(nInferenceParams_, particles, kernelFactor_);
+    weightDistribution_ = ComputeWeightDistribution(particles);
+}
+
+particle InferenceParticleGenerator::GenerateNew(int smc, int sim,
+    InferenceParameterGenerator::Sptr parameterGenerator, const std::vector<particle>& previousParticles) 
+{
+    particle par;
+    par.iter = sim;	
+
+    if (smc > 0) {
+        int pick_val = weightDistribution_(rng_->MT19937());
+        par.parameter_set = parameterGenerator->GenerateWeighted(
+            previousParticles[pick_val].parameter_set, kernelWindows_);
+    } else {
+        par.parameter_set = parameterGenerator->GenerateInitial();
+    }
+
+    return par;
 }
 
 } // namespace Inference

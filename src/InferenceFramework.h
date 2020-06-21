@@ -10,6 +10,78 @@ namespace EERAModel {
 namespace Inference {
 
 /**
+ * @class InferenceParticleGenerator
+ * @brief Generate inference particles on demand
+ */
+class InferenceParticleGenerator
+{
+public:
+    using Sptr = std::shared_ptr<InferenceParticleGenerator>;
+    
+    /**
+     * @brief Constructor
+     * 
+     * @param nInferenceParams Number of inference parameters in each particle
+     * @param kernelFactor Configuration factor for the parameter kernels
+     * @param rng Seeded random number generator
+     */
+    InferenceParticleGenerator(unsigned int nInferenceParams, double kernelFactor,
+        Random::RNGInterface::Sptr rng);
+
+    /**
+     * @brief Update the generator
+     * 
+     * On each loop of the ABC-smc framework, a new collection of particles is accepted by the 
+     * framework and recorded. This function should be called with the new set of particles, updating
+     * its internal weight distribution and kernel windows for the inference parameters
+     * 
+     * @param particles List of particles accepted on the last ABC-smc loop
+     */
+    void Update(std::vector<particle> particles);
+
+    /**
+     * @brief Generate a new inference particle
+     * 
+     * @param smc Inference loop number
+     * @param sim Simulation loop number
+     * @param inferenceParameterGenerator Parameter generator for th inference framework
+     * @param previousParticles Previously accepted inference particles
+     */
+    particle GenerateNew(int smc, int sim, InferenceParameterGenerator::Sptr parameterGenerator,
+      const std::vector<particle>& previousParticles);
+
+    /**
+     * @brief Get the current kernel windows
+     * 
+     * @return Const reference to the current set of kerenl windows
+     */
+    const std::vector<KernelWindow> KernelWindows() const { return kernelWindows_; }
+
+private:
+    /**
+     * @private
+     * @brief NUmber of inference parameters to generate in each particle
+     */
+    unsigned int nInferenceParams_;
+
+    double kernelFactor_;
+
+    Random::RNGInterface::Sptr rng_;
+    
+    /**
+     * @private
+     * @brief Kernel windows for accepted particles
+     */
+    std::vector<KernelWindow> kernelWindows_;
+    
+    /**
+     * @private
+     * @brief Distribution of accepted particles
+     */
+    std::discrete_distribution<int> weightDistribution_;
+};
+
+/**
  * @class InferenceFramework
  * @brief Parameter inference framework
  */
@@ -166,6 +238,8 @@ private:
      * Inference parameter generator
      */
     InferenceParameterGenerator::Sptr inferenceParameterGenerator_;
+
+    InferenceParticleGenerator:: Sptr inferenceParticleGenerator_;
 };
 
 /**
