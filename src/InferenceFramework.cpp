@@ -4,6 +4,7 @@
 #include "ModelCommon.h"
 #include <functional>
 #include <algorithm>
+#include <cmath>
 
 namespace EERAModel {
 namespace Inference {
@@ -126,18 +127,15 @@ void InferenceFramework::Run()
 		int nsim_count = 0;
 
 		//initialise the weight and particle lists
-		std::vector<double> vect_Max(nInferenceParams, 0.0);
-		std::vector<double> vect_min(nInferenceParams, 0.0);
-		std::vector<double> vlimitKernel(nInferenceParams, 0.0);
-
+		std::vector<KernelWindow> kernelWindows;
         
         if (smc > 0) {
 			//update the vectors
 			previousParticles = currentParticles;
 			currentParticles.clear();
 
-			ComputeKernelWindow(nInferenceParams, previousParticles, 
-				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
+			kernelWindows = ComputeKernelWindow(nInferenceParams, previousParticles, 
+				modelInputParameters_.kernelFactor);
 		}
 
 		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(previousParticles);
@@ -171,7 +169,7 @@ void InferenceFramework::Run()
                     // and given their weight (also named "importance sampling")
 				    int pick_val = weight_distr(rng_->MT19937());
 				    outs_vec.parameter_set = inferenceParameterGenerator_->GenerateWeighted(
-                        previousParticles[pick_val].parameter_set, vlimitKernel, vect_Max, vect_min);
+                        previousParticles[pick_val].parameter_set, kernelWindows);
 				}
 
 				//run the model and compute the different measures for each potential parameters value
@@ -187,7 +185,7 @@ void InferenceFramework::Run()
                     if (ParticlePassesTolerances(outs_vec, smc)) {				
                         //#pragma omp critical
                         {
-                            outs_vec.weight = ComputeParticleWeight(smc, previousParticles, outs_vec, vlimitKernel);
+                            outs_vec.weight = ComputeParticleWeight(smc, previousParticles, outs_vec, kernelWindows);
 
                             currentParticles.push_back(outs_vec);
                             
@@ -281,7 +279,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 }
 
 double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& previousParticles,
-	const particle& currentParticle, const std::vector<double>& vlimitKernel) {
+	const particle& currentParticle, const std::vector<KernelWindow> kernelWindows) {
 
     double weight = 1.0;
        
@@ -291,7 +289,7 @@ double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERA
         
         for (const auto& previousParticle : previousParticles) 
         {
-            if (ParticlesAreClose(currentParticle, previousParticle, vlimitKernel))
+            if (ParticlesAreClose(currentParticle, previousParticle, kernelWindows))
                 denom += previousParticle.weight;
         }
 
@@ -305,38 +303,40 @@ double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERA
 }
 
 bool InferenceFramework::ParticlesAreClose(const particle& first, const particle& second,
-    const std::vector<double>& vlimitKernel) {
+    const std::vector<KernelWindow> kernelWindows) {
        
     bool close = true;
     for (unsigned int i = 0; i < first.parameter_set.size(); ++i) 
     {
         double distance = std::fabs(first.parameter_set[i] - second.parameter_set[i]);
         
-        if (distance > vlimitKernel[i]) 
+        if (distance > kernelWindows[i].kernel) 
             close = false;
     }
 
     return close;
 }
 
-void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, double kernelFactor,
-	std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, std::vector<double>& vect_Min) {
+std::vector<KernelWindow> ComputeKernelWindow(int nPar, const std::vector<particle>& particles, double kernelFactor) {
 
-	//compute the kernel window
-	for (int i{0}; i < nPar; ++i) {
-		
+    std::vector<KernelWindow> kernelWindows(nPar);
+
+	for (int i = 0; i < nPar; ++i) 
+    {	
 		std::function<bool(particle, particle)> compare = 
 			[&i](particle a , particle b) { return a.parameter_set[i] < b.parameter_set[i]; };
 
-		particle valMax1 = *std::max_element(particleList.begin(), particleList.end(), compare);
+		particle max = *std::max_element(particles.begin(), particles.end(), compare);
 		
-		particle valmin1 = *std::min_element(particleList.begin(), particleList.end(), compare);
+		particle min = *std::min_element(particles.begin(), particles.end(), compare);
 
-		vect_Max[i] = valMax1.parameter_set[i];
-		vect_Min[i] = valmin1.parameter_set[i];
+		kernelWindows[i].max = max.parameter_set[i];
+		kernelWindows[i].min = min.parameter_set[i];
 		
-		vlimitKernel[i] = kernelFactor * fabs(vect_Max[i] - vect_Min[i]);
-	}	
+		kernelWindows[i].kernel = kernelFactor * std::fabs(kernelWindows[i].max - kernelWindows[i].min);
+	}
+
+    return kernelWindows;
 }
 
 std::discrete_distribution<int> ComputeWeightDistribution(

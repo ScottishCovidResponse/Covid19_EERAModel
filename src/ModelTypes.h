@@ -181,4 +181,15 @@ struct InfectionState
 	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
 };
 
+/**
+ * @class KernelWindow
+ * @brief Struct representing the kernel window for a given inference parameter
+ */
+struct KernelWindow 
+{
+    double kernel;
+    double max;
+    double min;    
+};
+
 } // namespace EERAModel

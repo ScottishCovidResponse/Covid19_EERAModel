@@ -15,7 +15,7 @@ namespace Inference {
  */
 class InferenceFramework
 {
-public:
+public:    
     /**
      * @brief Framework constructor
      *
@@ -86,10 +86,10 @@ private:
      * @param smc ABC-smc loop number
      * @param previousParticles Previously accepted particles
      * @param currentParticle Particle for which we wna tot compute the weight
-     * @param vlimitKernel Particle perturbation kernel
+     * @param kernelWindows Kernel windows for the inference parameters in the particles
      */
     double ComputeParticleWeight(int smc, const std::vector<::EERAModel::particle>& previousParticles,
-	    const particle &currentParticle, const std::vector<double>& vlimitKernel);
+	    const particle &currentParticle, const std::vector<KernelWindow> kernelWindows);
 
     /**
      * @private
@@ -102,12 +102,23 @@ private:
      * 
      * @param first First particle of the pair
      * @param second Second particle of the pair
-     * @param vlimitKernel Particle perturbation kernel
+     * @param kernelWindows Kernel windows for the inference parameters in the particles
      * 
      * @return True if the two particles are close, otherwise false
      */
     bool ParticlesAreClose(const particle& first, const particle& second,
-        const std::vector<double>& vlimitKernel);
+        const std::vector<KernelWindow> kernelWindows);
+
+    /**
+     * @brief Update the parameter kernel windows
+     * 
+     * Compute a new set of kernel windows, based on the accepted particles from the last ABC-smc
+     * loop. Update the framework's kernel windows with the result of the computation
+     * 
+    void UpdateKernelWindows(int smc, std::vector<particle> particles);
+    
+    void UpdateWeightDistribution();
+
     /**
      * @private
      * @brief Model interface
@@ -158,18 +169,19 @@ private:
 };
 
 /**
- * @brief Compute the Kernel Window
+ * @brief Compute the Kernel Windows for each inference parameter
+ * 
+ * Calculates the kernel window (kernel, max limit and min limit) for each inference parameter,
+ * based on a set of previously accepted inference particles.
  * 
  * @param nPar Number of parameters to compute kernel for
  * @param particleList List of previously accepted particles
  * @param kernelFactor Common kernel multiplicative factor
- * @param vlimitKernel Storage for the computed kernel
- * @param vect_Max Storage for maximum values of ranges
- * @param vect_Min Storage for minimum values of ranges
+ * 
+ * @return List of computed kernel windows for each inference parameter
  */
-void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
-	double kernelFactor, std::vector<double>& vlimitKernel, std::vector<double>& vect_Max, 
-	std::vector<double>& vect_Min);
+std::vector<KernelWindow> ComputeKernelWindow(int nPar, const std::vector<particle>& particleList,
+	double kernelFactor);
 
 /**
  * @brief Compute weight distribution
