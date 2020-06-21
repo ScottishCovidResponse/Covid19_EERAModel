@@ -5,9 +5,88 @@
 #include "Random.h"
 #include "Utilities.h"
 #include "InferenceParameters.h"
+#include <ctime>
 
 namespace EERAModel {
 namespace Inference {
+
+/**
+ * @class InferenceTimer
+ * @brief Simple timer for recording how long inference runs take
+ */
+class InferenceTimer
+{
+public:
+    /**
+     * @brief Constructor
+     */
+    InferenceTimer() : inferenceStarted_(false), simulationStarted_(false) {}
+    
+    /**
+     * @brief Start an inference run
+     */
+    void StartInference()
+    { 
+        inferenceStartTime_ = std::clock();
+        inferenceStarted_ = true; 
+    }
+    
+    /**
+     * @brief End the inference run
+     */
+    double EndInference() 
+    { 
+        if (inferenceStarted_)
+            return static_cast<double>((std::clock() - inferenceStartTime_) / static_cast<double>(CLOCKS_PER_SEC));
+        else
+            return 0;
+    }
+
+    /**
+     * @brief Start an inference step
+     */
+    void StartStep()
+    { 
+        simulationStartTime_ = clock();
+        simulationStarted_ = true; 
+    }
+
+    /**
+     * @brief End the inference step
+     */
+    double EndStep()
+    { 
+        if (simulationStarted_)
+            return static_cast<double>((std::clock() - simulationStartTime_) / static_cast<double>(CLOCKS_PER_SEC));
+        else
+            return 0;
+    }
+
+private:
+    /**
+     * @private
+     * @brief Start time of the inference run
+     */
+    std::clock_t inferenceStartTime_;
+    
+    /**
+     * @private
+     * @brief Flag to say whether or not an inference run has been started
+     */
+    bool inferenceStarted_;
+
+    /**
+     * @private
+     * @brief Start time of the inference step
+     */
+    std::clock_t simulationStartTime_;
+    
+    /**
+     * @private
+     * @brief Flag to say whether or not an inference step has been started
+     */
+    bool simulationStarted_;
+};
 
 /**
  * @class InferenceParticleGenerator

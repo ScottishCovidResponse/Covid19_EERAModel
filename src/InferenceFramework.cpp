@@ -70,9 +70,8 @@ void InferenceFramework::Run()
     /*---------------------------------------
 	 * Model parameters and fitting settings
 	 *---------------------------------------*/
-	//get the start time
-	clock_t startTime = clock();
-	clock_t time_taken1=0;
+    InferenceTimer timer;
+    timer.StartInference();
 
     logSettings(modelInputParameters_, log_);
     logFixedParameters(modelInputParameters_, log_);
@@ -123,7 +122,9 @@ void InferenceFramework::Run()
 	(*log_) << "[Simulations]:\n";
 	for (int smc = 0; smc < modelInputParameters_.nsteps; ++smc) {//todo:
 
-		//the abort statement for keeping the number of particles less than 1000
+		timer.StartStep();
+        
+        //the abort statement for keeping the number of particles less than 1000
 		bool aborting = false;
 
 		//initialise the counter for the number of simulation prior maximum particle is reached
@@ -180,16 +181,7 @@ void InferenceFramework::Run()
 			}
 		}
 
-		//time taken per step
-		double time_taken;
-		if(smc == 0){
-			time_taken = double( clock() - startTime ) / (double)CLOCKS_PER_SEC;
-			time_taken1 = clock();
-		} else {
-			time_taken = double( clock() - time_taken1 ) / (double)CLOCKS_PER_SEC;
-			time_taken1 = clock();
-		}
-
+		double time_taken = timer.EndStep();
 		(*log_) << "\nStep:" << smc
 			<< ", <number of accepted particles> " << currentParticles.size()
 			<< "; <number of simulations> " << nsim_count
@@ -203,7 +195,7 @@ void InferenceFramework::Run()
 	}
 
 	//output on screen the overall computation time
-	(*log_) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
+	(*log_) << timer.EndInference() << " seconds." << std::endl;
 }
 
 bool InferenceFramework::ParticlePassesTolerances(const particle& p, int smc) {
