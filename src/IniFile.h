@@ -42,7 +42,7 @@ public:
 	static vector<Record> GetRecord(string KeyName, string SectionName, string FileName);
 	static vector<Record> GetSection(string SectionName, string FileName);
 	static vector<string> GetSectionNames(string FileName);
-	static string GetValue(string KeyName, string SectionName, string FileName);
+	static string GetValue(string* KeyName, string* SectionName, const string* FileName);
 	static bool RecordExists(string KeyName, string SectionName, string FileName);
 	static bool RenameSection(string OldSectionName, string NewSectionName, string FileName);
 	static bool SectionExists(string SectionName, string FileName);
