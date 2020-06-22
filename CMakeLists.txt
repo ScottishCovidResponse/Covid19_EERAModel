@@ -64,7 +64,7 @@ if(CODE_COVERAGE)
 		COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -c -i -d . -b ${PROJECT_SOURCE_DIR} -o ${PROJECT_NAME}.base
 	
 	        # Run executables
-		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel ${COV_TEST_FLAGS} -s original  -m prediction
+		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel ${COV_TEST_FLAGS} -s original  -m inference
 		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel-unit_tests
 	
 	        # Capturing lcov counters and generating report

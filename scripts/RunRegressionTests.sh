@@ -42,7 +42,6 @@ for i in $(seq $FIRST $LAST) ; do
   echo ""
   echo "***************** Running regression test #$i *****************"
 
-  STRUCT_FLAG=$([ $i -gt 6 ] && echo "-s irish " || echo "-s original")
   MODE_FLAG=$( echo "-m inference" )
   FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
   
