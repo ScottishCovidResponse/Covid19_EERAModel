@@ -60,14 +60,6 @@ int main(int argc, char** argv) {
         arg_parser.AppendOptions(modelInputParameters);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
-	
-        // Read prior particle parameters if run type is "Prediction"
-	if (modelInputParameters.run_type == ModelModeId::PREDICTION)
-	{
-		const std::string prior_params_addr = std::string(ROOT_DIR)+"/src/prior_particle_params.csv";
-		PriorParticleParameters priorParticleParameters= IO::ReadPriorParametersFromFile(prior_params_addr, logger);
-		modelInputParameters.prior_param_list = priorParticleParameters.prior_param_list;
-	}
 
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
