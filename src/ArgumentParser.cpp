@@ -20,7 +20,7 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
                                         "Model structure, if unset use 'original'", 
                                         false, "", &allowedStructures);
         TCLAP::ValueArg<std::string> modeArg("m", "mode", "Running mode, if unset use parameter file value else 'inference'", 
-                                        false, "inference", &allowedModes);
+                                        false, "", &allowedModes);
         TCLAP::ValueArg<std::string> dataLocArg("l", "local", "Location of local data repository", 
                                         false, "", "string");
         TCLAP::ValueArg<std::string> outputDirArg("d", "outdir", "Output directory of data files", false, _args.output_dir, "string");
@@ -29,7 +29,9 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
         cmd.add( structureArg );
         cmd.add( outputDirArg );
         cmd.parse( argc, argv);
-        _args.output_dir = outputDirArg.getValue();
+
+        _args.output_dir = (Utilities::directoryExists(outputDirArg.getValue())) ? outputDirArg.getValue() : _args.output_dir;
+
         if(Utilities::toUpper(structureArg.getValue()) == "IRISH")
         {
             _args.structure = ModelStructureId::IRISH;
@@ -42,7 +44,19 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
         {
             _args.structure = ModelStructureId(0);
         }
-        _args.mode = (Utilities::toUpper(modeArg.getValue()) == "INFERENCE") ? ModelModeId::INFERENCE : ModelModeId::PREDICTION;
+
+        if(Utilities::toUpper(modeArg.getValue()) == "INFERENCE")
+        {
+            _args.mode = ModelModeId::INFERENCE;
+        }
+        else if(Utilities::toUpper(modeArg.getValue()) == "PREDICTION")
+        {
+            _args.mode = ModelModeId::PREDICTION;
+        }
+        else
+        {
+            _args.mode = ModelModeId(0);
+        }
         _args.isLocal = dataLocArg.getValue().empty();
         _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
     }

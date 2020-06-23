@@ -12,5 +12,11 @@ namespace Utilities
 
         return _temp;
     }
+
+    bool directoryExists(const std::string directory)
+    {
+    struct stat buffer;
+    return ( stat(directory.c_str(), &buffer) == 0);
+    }
 };
 };

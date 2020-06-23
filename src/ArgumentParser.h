@@ -69,5 +69,7 @@ class ArgumentParser
         ModelStructureId modelStructure() const {return _args.structure;}
 
         std::string outputDir() const {return _args.output_dir;}
+
+        Arguments getArgs() const {return _args;}
 };
 };

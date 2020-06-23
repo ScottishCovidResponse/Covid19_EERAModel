@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <memory>
 #include <cmath>
+#include <sys/stat.h>
 
 namespace EERAModel {
 /**
@@ -44,6 +45,18 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 	return sum_sq;
 	
 }
+
+/**
+ * @brief Check if a directory exists
+ * 
+ * Checks if the specified address actually exists and so
+ * can be written to
+ * 
+ * @param directory file directory
+ * 
+ * @return if directory exists
+ */
+bool directoryExists(const std::string directory);
 
 /**
  * @brief Sum vector elements in blocks
