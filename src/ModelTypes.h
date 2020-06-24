@@ -52,7 +52,8 @@ struct seed {
  */
 enum class ModelStructureId
 {
-    ORIGINAL = 1, // Allows a zero 'Not specified' value
+    UNKNOWN,
+    ORIGINAL,
     IRISH
 };
 
@@ -61,7 +62,8 @@ enum class ModelStructureId
  */
 enum class ModelModeId
 {
-	INFERENCE = 1, // Allows a zero 'Not specified' value
+	UNKNOWN,
+    INFERENCE,
 	PREDICTION
 };
 
@@ -73,7 +75,7 @@ struct ModelInputParameters
 	int herd_id;
 	double tau;
 	int num_threads;
-    ModelStructureId model_structure = ModelStructureId(0);
+    ModelStructureId model_structure = ModelStructureId::UNKNOWN;
 	int nsteps;
 	int nParticalLimit;
 	int nSim;
@@ -103,7 +105,7 @@ struct ModelInputParameters
 	double prior_ps_shape2;
 	std::vector<double> posterior_param_list;
 	int posterior_parameter_select;
-	ModelModeId run_type = ModelModeId(0);
+	ModelModeId run_type = ModelModeId::UNKNOWN;
 	std::vector<double> prior_param_list;
 };
 

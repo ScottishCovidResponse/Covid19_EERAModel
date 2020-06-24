@@ -42,7 +42,7 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
         }
         else 
         {
-            _args.structure = ModelStructureId(0);
+            _args.structure = ModelStructureId::UNKNOWN;
         }
 
         if(Utilities::toUpper(modeArg.getValue()) == "INFERENCE")
@@ -55,8 +55,9 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
         }
         else
         {
-            _args.mode = ModelModeId(0);
+            _args.mode = ModelModeId::UNKNOWN;
         }
+
         _args.isLocal = dataLocArg.getValue().empty();
         _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
     }
@@ -95,27 +96,26 @@ void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
 {
     // Only set model structure to default of "original" if no option specified
     // in parameters file
-    if(input_params.model_structure == ModelStructureId(0))
+    if(input_params.model_structure == ModelStructureId::UNKNOWN)
     {
         input_params.model_structure = ModelStructureId::ORIGINAL;
     }
 
     // Only overwrite this model structure option if command line argument is not empty
-    if(_args.structure != ModelStructureId(0))
+    if(_args.structure != ModelStructureId::UNKNOWN)
     {
         input_params.model_structure = _args.structure;
     }
 
     // Only set run mode to default of "inference" if no option specified
     // in parameters file
-
-    if(input_params.run_type == ModelModeId(0))
+    if(input_params.run_type == ModelModeId::UNKNOWN)
     {
         input_params.run_type = ModelModeId::INFERENCE;
     }
 
     // Only overwrite this run mode option if command line argument is not empty
-    if(_args.mode != ModelModeId(0))
+    if(_args.mode != ModelModeId::UNKNOWN)
     {
         input_params.run_type = _args.mode;
     }
