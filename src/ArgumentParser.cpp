@@ -71,8 +71,23 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
     (*log) << "[Arguments]:" << std::endl;
     (*log) << "\t" << "Local: " << ((_args.isLocal) ? "True" : "False") << std::endl;
     if(_args.isLocal){(*log) << "\t" << "Local Directory: " << _args.local_location << std::endl;}
-    (*log) << "\t" << "Structure: " << ((_args.structure == ModelStructureId::IRISH) ? "Irish" : "Original") << std::endl;
-    (*log) << "\t" << "Mode: " << ((_args.mode == ModelModeId::INFERENCE) ? "Inference" : "Prediction") << std::endl;
+    (*log) << "\t" << "Structure: ";
+    if(_args.structure != ModelStructureId(0))
+    {
+        (*log) << ((_args.structure == ModelStructureId::IRISH) ? "Irish" : "Original") << std::endl;
+    }
+    else
+    {
+        (*log) << "Default" << std::endl;
+    }
+    if(_args.mode != ModelModeId(0))
+    {
+        (*log) << "\t" << "Mode: " << ((_args.mode == ModelModeId::INFERENCE) ? "Inference" : "Prediction") << std::endl;
+    }
+    else
+    {
+        (*log) << "Default" << std::endl;
+    }
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
 }
 

@@ -39,6 +39,10 @@ For complete USAGE and HELP type:
    ./Covid19_EERAModel/build/bin/Covid19EERAModel --help
 ```
 
+if the options for structure or mode are not set they will have the value `Default` in the `[Arguments]` log section,
+this means that the value will either be obtained from the included parameters file (if specified in that file) or given
+the default value of `inference` for mode and `original` for structure.
+
 ## Code Documentation Site
 
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
