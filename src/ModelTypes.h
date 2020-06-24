@@ -107,11 +107,6 @@ struct ModelInputParameters
 	std::vector<double> prior_param_list;
 };
 
-struct PriorParticleParameters
-{
-	std::vector<double> prior_param_list;
-};
-
 /**
  * @brief Model input observations
  */
