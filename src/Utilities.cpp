@@ -11,7 +11,7 @@ std::string toUpper(std::string str)
     return str;
 }
 
-bool directoryExists(const std::string directory)
+bool directoryExists(const std::string& directory)
 {
     struct stat buffer;
     

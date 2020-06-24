@@ -55,7 +55,7 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
  * 
  * @return if directory exists
  */
-bool directoryExists(const std::string directory);
+bool directoryExists(const std::string& directory);
 
 /**
  * @brief Sum vector elements in blocks
