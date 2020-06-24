@@ -1,5 +1,5 @@
 #include "Utilities.h"
-
+#include <sys/stat.h>
 
 namespace EERAModel
 {
@@ -15,8 +15,9 @@ namespace Utilities
 
     bool directoryExists(const std::string directory)
     {
-    struct stat buffer;
-    return ( stat(directory.c_str(), &buffer) == 0);
+        struct stat buffer;
+        
+        return (stat(directory.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
     }
 };
 };

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <memory>
 #include <cmath>
-#include <sys/stat.h>
 
 namespace EERAModel {
 /**
