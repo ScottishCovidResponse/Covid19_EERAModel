@@ -37,20 +37,27 @@
 #include "IrishModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
+#include "ArgumentParser.h"
+
 
 using namespace EERAModel;
 
-int main() {
+int main(int argc, char** argv) {
+
+	ArgumentParser arg_parser(argc, argv);
 
 	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
 	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
 	// Read in the model's input parameters
-	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
+	arg_parser.logArguments(logger);
+
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
+
+        arg_parser.AppendOptions(modelInputParameters);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
@@ -82,14 +89,14 @@ int main() {
     }
 
     // Select the mode to run in - prediction or inference    
-    if (modelInputParameters.run_type == "Prediction")
+    if (modelInputParameters.run_type == ModelModeId::PREDICTION)
     {
-		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
+        const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
 		
-		modelInputParameters.posterior_param_list = 
-			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
-												modelInputParameters.posterior_parameter_select, 
-												logger);
+        modelInputParameters.posterior_param_list = 
+            IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
+                modelInputParameters.posterior_parameter_select, 
+                logger);
 
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
 

@@ -41,13 +41,22 @@ echo "==========================================================================
 for i in $(seq $FIRST $LAST) ; do   
   echo ""
   echo "***************** Running regression test #$i *****************"
-  
+
+  if [[ $i -ge 1 ]] && [[ $i -le 6 ]]; then
+    STRUCT_FLAG=$( echo "-s original" )
+  else
+    STRUCT_FLAG=$( echo "-s irish" )
+  fi
+
+  MODE_FLAG=$( echo "-m inference" )
+  FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
+  echo $FLAGS
   regression_test_dir=$REGRESSION_DIR/run$i
   
   $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data
   setup=$?
 
-  $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR
+  $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR $FLAGS
   run=$?
 
   $CHECK_SCRIPT $WORKING_OUTPUTS_DIR $regression_test_dir/outputs

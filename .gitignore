@@ -8,3 +8,4 @@ data/*.dat
 doxygen
 site/*
 index.html
+src/tclap/
