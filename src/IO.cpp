@@ -1,6 +1,5 @@
 #include "IO.h"
 #include "ModelCommon.h"
-#include "IniFile.h"
 #include "Utilities.h"
 
 #include <valarray>
@@ -327,30 +326,6 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	output_simu.close();
 	output_ends.close();
 	output_full.close();
-}
-
-template <typename ParseVariableType>
-ParseVariableType ReadNumberFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath) 
-{
-	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
-
-	char* endptr = nullptr;
-	ParseVariableType Value;
-	if (std::is_same<ParseVariableType, double>::value) { Value = strtod(SettingValue.c_str(), &endptr); }
-	if (std::is_same<ParseVariableType, int>::value) { Value = strtol(SettingValue.c_str(), &endptr, 0); }
-
-	/* Error Handling for strtod or strtol functions*/
-	if (Value == -HUGE_VAL || Value == HUGE_VAL || endptr == SettingValue.c_str())
-	{
-		std::stringstream SettingParseError;
-		SettingParseError << std::endl;
-		SettingParseError << "Invalid value in Parameter File: " << filePath.c_str() <<  std::endl;
-		SettingParseError << "Category: " << SettingCategory.c_str() << std::endl;
-		SettingParseError << "Setting: " << SettingName.c_str() << std::endl;
-		SettingParseError << "Value: " << SettingValue.c_str() << std::endl;
-		throw std::runtime_error(SettingParseError.str());
-	}
-	return Value;
 }
 
 } // namespace IO
