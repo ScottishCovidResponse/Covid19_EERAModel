@@ -1,10 +1,9 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "Utilities.h"
 
 #include <string>
-#include "Utilities.h"
-#include "IniFile.h"
 
 #ifndef ROOT_DIR
 #error Macro ROOT_DIR must be defined!

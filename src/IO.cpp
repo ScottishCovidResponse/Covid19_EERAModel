@@ -1,5 +1,6 @@
 #include "IO.h"
 #include "ModelCommon.h"
+#include "IniFile.h"
 #include "Utilities.h"
 
 #include <valarray>
