@@ -35,7 +35,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
  * 
  * @return Model posterior parameters
  */
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int& set_selection);
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
 
 /**
  * @brief Read in observations

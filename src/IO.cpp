@@ -114,7 +114,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	return modelInputParameters;
 }
 
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int& set_selection)
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
