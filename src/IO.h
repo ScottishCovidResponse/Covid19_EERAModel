@@ -26,7 +26,7 @@ namespace IO {
  * 
  * @return Model parameters
  */
-ModelInputParameters ReadParametersFromFile(const std::string* filePath, const Utilities::logging_stream::Sptr& log);
+ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read model posterior parameters from a CSV file
@@ -36,7 +36,7 @@ ModelInputParameters ReadParametersFromFile(const std::string* filePath, const U
  * 
  * @return Model posterior parameters
  */
-std::vector<double> ReadPosteriorParametersFromFile(const std::string* filePath, const int* set_selection);
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int& set_selection);
 
 /**
  * @brief Read in observations
@@ -81,7 +81,7 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
  * @return ParseVariableType, which is either int or double
  */
 template <typename ParseVariableType>
-ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string* filePath) noexcept(false);
+ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string& filePath) noexcept(false);
 
 } // namespace IO
 } // namespace EERAModel

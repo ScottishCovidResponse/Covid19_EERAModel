@@ -10,7 +10,7 @@
 namespace EERAModel {
 namespace IO {
 
-ModelInputParameters ReadParametersFromFile(const std::string* filePath, const Utilities::logging_stream::Sptr& log)
+ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
 	ModelInputParameters modelInputParameters;
 
@@ -30,7 +30,7 @@ ModelInputParameters ReadParametersFromFile(const std::string* filePath, const U
     // Model structure
 	std::string SettingName = "model";
 	std::string SettingCategory = "Settings";
-    std::string model_structure(CIniFile::GetValue(&SettingName, &SettingCategory, filePath));
+    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
     if ("irish" == model_structure) {
         modelInputParameters.model_structure = ModelStructureId::IRISH;
     } else {
@@ -40,7 +40,7 @@ ModelInputParameters ReadParametersFromFile(const std::string* filePath, const U
 	//Seed settings
 	SettingName = "seedmethod";
 	SettingCategory = "Seed settings";
-	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(&SettingName, &SettingCategory, filePath);
+	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
 	if(modelInputParameters.seedlist.seedmethod == "random"){
 		modelInputParameters.seedlist.nseed = StrToNumber<int>("nseed", "Seed settings", filePath);
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
@@ -113,21 +113,21 @@ ModelInputParameters ReadParametersFromFile(const std::string* filePath, const U
 	return modelInputParameters;
 }
 
-std::vector<double> ReadPosteriorParametersFromFile(const std::string* filePath, const int* set_selection)
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int& set_selection)
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
 	char delimiter = ',';
 	
-	lines = Utilities::read_csv<double>(filePath, delimiter);
+	lines = Utilities::read_csv<double>(&filePath, delimiter);
 
 	// Select line from input file and store result in another temporary vector
-	if ((*set_selection) >= static_cast<int>(lines.size())){
+	if (set_selection >= static_cast<int>(lines.size())){
 		std::stringstream SetSelectError;
 		SetSelectError << "Parameter set selection out of bounds! Please select between 0-" << (lines.size() - 1) << "..." << std::endl;
 		throw std::overflow_error(SetSelectError.str());
 	}
-	std::vector<double> line_select = lines[(*set_selection)];
+	std::vector<double> line_select = lines[set_selection];
 
 	/** Extract posterior parameters from selected line
 	 * the slicing is relevant to the format of the output file
@@ -329,9 +329,9 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 }
 
 template <typename ParseVariableType>
-ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string* filePath) noexcept(false) 
+ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string& filePath) noexcept(false) 
 {
-	std::string SettingValue = CIniFile::GetValue(&SettingName, &SettingCategory, filePath);
+	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
 
 	char* endptr = nullptr;
 	ParseVariableType Value;
@@ -343,7 +343,7 @@ ParseVariableType StrToNumber(std::string SettingName, std::string SettingCatego
 	{
 		std::stringstream SettingParseError;
 		SettingParseError << std::endl;
-		SettingParseError << "Invalid value in Parameter File: " << filePath->c_str() <<  std::endl;
+		SettingParseError << "Invalid value in Parameter File: " << filePath.c_str() <<  std::endl;
 		SettingParseError << "Category: " << SettingCategory.c_str() << std::endl;
 		SettingParseError << "Setting: " << SettingName.c_str() << std::endl;
 		SettingParseError << "Value: " << SettingValue.c_str() << std::endl;

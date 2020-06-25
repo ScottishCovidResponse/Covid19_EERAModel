@@ -50,7 +50,7 @@ int main() {
 	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(&params_addr, logger);
+	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
@@ -87,8 +87,8 @@ int main() {
 		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
 		
 		modelInputParameters.posterior_param_list = 
-			IO::ReadPosteriorParametersFromFile(&posterior_params_addr, 
-												&modelInputParameters.posterior_parameter_select);
+			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
+												modelInputParameters.posterior_parameter_select);
 
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
 
