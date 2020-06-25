@@ -164,7 +164,7 @@ class logging_stream
  * @return vector of vectors containing read in data values
  */
 template<typename T>
-std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimiter)
+std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimiter)
 {
 	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());

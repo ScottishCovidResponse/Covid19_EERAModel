@@ -1,11 +1,11 @@
 #include "IO.h"
-#include "IniFile.h"
 #include "ModelCommon.h"
 #include "Utilities.h"
 
 #include <valarray>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 namespace EERAModel {
 namespace IO {
@@ -17,16 +17,20 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	CIniFile parameters;
 
 	//Settings
-	modelInputParameters.herd_id = atoi(parameters.GetValue("shb_id", "Settings", filePath).c_str());
+	//modelInputParameters.herd_id = atoi(parameters.GetValue_modif(&SettingName, &SettingCategory, &filePath).c_str());
+	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
 
 	//time step for the modelling process
-	modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", filePath).c_str());
+	// modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", filePath).c_str());
+	modelInputParameters.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
 
 	//number of threads used for computation
-	modelInputParameters.num_threads = atoi(parameters.GetValue("num_threads", "Settings", filePath).c_str());
+	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", filePath);
 
     // Model structure
-    std::string model_structure(parameters.GetValue("model", "Settings", filePath));
+	std::string SettingName = "model";
+	std::string SettingCategory = "Settings";
+    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
     if ("irish" == model_structure) {
         modelInputParameters.model_structure = ModelStructureId::IRISH;
     } else {
@@ -34,87 +38,82 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
     }
 
 	//Seed settings
-	modelInputParameters.seedlist.seedmethod = parameters.GetValue("seedmethod", "Seed settings", filePath).c_str();
+	SettingName = "seedmethod";
+	SettingCategory = "Seed settings";
+	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
 	if(modelInputParameters.seedlist.seedmethod == "random"){
-		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", filePath).c_str());
+		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		modelInputParameters.seedlist.hrp = atoi(parameters.GetValue("hrp", "Seed settings", filePath).c_str());
+		modelInputParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
 	} else {
 		(*log) << "Warning!!! Unknown method - using random seed method instead." << endl;
-		modelInputParameters.seedlist.nseed = atoi(parameters.GetValue("nseed", "Seed settings", filePath).c_str());
+		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
 	}
 	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
-		atoi(parameters.GetValue("use_fixed_seed", "Seed settings", filePath).c_str())
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
 	);
-	modelInputParameters.seedlist.seed_value = strtoul(
-		parameters.GetValue("seed_value", "Seed settings", filePath).c_str(), NULL, 0
+	modelInputParameters.seedlist.seed_value = ReadNumberFromFile<int>(
+		"seed_value", "Seed settings", filePath
 	);
 	
 	//Fit settings
-	modelInputParameters.nsteps = atoi(parameters.GetValue("nsteps", "Fit settings", filePath).c_str());
-	modelInputParameters.nParticalLimit = atoi(parameters.GetValue("nParticLimit", "Fit settings", filePath).c_str());
-	modelInputParameters.nSim = atoi(parameters.GetValue("nSim", "Fit settings", filePath).c_str());
-	modelInputParameters.kernelFactor = atof(parameters.GetValue("kernelFactor", "Fit settings", filePath).c_str());
+	modelInputParameters.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", filePath);
+	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
+	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
+	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
 
 	//Tolerance settings
 	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
 		modelInputParameters.toleranceLimit.push_back(0.0);
 	}
 
-	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
-		if(ii==1) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key1", "Tolerance settings", filePath).c_str());
-		if(ii==2) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key2", "Tolerance settings", filePath).c_str());
-		if(ii==3) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key3", "Tolerance settings", filePath).c_str());
-		if(ii==4) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key4", "Tolerance settings", filePath).c_str());
-		if(ii==5) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key5", "Tolerance settings", filePath).c_str());
-		if(ii==6) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key6", "Tolerance settings", filePath).c_str());
-		if(ii==7) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key7", "Tolerance settings", filePath).c_str());
-		if(ii==8) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key8", "Tolerance settings", filePath).c_str());
-		if(ii==9) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key9", "Tolerance settings", filePath).c_str());
-		if(ii==10) modelInputParameters.toleranceLimit[ii-1] = atof(parameters.GetValue("Key10", "Tolerance settings", filePath).c_str());
+	for (int ii = 0; ii < modelInputParameters.nsteps; ++ii) {
+		std::stringstream KeyName;
+		KeyName << "Key" << (ii + 1);
+		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
 	}
 
 	//Fixed parameters
-	modelInputParameters.paramlist.T_lat = atof(parameters.GetValue("T_lat", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.juvp_s = atof(parameters.GetValue("juvp_s", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.T_inf = atof(parameters.GetValue("T_inf", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.T_rec = atof(parameters.GetValue("T_rec", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.T_sym = atof(parameters.GetValue("T_sym", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.T_hos = atof(parameters.GetValue("T_hos", "Fixed parameters", filePath).c_str());
-	modelInputParameters.day_shut = atoi(parameters.GetValue("day_shut", "Fixed parameters", filePath).c_str());
-	modelInputParameters.totN_hcw = atoi(parameters.GetValue("totN_hcw", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.K = atoi(parameters.GetValue("K", "Fixed parameters", filePath).c_str());
-	modelInputParameters.paramlist.inf_asym = atof(parameters.GetValue("inf_asym", "Fixed parameters", filePath).c_str());
+	modelInputParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
+	modelInputParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
+	modelInputParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
+	modelInputParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
 
 	//priors settings
-	modelInputParameters.nPar = atoi(parameters.GetValue("nPar", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_pinf_shape1 = atof(parameters.GetValue("prior_pinf_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_pinf_shape2 = atof(parameters.GetValue("prior_pinf_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_phcw_shape1 = atof(parameters.GetValue("prior_phcw_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_phcw_shape2 = atof(parameters.GetValue("prior_phcw_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_chcw_mean = atof(parameters.GetValue("prior_chcw_mean", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_d_shape1 = atof(parameters.GetValue("prior_d_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_d_shape2 = atof(parameters.GetValue("prior_d_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_q_shape1 = atof(parameters.GetValue("prior_q_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_q_shape2 = atof(parameters.GetValue("prior_q_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_lambda_shape1 = atof(parameters.GetValue("prior_lambda_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_lambda_shape2 = atof(parameters.GetValue("prior_lambda_shape2", "Priors settings", filePath).c_str());
+	modelInputParameters.nPar = ReadNumberFromFile<int>("nPar", "Priors settings", filePath);
+	modelInputParameters.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", filePath);
+	modelInputParameters.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", filePath);
+	modelInputParameters.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", filePath);
+	modelInputParameters.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", filePath);
+	modelInputParameters.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", filePath);
+	modelInputParameters.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", filePath);
 	
-	modelInputParameters.prior_ps_shape1 = atof(parameters.GetValue("prior_ps_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_ps_shape2 = atof(parameters.GetValue("prior_ps_shape2", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrd_shape1 = atof(parameters.GetValue("prior_rrd_shape1", "Priors settings", filePath).c_str());
-	modelInputParameters.prior_rrd_shape2 = atof(parameters.GetValue("prior_rrd_shape2", "Priors settings", filePath).c_str());
+	modelInputParameters.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", filePath);
+	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
+	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
 
 	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
 	modelInputParameters.run_type = ModelModeId::INFERENCE;
 	// modelInputParameters.run_type = ModelModeId::PREDICTION;
 
-	modelInputParameters.posterior_parameter_select = atoi(parameters.GetValue("posterior_parameter_select", "Posterior Parameters Select", filePath).c_str());
+	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
 
 	return modelInputParameters;
 }
 
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int set_selection, const Utilities::logging_stream::Sptr& log)
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
@@ -123,8 +122,10 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	lines = Utilities::read_csv<double>(filePath, delimiter);
 
 	// Select line from input file and store result in another temporary vector
-	if (set_selection >= lines.size()){
-		throw std::overflow_error(std::string("Parameter set selection out of bounds! Please select between 0-" + std::to_string(lines.size() - 1) + " ..."));
+	if (set_selection >= static_cast<int>(lines.size())){
+		std::stringstream SetSelectError;
+		SetSelectError << "Parameter set selection out of bounds! Please select between 0-" << (lines.size() - 1) << "..." << std::endl;
+		throw std::overflow_error(SetSelectError.str());
 	}
 	std::vector<double> line_select = lines[set_selection];
 
@@ -134,8 +135,11 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	 */
 	auto first = line_select.cbegin() + 3;
 	auto last = line_select.cend() - 1;
-	if ((last - line_select.begin()) - (first - line_select.begin()) < 8) {
-		throw std::runtime_error(std::string("Please check formatting of posterior parameter input file, 8 parameter values are needed..."));
+	int nPar = static_cast<int>(line_select.size()) - 4;
+	if ((last - line_select.begin()) - (first - line_select.begin()) < nPar) {
+		std::stringstream PosteriorFileFormatError;
+		PosteriorFileFormatError << "Please check formatting of posterios parameter input file, 8 parameter values are needed..." << std::endl;
+		throw std::runtime_error(PosteriorFileFormatError.str());
 	}
 
 	std::vector<double> parameter_sets(first, last);
@@ -290,7 +294,7 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	for (unsigned int age = 0; age < end_comps.size(); ++age) {
 		for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
 			output_full << age;
-			if (comp < end_comps[0].size() - 1) output_full << ", ";
+			if (comp < end_comps[0].size() - 1) { output_full << ", "; }
 		}
 		output_full << "\t";
 	}
@@ -299,7 +303,7 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	for (unsigned int age = 0; age < end_comps.size(); ++age) {
 		for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
 			output_full << comp;
-			if (comp < end_comps[0].size() - 1) output_full << ", "; 
+			if (comp < end_comps[0].size() - 1) { output_full << ", "; }
 		}
 		output_full << "\t";
 	}
@@ -309,14 +313,14 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 
 	for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
 		std::vector<std::vector<int>> pop_array_compartment_to_vector = Model::compartments_to_vector(status.pop_array[var]);
-		for (unsigned int age = 0; age < pop_array_compartment_to_vector.size(); ++age) {
-			for (unsigned int comp = 0; comp < pop_array_compartment_to_vector[age].size(); ++comp) {
-				output_full << pop_array_compartment_to_vector[age][comp];
-				if (comp < pop_array_compartment_to_vector[age].size() - 1) output_full << ", ";
+		for (auto & age: pop_array_compartment_to_vector) {
+			for (unsigned int comp = 0; comp < age.size(); ++comp) {
+				output_full << age[comp];
+				if (comp < age.size() - 1) { output_full << ", "; }
 			}
 			output_full << "\t";
 		}
-		if (var < status.pop_array.size() - 1) output_full << '\n';
+		if (var < status.pop_array.size() - 1) { output_full << '\n'; }
 	}
 
 	output_simu.close();

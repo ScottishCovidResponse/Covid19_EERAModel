@@ -1,32 +1,3 @@
-/* Created on: 01 05 2020
- * Authors: Thibaud Porphyre
- *
- *
- *version 0.3.2.4
- *
- * version report: 
- *		  - change the whole model structure (changes in Lambda, infspread)
- *		  - fix issues in the selection processes
- * 		  - add/remove parameters to infer
- *        - add a void function _flow_ to simplify function _infspread_
- *  
- * fitting procedure: ABS-SMC
- * model to fit: spread, SEIIsHRD
- * number of herd: single
- * model type: stochastic, age-structured population, tau-leap
- *
- * time-step = 1 day
- *
- * selection measures: normalise sum squared error 
- *
- * fitted parameters: p_i, p_hcw, c_hcw, q and d, p_s, p_hf,rrdh,lambda
- *
- * main.cpp
- *
- *
- */
-
-
 #include <iostream>
 #include <time.h>
 #include "ModelTypes.h"
@@ -92,11 +63,10 @@ int main(int argc, char** argv) {
     if (modelInputParameters.run_type == ModelModeId::PREDICTION)
     {
         const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
-		
+
         modelInputParameters.posterior_param_list = 
-            IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
-                modelInputParameters.posterior_parameter_select, 
-                logger);
+			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
+				modelInputParameters.posterior_parameter_select);
 
         Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
 
