@@ -71,16 +71,16 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
 
 /**
- * @brief String to number conversion
+ * @brief Extract a numeric value from an INI file
  * 
- * @param SettingName Name of setting to retrieve
- * @param SettingCategory Name of category for the setting in the INI file
- * @param filePath File path of the INI file to be read
+ * @param SettingName Name of value to retrieve
+ * @param SettingCategory Name of category in which the value is located in the INI file
+ * @param filePath Path to the INI file
  * 
- * @return ParseVariableType, which is either int or double
+ * @return Numeric value (supported types are int or double)
  */
 template <typename ParseVariableType>
-ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string& filePath) noexcept(false);
+ParseVariableType ReadNumberFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath);
 
 } // namespace IO
 } // namespace EERAModel
