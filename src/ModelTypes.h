@@ -52,8 +52,19 @@ struct seed {
  */
 enum class ModelStructureId
 {
+    UNKNOWN,
     ORIGINAL,
     IRISH
+};
+
+/**
+ * @brief Enumeration identifying which mode to run the model
+ */
+enum class ModelModeId
+{
+	UNKNOWN,
+    INFERENCE,
+	PREDICTION
 };
 
 /**
@@ -64,7 +75,7 @@ struct ModelInputParameters
 	int herd_id;
 	double tau;
 	int num_threads;
-    ModelStructureId model_structure;
+    ModelStructureId model_structure = ModelStructureId::UNKNOWN;
 	int nsteps;
 	int nParticalLimit;
 	int nSim;
@@ -92,9 +103,10 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
-	std::string run_type;
 	std::vector<double> posterior_param_list;
 	int posterior_parameter_select;
+	ModelModeId run_type = ModelModeId::UNKNOWN;
+	std::vector<double> prior_param_list;
 };
 
 /**

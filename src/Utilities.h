@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <memory>
 #include <cmath>
 
@@ -43,6 +44,18 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 	return sum_sq;
 	
 }
+
+/**
+ * @brief Check if a directory exists
+ * 
+ * Checks if the specified address actually exists and so
+ * can be written to
+ * 
+ * @param directory file directory
+ * 
+ * @return if directory exists
+ */
+bool directoryExists(const std::string& directory);
 
 /**
  * @brief Sum vector elements in blocks
@@ -204,6 +217,18 @@ std::vector<std::vector<T>> read_csv(const std::string* inputfile, char delimite
 
 	return data;
 }
+
+/**
+ * @brief Convert a string to upper case
+ * 
+ * Iterates through a string converting the output to be
+ * all upper case.
+ * 
+ * @param str string to be converted
+ * 
+ * @return upper case string
+ */
+std::string toUpper(std::string str);
 
 } // namespace Utilities
 } // namespace EERAModel
