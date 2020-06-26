@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\" -DVERSION=\\\"${PROJECT_VERSION}\\\" ")
 
 # Enable or Disable Clang Tidy in Build
-option(CLANG_TIDY "Enable Clang Tidy in Build" OFF)
+option(CLANG_TIDY "Enable Clang Tidy in Build" ON)
 
 # Enable or Disable Coverage with LCov During Compilation
 option(CODE_COVERAGE "Enable code coverage with LCov" OFF)

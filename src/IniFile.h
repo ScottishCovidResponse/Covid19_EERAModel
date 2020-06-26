@@ -8,19 +8,16 @@
 //#include <tchar.h>
 
 
-
-using namespace std;
-
 class CIniFile
 {
 public:
 	struct Record
 	{
-		string Comments;
+		std::string Comments;
 		char Commented;
-		string Section;
-		string Key;
-		string Value;
+		std::string Section;
+		std::string Key;
+		std::string Value;
 	};
 
 	enum CommentChar
@@ -29,40 +26,40 @@ public:
 		SemiColon = ';'
 	};
 
-	CIniFile(void);
-	virtual ~CIniFile(void);
+	CIniFile();
 
-	static bool AddSection(string SectionName, string FileName);
-	static bool CommentRecord(CommentChar cc, string KeyName,string SectionName,string FileName);
-	static bool CommentSection(char CommentChar, string SectionName, string FileName);
-	static string Content(string FileName);
-	static bool Create(string FileName);
-	static bool DeleteRecord(string KeyName, string SectionName, string FileName);
-	static bool DeleteSection(string SectionName, string FileName);
-	static vector<Record> GetRecord(string KeyName, string SectionName, string FileName);
-	static vector<Record> GetSection(string SectionName, string FileName);
-	static vector<string> GetSectionNames(string FileName);
-	static string GetValue(string& KeyName, string& SectionName, const string& FileName);
-	static bool RecordExists(string KeyName, string SectionName, string FileName);
-	static bool RenameSection(string OldSectionName, string NewSectionName, string FileName);
-	static bool SectionExists(string SectionName, string FileName);
-	static bool SetRecordComments(string Comments, string KeyName, string SectionName, string FileName);
-	static bool SetSectionComments(string Comments, string SectionName, string FileName);
-	static bool SetValue(string KeyName, string Value, string SectionName, string FileName);
+	static bool AddSection(std::string& SectionName, const std::string& FileName);
+	static bool CommentRecord(CommentChar& cc, std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool CommentSection(char& CommentChar, std::string& SectionName, const std::string& FileName);
+	static std::string Content(const std::string& FileName);
+	static bool Create(const std::string& FileName);
+	static bool DeleteRecord(std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool DeleteSection(std::string& SectionName, const std::string& FileName);
+	static std::vector<Record> GetRecord(std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static std::vector<Record> GetSection(const std::string& SectionName, const std::string& FileName);
+	static std::vector<std::string> GetSectionNames(const std::string& FileName);
+	static std::string GetValue(std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool RecordExists(std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool RenameSection(std::string& OldSectionName, std::string& NewSectionName, const std::string& FileName);
+	static bool SectionExists(std::string& SectionName, const std::string& FileName);
+	static bool SetRecordComments(std::string& Comments, std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool SetSectionComments(std::string& Comments, std::string& SectionName, const std::string& FileName);
+	static bool SetValue(std::string& KeyName, std::string& Value, std::string& SectionName, const std::string& FileName);
 	/*static bool Sort(string FileName, bool Descending);*/
-	static bool UnCommentRecord(string KeyName,string SectionName,string FileName);
-	static bool UnCommentSection(string SectionName, string FileName);
+	static bool UnCommentRecord(std::string& KeyName, std::string& SectionName, const std::string& FileName);
+	static bool UnCommentSection(std::string& SectionName, const std::string& FileName);
 
 private:
-	static vector<Record> GetSections(string FileName);
-	static bool Load(string FileName, vector<Record>& content);	
-	static bool Save(string FileName, vector<Record>& content);
+	static std::vector<Record> GetSections(const std::string& FileName);
+	static void Trim(std::string& str, const std::string& CharsToTrim = " \t\n\r", int TrimDir = 0);
+	static bool Load(const std::string& FileName, std::vector<Record>& content);	
+	static bool Save(const std::string& FileName, const std::vector<Record>& content);
 
 	struct RecordSectionIs : std::unary_function<Record, bool>
 	{
 		std::string section_;
 
-		RecordSectionIs(const std::string& section): section_(section){}
+		explicit RecordSectionIs(std::string& section): section_(std::move(section)){}
 
 		bool operator()( const Record& rec ) const
 		{
@@ -75,7 +72,7 @@ private:
 		std::string section_;
 		std::string key_;
 
-		RecordSectionKeyIs(const std::string& section, const std::string& key): section_(section),key_(key){}
+		explicit RecordSectionKeyIs(std::string& section, std::string& key): section_(std::move(section)),key_(std::move(key)){}
 
 		bool operator()( const Record& rec ) const
 		{

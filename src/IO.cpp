@@ -46,7 +46,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	} else if(modelInputParameters.seedlist.seedmethod == "background"){
 		modelInputParameters.seedlist.hrp = StrToNumber<int>("hrp", "Seed settings", filePath);
 	} else {
-		(*log) << "Warning!!! Unknown method - using random seed method instead." << endl;
+		(*log) << "Warning!!! Unknown method - using random seed method instead." << std::endl;
 		modelInputParameters.seedlist.nseed = StrToNumber<int>("nseed", "Seed settings", filePath);
 	}
 	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
