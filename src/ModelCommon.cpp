@@ -45,6 +45,9 @@ int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const Input
 		scotlandPopulation += observations.cases[region][0];
 	}
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
+	if(observations.cases.size()-1 != 15){
+		regionalProportion = 1.0;
+	}
 	
     return static_cast<int>(round(totalHCW * regionalProportion)); 
 }
