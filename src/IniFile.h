@@ -59,7 +59,7 @@ private:
 	{
 		std::string section_;
 
-		explicit RecordSectionIs(std::string& section): section_(std::move(section)){}
+		explicit RecordSectionIs(std::string& section): section_(section){}
 
 		bool operator()( const Record& rec ) const
 		{
@@ -72,7 +72,7 @@ private:
 		std::string section_;
 		std::string key_;
 
-		explicit RecordSectionKeyIs(std::string& section, std::string& key): section_(std::move(section)),key_(std::move(key)){}
+		explicit RecordSectionKeyIs(std::string& section, std::string& key): section_(section),key_(key){}
 
 		bool operator()( const Record& rec ) const
 		{

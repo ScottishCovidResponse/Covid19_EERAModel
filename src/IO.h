@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ModelTypes.h"
-
-#include <string>
-#include "Utilities.h"
 #include "IniFile.h"
+#include "Utilities.h"
+#include <sstream>
+#include <string>
 
 #ifndef ROOT_DIR
 #error Macro ROOT_DIR must be defined!
@@ -36,7 +36,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
  * 
  * @return Model posterior parameters
  */
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, const int& set_selection);
+std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
 
 /**
  * @brief Read in observations
@@ -72,16 +72,37 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
 
 /**
- * @brief String to number conversion
+ * @brief Extract a numeric value from an INI file
  * 
- * @param SettingName Name of setting to retrieve
- * @param SettingCategory Name of category for the setting in the INI file
- * @param filePath File path of the INI file to be read
+ * @param SettingName Name of value to retrieve
+ * @param SettingCategory Name of category in which the value is located in the INI file
+ * @param filePath Path to the INI file
  * 
- * @return ParseVariableType, which is either int or double
+ * @return Numeric value (supported types are int or double)
  */
 template <typename ParseVariableType>
-ParseVariableType StrToNumber(std::string SettingName, std::string SettingCategory, const std::string& filePath) noexcept(false);
+ParseVariableType ReadNumberFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath) 
+{
+	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+
+	char* endptr = nullptr;
+	ParseVariableType Value;
+	if (std::is_same<ParseVariableType, double>::value) { Value = strtod(SettingValue.c_str(), &endptr); }
+	if (std::is_same<ParseVariableType, int>::value) { Value = strtol(SettingValue.c_str(), &endptr, 0); }
+
+	/* Error Handling for strtod or strtol functions*/
+	if (Value == -HUGE_VAL || Value == HUGE_VAL || endptr == SettingValue.c_str())
+	{
+		std::stringstream SettingParseError;
+		SettingParseError << std::endl;
+		SettingParseError << "Invalid value in Parameter File: " << filePath.c_str() <<  std::endl;
+		SettingParseError << "Category: " << SettingCategory.c_str() << std::endl;
+		SettingParseError << "Setting: " << SettingName.c_str() << std::endl;
+		SettingParseError << "Value: " << SettingValue.c_str() << std::endl;
+		throw std::runtime_error(SettingParseError.str());
+	}
+	return Value;
+}
 
 } // namespace IO
 } // namespace EERAModel

@@ -93,7 +93,7 @@ bool CIniFile::Save(const std::string& FileName, const std::vector<Record>& cont
 	std::ofstream outFile (FileName.c_str());									// Create an output filestream
 	if (!outFile.is_open()) { return false; }									// If the output file doesn't open, then return
 
-	for (auto iContent : content)				// Loop through each vector
+	for (const auto& iContent : content)				// Loop through each vector
 	{
 		outFile << iContent.Comments;										// Write out the comments
 		if(iContent.Key.empty())	{										// Is this a section?
@@ -118,7 +118,7 @@ std::string CIniFile::Content(const std::string& FileName)
 	if (Load(FileName, content))											// Make sure the file loads
 	{
 		int i = 0;
-		for (auto iContent : content)								// Loop through the content
+		for (const auto& iContent : content)								// Loop through the content
 		{
 			if(!iContent.Comments.empty()) { s += iContent.Comments; }			// Add the comments
 			if(iContent.Commented != ' ') { s += iContent.Commented; }		// If this is commented, then add it
@@ -143,7 +143,7 @@ std::vector<std::string> CIniFile::GetSectionNames(const std::string& FileName)
 
 	if (Load(FileName, content))											// Make sure the file is loaded
 	{
-		for (auto iContent : content)								// Loop through the content
+		for (const auto& iContent : content)								// Loop through the content
 		{
 			if(iContent.Key.empty()) {											// If there is no key value, then its a section
 				data.push_back(iContent.Section);							// Add the section to the return data
@@ -161,7 +161,7 @@ std::vector<CIniFile::Record> CIniFile::GetSection(const std::string& SectionNam
 
 	if (Load(FileName, content))											// Make sure the file is loaded
 	{
-		for (auto iContent : content)								// Loop through the content
+		for (const auto& iContent : content)								// Loop through the content
 		{
 			if((iContent.Section == SectionName) &&						// If this is the section name we want
 				(!iContent.Key.empty()))										// but not the section name itself
@@ -240,8 +240,8 @@ bool CIniFile::SetValue(std::string& KeyName, std::string& Value, std::string& S
 	{
 		if(!SectionExists(SectionName,FileName))							// If the Section doesn't exist
 		{
-			Record s = {"",' ',SectionName,"",""};							// Define a new section
-			Record r = {"",' ',SectionName,KeyName,Value};					// Define a new record
+			Record s = {"", ' ', SectionName, "", ""};							// Define a new section
+			Record r = {"", ' ', SectionName, KeyName, Value};					// Define a new record
 			content.push_back(s);											// Add the section
 			content.push_back(r);											// Add the record
 			return Save(FileName,content);									// Save
@@ -459,7 +459,7 @@ std::vector<CIniFile::Record> CIniFile::GetSections(const std::string& FileName)
 
 	if (Load(FileName, content))											// Make sure the file is loaded
 	{
-		for (auto iContent : content)								// Loop through the content
+		for (const auto& iContent : content)								// Loop through the content
 		{
 			if(iContent.Key.empty()) {										// If this is a section 
 				data.push_back(iContent);									// Add the record to the return data
@@ -511,7 +511,7 @@ bool CIniFile::AddSection(std::string& SectionName, const std::string& FileName)
 
 	if (Load(FileName, content))											// Make sure the file is loaded
 	{
-		Record s = {"", ' ', std::move(SectionName), "", ""};								// Define a new section
+		Record s = {"", ' ', SectionName, "", ""};								// Define a new section
 		content.push_back(s);												// Add the section
 		return Save(FileName,content);										// Save
 	}
