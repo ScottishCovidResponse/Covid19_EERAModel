@@ -6,15 +6,15 @@
 #include "ModelCommon.h"
 #include "OriginalModel.h"
 #include "IrishModel.h"
+#include "TempModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
 #include "ArgumentParser.h"
 
-
 using namespace EERAModel;
 
-int main(int argc, char** argv) {
-
+int main(int argc, char** argv) 
+{
 	ArgumentParser arg_parser(argc, argv);
 
 	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
@@ -27,11 +27,10 @@ int main(int argc, char** argv) {
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
 	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
-
-        arg_parser.AppendOptions(modelInputParameters);
+    arg_parser.AppendOptions(modelInputParameters);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
-
+	
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
 
@@ -43,8 +42,7 @@ int main(int argc, char** argv) {
         randomiser_seed = time(nullptr);
 	}
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
-
-	(*logger) << "[Seed]:\n    Type: ";
+    (*logger) << "[Seed]:\n    Type: ";
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
@@ -54,10 +52,14 @@ int main(int argc, char** argv) {
     {
         model = std::make_shared<Model::OriginalModel>(rng);
     }
-    else
+    else if (ModelStructureId::IRISH == modelInputParameters.model_structure)
     {
         model = std::make_shared<Model::IrishModel>(rng);
     }
+	else
+	{
+		model = std::make_shared<Model::TempModel>(rng);
+	}
 
     // Select the mode to run in - prediction or inference    
     if (modelInputParameters.run_type == ModelModeId::PREDICTION)
@@ -80,5 +82,4 @@ int main(int argc, char** argv) {
         
         framework.Run();
     }
-	
 }
