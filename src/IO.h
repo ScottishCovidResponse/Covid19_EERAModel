@@ -29,6 +29,15 @@ namespace IO {
 ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
 
 /**
+ * @brief Read prediction framework configuration from input files
+ * 
+ * @param configDir Directory containing the configuration and data files
+ * 
+ * @return Prediction configuration
+ */
+PredictionConfig ReadPredictionConfig(const std::string& configDir);
+
+/**
  * @brief Read model posterior parameters from a CSV file
  * 
  * @param filePath Path to CSV file

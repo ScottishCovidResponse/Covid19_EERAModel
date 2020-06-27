@@ -194,4 +194,13 @@ struct InfectionState
 	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
 };
 
+/**
+ * @brief Configuration for a prediction framework run
+ */
+struct PredictionConfig
+{
+    int n_sim_steps;    /*! Number of steps over which to run the model */
+    std::vector<double> posterior_parameters;  /*! Set of model parameters */
+};
+
 } // namespace EERAModel

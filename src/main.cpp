@@ -66,19 +66,15 @@ int main(int argc, char** argv)
 	}
 
     // Select the mode to run in - prediction or inference    
-    if (modelInputParameters.run_type == ModelModeId::PREDICTION)
+    if (ModelModeId::PREDICTION == modelInputParameters.run_type)
     {
-        const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
+        std::string configDir(std::string(ROOT_DIR) + "/data");
+        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir);
 
-        modelInputParameters.posterior_param_list = 
-			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
-				modelInputParameters.posterior_parameter_select);
+        Prediction::PredictionFramework framework(model, modelInputParameters, predictionConfig, 
+            rng, out_dir, logger);
 
-        Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
-
-        int n_sim_steps = 100;
-
-		framework.Run(modelInputParameters.posterior_param_list, n_sim_steps);
+		framework.Run();
     }
     else
     {

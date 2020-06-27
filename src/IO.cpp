@@ -6,9 +6,24 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 namespace EERAModel {
 namespace IO {
+
+class IOException: public std::exception
+{
+public:
+    IOException(const std::string& message) : message_(message) {}
+    
+    const char* what() const throw() 
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
 
 ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
@@ -113,6 +128,28 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
 
 	return modelInputParameters;
+}
+
+PredictionConfig ReadPredictionConfig(const std::string& configDir)
+{
+    std::string configFile(configDir + "/parameters.ini");
+    if (!Utilities::fileExists(configFile)) throw IOException(configDir + ": File not found!");
+
+    PredictionConfig predictionConfig;
+    std::string sectionId("Prediction Configuration");
+    
+    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
+        sectionId, configFile);
+    int posterior_parameter_index = ReadNumberFromFile<int>("posterior_parameter_index",
+        sectionId, configFile);
+
+    std::string parametersFile(configDir + "/posterior_parameters.csv");
+    if (!Utilities::fileExists(parametersFile)) throw IOException(configDir + ": File not found!");
+    
+    predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
+        posterior_parameter_index);
+
+    return predictionConfig;
 }
 
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)

@@ -58,6 +58,17 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 bool directoryExists(const std::string& directory);
 
 /**
+ * @brief Check if a file exists
+ * 
+ * Checks if the specified file actually exists
+ * 
+ * @param file File path
+ * 
+ * @return True if the file exists; otherwise false
+ */
+bool fileExists(const std::string& file);
+
+/**
  * @brief Sum vector elements in blocks
  * 
  * Summate values at every Nth index, e.g. n = 7 would summate daily data to be weekly data. For 
