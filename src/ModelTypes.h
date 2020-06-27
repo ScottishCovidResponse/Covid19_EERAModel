@@ -54,7 +54,8 @@ enum class ModelStructureId
 {
     UNKNOWN,
     ORIGINAL,
-    IRISH
+    IRISH,
+	TEMP
 };
 
 /**

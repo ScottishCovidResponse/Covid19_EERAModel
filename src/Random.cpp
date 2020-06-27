@@ -36,6 +36,11 @@ double RNG::Beta(double a, double b)
     return gsl_ran_beta(r_, a, b);
 }
 
+unsigned int RNG::Binomial(double p, unsigned int n)
+{
+    return gsl_ran_binomial(r_, p, n);
+}
+
 std::mt19937& RNG::MT19937()
 {
     return gen_;
