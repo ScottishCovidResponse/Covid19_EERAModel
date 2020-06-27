@@ -9,6 +9,12 @@
 #include <cmath>
 
 namespace EERAModel {
+/**
+ * @brief Namepace containing all utility functions
+ *
+ * This namepace contains functions which can be used universally
+ * even outside of the model itself
+ */
 namespace Utilities {
 
 /**
