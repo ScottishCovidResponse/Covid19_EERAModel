@@ -33,7 +33,16 @@ RUN_SCRIPT=./scripts/RunModel.sh
 for i in $(seq $FIRST $LAST) ; do   
     echo ""
     echo "***************** Updating regression test #$i *****************"
-    
+
+    if [[ $i -ge 1 ]] && [[ $i -le 6 ]]; then
+        STRUCT_FLAG=$( echo "-s original" )
+    else
+        STRUCT_FLAG=$( echo "-s irish" )
+    fi
+
+    MODE_FLAG=$( echo "-m inference" )
+    FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
+      
     regression_test_dir=$REGRESSION_DIR/run$i
     
     if [[ ! -d $regression_test_dir ]]; then
@@ -44,7 +53,7 @@ for i in $(seq $FIRST $LAST) ; do
     $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data
     setup=$?
 
-    $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR
+    $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR $FLAGS
     run=$?
 
     output_dir=$regression_test_dir/outputs
