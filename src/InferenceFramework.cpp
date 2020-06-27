@@ -45,50 +45,16 @@ void InferenceFramework::Run()
 	clock_t startTime = clock();
 	clock_t time_taken1=0;
 
-    (*log_) << "[Settings]:\n";
+    (*log_) << "[Inference Settings]:\n";
 	(*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
     (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
 	if (modelInputParameters_.seedlist.seedmethod == "random"){
 		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
 	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
 		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
-	}
-	
-	if (modelInputParameters_.model_structure == ModelStructureId::ORIGINAL){
-		(*log_) << "    model structure: Original" <<std::endl;
-	} else if(modelInputParameters_.model_structure == ModelStructureId::IRISH){
-		(*log_) << "    model structure: Irish"  <<std::endl;
-	} else {
-		(*log_) << "    model structure: Temporary" <<std::endl; 
 	}	
-	
- //   (*log_) << "    model structure: " << 
- //       ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish" << std::endl;
-
-    (*log_) << "[Fixed parameter values]:\n";
-	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
-	(*log_) << "    pre-clinical period (theta_i): " << modelInputParameters_.paramlist.T_inf <<std::endl;
-	(*log_) << "    asymptomatic period (theta_r): " << modelInputParameters_.paramlist.T_rec <<std::endl;
-	(*log_) << "    symptomatic period (theta_s): " << modelInputParameters_.paramlist.T_sym <<std::endl;
-	(*log_) << "    hospitalisation stay (theta_h): " << modelInputParameters_.paramlist.T_hos <<std::endl;
-	(*log_) << "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters_.paramlist.juvp_s <<std::endl;
-	(*log_) << "    bed capacity at hospital (K): " << modelInputParameters_.paramlist.K <<std::endl;
-	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
-	
-	//keep information for the health board if interest
-	const std::vector<double> pf_byage = observations_.pf_pop[modelInputParameters_.herd_id - 1];//define frailty structure of the shb of interest.
-
-	const AgeGroupData per_age_data = {observations_.waifw_norm, observations_.waifw_home, observations_.waifw_sdist, 
-										observations_.cfr_byage, pf_byage};
-
-	//create vector of fixed parameters		
-	std::vector<params> fixed_parameters = Model::BuildFixedParameters(observations_.waifw_norm.size(),
-        modelInputParameters_.paramlist);
-    
+	   
 	const int time_back = GetTimeOffSet(modelInputParameters_);
-
-	int population = Model::GetPopulationOfRegion(observations_, modelInputParameters_.herd_id);
-	
 	const std::vector<int>& regionalCases = observations_.cases[modelInputParameters_.herd_id];
 	const std::vector<int>& regionalDeaths = observations_.deaths[modelInputParameters_.herd_id];
 	const std::vector<int>& timeStamps = observations_.cases[0];
@@ -98,15 +64,9 @@ void InferenceFramework::Run()
 		regionalDeaths, time_back, log_);
 	
 	modelInputParameters_.seedlist.day_intro = obs_selections.sim_time.day_intro;
-
-	int N_hcw = Model::ComputeNumberOfHCWInRegion(population, modelInputParameters_.totN_hcw, observations_);
-
-	std::vector<int> agenums = Model::ComputeAgeNums(modelInputParameters_.herd_id, population, N_hcw, observations_);
 	
     (*log_) << "[Health Board settings]:\n";
 	(*log_) << "    SHB id: " << modelInputParameters_.herd_id <<'\n';
-	(*log_) << "    Population size: " << population << '\n';
-	(*log_) << "    Number of HCW: " << N_hcw << '\n';
 	(*log_) << "    Simulation period: " << obs_selections.sim_time.duration << "days\n";
 	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
 
@@ -210,8 +170,7 @@ void InferenceFramework::Run()
 				}
 
 				//run the model and compute the different measures for each potential parameters value
-				ModelSelect(outs_vec, fixed_parameters, per_age_data,
-							agenums, n_sim_steps, modelInputParameters_.seedlist,
+				ModelSelect(outs_vec, n_sim_steps, modelInputParameters_.seedlist,
 							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
@@ -271,17 +230,14 @@ void InferenceFramework::Run()
 	(*log_) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
 }
 
-void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
-	seed seedlist, int day_shut, const std::vector<int>& obsHosp, 
-	const std::vector<int>& obsDeaths) {
+void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const int& n_sim_steps, 
+	seed seedlist, int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths) {
 
 	//---------------------------------------
 	// the root model
 	//---------------------------------------
 	
-	Status status = model_->Run(outvec.parameter_set, fixed_parameters, per_age_data, seedlist, day_shut,
-							agenums, n_sim_steps);
+	Status status = model_->Run(outvec.parameter_set, seedlist, day_shut, n_sim_steps);
 
 	//---------------------------------------
 	// compute the  sum of squared errors for daily observations

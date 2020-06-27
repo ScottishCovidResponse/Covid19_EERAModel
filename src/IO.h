@@ -104,5 +104,15 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
 	return Value;
 }
 
+/**
+ * @brief Log fixed parameters
+ * 
+ * Log the fixed parameters of a model
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
+
 } // namespace IO
 } // namespace EERAModel

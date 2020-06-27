@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     arg_parser.AppendOptions(modelInputParameters);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
-	
+
 	// Read in the observations
 	InputObservations observations = IO::ReadObservationsFromFiles(logger);
 
@@ -46,19 +46,22 @@ int main(int argc, char** argv)
     (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
 	(*logger) << "    Value: " << randomiser_seed << std::endl;
 
+    // Log the fixed parameters
+    IO::LogFixedParameters(modelInputParameters, logger);
+
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
     if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
     {
-        model = std::make_shared<Model::OriginalModel>(rng);
+        model = std::make_shared<Model::OriginalModel>(modelInputParameters, observations, rng, logger);
     }
     else if (ModelStructureId::IRISH == modelInputParameters.model_structure)
     {
-        model = std::make_shared<Model::IrishModel>(rng);
+        model = std::make_shared<Model::IrishModel>(modelInputParameters, observations, rng, logger);
     }
 	else
 	{
-		model = std::make_shared<Model::TempModel>(rng);
+		model = std::make_shared<Model::TempModel>(modelInputParameters, observations, rng, logger);
 	}
 
     // Select the mode to run in - prediction or inference    

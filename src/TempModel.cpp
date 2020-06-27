@@ -3,6 +3,40 @@
 namespace EERAModel {
 namespace Model {
 
+TempModel::TempModel(const ModelInputParameters& modelInputParameters,
+    InputObservations& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    : rng_(rng) {
+    
+    fixedParameters_ = BuildFixedParameters(
+        observations.waifw_norm.size(), modelInputParameters.paramlist
+    );
+        
+    ageGroupData_ = AgeGroupData{
+            observations.waifw_norm,
+            observations.waifw_home,
+            observations.waifw_sdist,
+            observations.cfr_byage,
+            observations.pf_pop[modelInputParameters.herd_id - 1]
+    };
+    
+    int regionalPopulation = GetPopulationOfRegion(
+        observations, modelInputParameters.herd_id
+    );
+
+    int healthCareWorkers = ComputeNumberOfHCWInRegion(
+        regionalPopulation, modelInputParameters.totN_hcw, observations
+    );
+    
+    ageNums_ = ComputeAgeNums(
+        modelInputParameters.herd_id, regionalPopulation, healthCareWorkers, observations
+    );
+
+    (*log) << "[Model settings]" << std::endl;
+    (*log) << "    Model Structure: Temporary" << std::endl;
+    (*log) << "    Population size: " << regionalPopulation << std::endl;
+	(*log) << "    Number of HCW: " << healthCareWorkers << std::endl;
+}
+
 std::vector<double> TempModel::BuildPopulationSeed(const std::vector<int>& age_nums)
 {
     unsigned int end_age = age_nums.size() - 1;
@@ -72,23 +106,21 @@ void TempModel::GenerateDiseasedPopulation(std::vector<Compartments>& poparray,
 
 }
 
-Status TempModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps) {
+Status TempModel::Run(std::vector<double> parameter_set, seed seedlist, int day_shut, int n_sim_steps) {
 	Status status = {{0}, {0}, {0}, {}};
 
-	const int n_agegroup = per_age_data.waifw_norm.size();
+	const int n_agegroup = ageGroupData_.waifw_norm.size();
 
 	// Start without lockdown
 	bool inLockdown = false;
 
 	// Assumes that the number of age groups matches the size of the 'agenums' vector
-	std::vector<double> seed_pop = BuildPopulationSeed(agenums);
+	std::vector<double> seed_pop = BuildPopulationSeed(ageNums_);
 
-	std::vector<std::vector<double>> parameter_fit(per_age_data.waifw_norm.size(), parameter_set);	
-	parameter_fit[0][5] = fixed_parameters[0].juvp_s;
+	std::vector<std::vector<double>> parameter_fit(ageGroupData_.waifw_norm.size(), parameter_set);	
+	parameter_fit[0][5] = fixedParameters_[0].juvp_s;
 
-	std::vector<Compartments> poparray = BuildPopulationArray(agenums, seedlist);
+	std::vector<Compartments> poparray = BuildPopulationArray(ageNums_, seedlist);
 
 	for (int tt{1}; tt < n_sim_steps; ++tt) {
 		//initialize return value
@@ -108,15 +140,15 @@ Status TempModel::Run(std::vector<double> parameter_set, std::vector<::EERAModel
 		}
 
         //compute the forces of infection
-        std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixed_parameters[0].inf_asym, per_age_data,
+        std::vector<double> lambda = GenerateForcesOfInfection(infection_state.hospitalised, parameter_set, fixedParameters_[0].inf_asym, ageGroupData_,
             poparray, inLockdown);	
 
         // step each agegroup through infections
         for ( int age{0}; age < n_agegroup; ++age) {	
             InfectionState new_spread = 
                     GenerateInfectionSpread(poparray[age], infection_state.hospitalised,
-                        fixed_parameters[age],parameter_fit[age],
-                        per_age_data.cfr_byage[age], per_age_data.pf_byage[age],lambda[age]);
+                        fixedParameters_[age],parameter_fit[age],
+                        ageGroupData_.cfr_byage[age], ageGroupData_.pf_byage[age],lambda[age]);
 
             infection_state.deaths += new_spread.deaths;
             infection_state.hospital_deaths += new_spread.hospital_deaths;

@@ -330,5 +330,18 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	output_full.close();
 }
 
+void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Fixed parameter values]:\n";
+	(*log) << "    latent period (theta_l): " << params.paramlist.T_lat <<std::endl;
+	(*log) << "    pre-clinical period (theta_i): " << params.paramlist.T_inf <<std::endl;
+	(*log) << "    asymptomatic period (theta_r): " << params.paramlist.T_rec <<std::endl;
+	(*log) << "    symptomatic period (theta_s): " << params.paramlist.T_sym <<std::endl;
+	(*log) << "    hospitalisation stay (theta_h): " << params.paramlist.T_hos <<std::endl;
+	(*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << params.paramlist.juvp_s <<std::endl;
+	(*log) << "    bed capacity at hospital (K): " << params.paramlist.K <<std::endl;
+	(*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
+}
+
 } // namespace IO
 } // namespace EERAModel

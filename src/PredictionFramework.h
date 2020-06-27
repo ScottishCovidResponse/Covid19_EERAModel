@@ -53,18 +53,6 @@ private:
 
     /**
      * @private
-     * @brief Fixed model parameters
-     */
-    std::vector<EERAModel::params> fixedParameters_;
-
-    /**
-     * @private 
-     * @brief Distribution of population amongst different age groups
-     */
-    AgeGroupData ageGroupData_;
-
-    /**
-     * @private
      * @brief Model input parameters
      */
     ModelInputParameters modelInputParameters_;
@@ -74,25 +62,6 @@ private:
      * @brief Model input observations
      */
     InputObservations observations_;
-
-    /**
-     * @private
-     * @brief TBC
-     */
-
-    int regionalPopulation_;
-
-    /**
-     * @private
-     * @brief Number of health workers
-     */
-    int healthCareWorkers_;
-
-    /**
-     * @private
-     * @brief Numbers inside each age group
-     */
-    std::vector<int> ageNums_;
 
     /**
      * @private

@@ -55,9 +55,8 @@ private:
      * @private
      * @brief Run the model inside the inference framework
      */
-    void ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	    const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
-	    seed seedlist, int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths);
+    void ModelSelect(EERAModel::particle& outvec, const int& n_sim_steps, seed seedlist,
+        int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths);
     /**
      * @private
      * @brief Model interface
