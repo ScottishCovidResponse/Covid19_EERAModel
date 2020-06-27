@@ -44,15 +44,6 @@ void InferenceFramework::Run()
 	//get the start time
 	clock_t startTime = clock();
 	clock_t time_taken1=0;
-
-    (*log_) << "[Inference Settings]:\n";
-	(*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
-    (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
-	if (modelInputParameters_.seedlist.seedmethod == "random"){
-		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
-	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
-		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
-	}	
 	   
 	const int time_back = GetTimeOffSet(modelInputParameters_);
 	const std::vector<int>& regionalCases = observations_.cases[modelInputParameters_.herd_id];

@@ -114,5 +114,26 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
  */
 void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
 
+/**
+ * @brief Log randomiser settings
+ * 
+ * Log the settings of the configured randomiser
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void LogRandomiserSettings(const ModelInputParameters& params, unsigned long randomiser_seed, 
+    Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Log model seed settings
+ * 
+ * Log the settings of the model disease seeding
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log);
+
 } // namespace IO
 } // namespace EERAModel

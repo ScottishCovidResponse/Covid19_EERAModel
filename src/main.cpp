@@ -42,13 +42,14 @@ int main(int argc, char** argv)
         randomiser_seed = time(nullptr);
 	}
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
-    (*logger) << "[Seed]:\n    Type: ";
-    (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
-	(*logger) << "    Value: " << randomiser_seed << std::endl;
+    IO::LogRandomiserSettings(modelInputParameters, randomiser_seed, logger);
 
     // Log the fixed parameters
     IO::LogFixedParameters(modelInputParameters, logger);
 
+    // Log the disease seed settings
+    IO::LogSeedSettings(modelInputParameters.seedlist, logger);
+    
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
     if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)

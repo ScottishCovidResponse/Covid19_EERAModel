@@ -24,15 +24,6 @@ void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationS
 {
     clock_t startTime = clock();
 
-    (*log_) << "[Settings]:\n";
-    (*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
-    (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
-	if (modelInputParameters_.seedlist.seedmethod == "random"){
-		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
-	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
-		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
-	}
-
     Status status = model_->Run(parameterSet, modelInputParameters_.seedlist,
         modelInputParameters_.day_shut, nSimulationSteps);
 

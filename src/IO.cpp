@@ -343,5 +343,25 @@ void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_s
 	(*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
 }
 
+void LogRandomiserSettings(const ModelInputParameters& params, unsigned long randomiser_seed, 
+    Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Randomisation Settings]:\n";
+    (*log) << "    Seed type: ";
+    (*log) << ((params.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
+	(*log) << "    Seed value: " << randomiser_seed << std::endl;
+}
+
+void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Disease seeding settings]:\n";
+    (*log) << "    seeding method: "<< params.seedmethod <<  std::endl;
+	if (params.seedmethod == "random"){
+		(*log) << "    number of seed: " << params.nseed << std::endl;
+	} else if(params.seedmethod == "background"){
+		(*log) << "    duration of the high risk period (hrp): " << params.hrp << std::endl;
+	}
+}
+
 } // namespace IO
 } // namespace EERAModel
