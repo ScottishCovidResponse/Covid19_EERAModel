@@ -1,7 +1,11 @@
 #pragma once
 
-#include "ModelTypes.h"
 #include "IniFile.h"
+#include "ModelTypes.h"
+#include "LocalFileStructure.h"
+
+#include <string>
+#include <sstream>
 #include "Utilities.h"
 #include <sstream>
 #include <string>
@@ -20,23 +24,23 @@ namespace EERAModel {
 namespace IO {
 
 /**
- * @brief Read model input parameters from an INI file
+ * @brief Read model input parameters from a data files object
  * 
- * @param filePath Path to the INI file
+ * @param data_files Data files object containing paths
  * 
  * @return Model parameters
  */
-ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+EERAModel::ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief Read model posterior parameters from a CSV file
  * 
- * @param filePath Path to CSV file
+ * @param data_files Data files object containing file locations
  * @param set_selection Selection of row in CSV file for posterior parameters
  * 
  * @return Model posterior parameters
  */
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
+std::vector<double> ReadPosteriorParametersFromFile(const DataSourcing::DataFiles& data_files, int set_selection);
 
 /**
  * @brief Read in observations
@@ -45,7 +49,7 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
  * 
  * @return Observations
  */
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
+EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log);
 
 /**
  * @brief  Write outputs to files

@@ -10,7 +10,7 @@
 namespace EERAModel {
 namespace IO {
 
-ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
+ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
 {
 	ModelInputParameters modelInputParameters;
 
@@ -18,6 +18,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 
 	//Settings
 	//modelInputParameters.herd_id = atoi(parameters.GetValue_modif(&SettingName, &SettingCategory, &filePath).c_str());
+<<<<<<< HEAD
 	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
 
 	//time step for the modelling process
@@ -26,11 +27,25 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 
 	//number of threads used for computation
 	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", filePath);
+=======
+	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", data_files.parameters);
+
+	//time step for the modelling process
+	// modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", filePath).c_str());
+	modelInputParameters.tau = ReadNumberFromFile<double>("tau", "Settings", data_files.parameters);
+
+	//number of threads used for computation
+	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", data_files.parameters);
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
     // Model structure
 	std::string SettingName = "model";
 	std::string SettingCategory = "Settings";
+<<<<<<< HEAD
     std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
+=======
+    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, data_files.parameters));
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
     if ("irish" == model_structure) {
         modelInputParameters.model_structure = ModelStructureId::IRISH;
     } else if("original" == model_structure) {
@@ -42,6 +57,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	//Seed settings
 	SettingName = "seedmethod";
 	SettingCategory = "Seed settings";
+<<<<<<< HEAD
 	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
 	if(modelInputParameters.seedlist.seedmethod == "random"){
 		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
@@ -63,6 +79,29 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
 	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
 	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
+=======
+	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, data_files.parameters);
+	if(modelInputParameters.seedlist.seedmethod == "random"){
+		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", data_files.parameters);
+	} else if(modelInputParameters.seedlist.seedmethod == "background"){
+		modelInputParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", data_files.parameters);
+	} else {
+		(*log) << "Warning!!! Unknown method - using random seed method instead." << endl;
+		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", data_files.parameters);
+	}
+	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", data_files.parameters)
+	);
+	modelInputParameters.seedlist.seed_value = ReadNumberFromFile<int>(
+		"seed_value", "Seed settings", data_files.parameters
+	);
+	
+	//Fit settings
+	modelInputParameters.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", data_files.parameters);
+	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", data_files.parameters);
+	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", data_files.parameters);
+	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", data_files.parameters);
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	//Tolerance settings
 	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
@@ -72,6 +111,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	for (int ii = 0; ii < modelInputParameters.nsteps; ++ii) {
 		std::stringstream KeyName;
 		KeyName << "Key" << (ii + 1);
+<<<<<<< HEAD
 		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
 	}
 
@@ -111,17 +151,66 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	// modelInputParameters.run_type = ModelModeId::PREDICTION;
 
 	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
+=======
+		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", data_files.parameters);
+	}
+
+	//Fixed parameters
+	modelInputParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", data_files.parameters);
+	modelInputParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", data_files.parameters);
+	modelInputParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", data_files.parameters);
+	modelInputParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", data_files.parameters);
+
+	//priors settings
+	modelInputParameters.nPar = ReadNumberFromFile<int>("nPar", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", data_files.parameters);
+	
+	modelInputParameters.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", data_files.parameters);
+	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", data_files.parameters);
+
+	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", data_files.parameters).c_str();
+	modelInputParameters.run_type = ModelModeId::INFERENCE;
+	// modelInputParameters.run_type = ModelModeId::PREDICTION;
+
+	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", data_files.parameters);
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	return modelInputParameters;
 }
 
+<<<<<<< HEAD
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
+=======
+std::vector<double> ReadPosteriorParametersFromFile(const DataSourcing::DataFiles& data_files, int set_selection)
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
 	char delimiter = ',';
 	
+<<<<<<< HEAD
 	lines = Utilities::read_csv<double>(filePath, delimiter);
+=======
+	lines = Utilities::read_csv<double>(data_files.parameters, delimiter);
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	// Select line from input file and store result in another temporary vector
 	if (set_selection >= static_cast<int>(lines.size())){
@@ -149,69 +238,64 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	return parameter_sets;
 }
 
+<<<<<<< HEAD
 InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
+=======
+EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
+>>>>>>> kzscisoft/SCRC-440-abstraction-layer
 {
 	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
-
-	const std::string scot_data_file = std::string(ROOT_DIR)+"/data/scot_data.csv";
-	const std::string scot_deaths_file = std::string(ROOT_DIR)+"/data/scot_deaths.csv";
-	const std::string scot_ages_file = std::string(ROOT_DIR)+"/data/scot_age.csv";
-	const std::string waifw_norm_file = std::string(ROOT_DIR)+"/data/waifw_norm.csv";
-	const std::string waifw_home_file = std::string(ROOT_DIR)+"/data/waifw_home.csv";
-	const std::string waifw_sdist_file = std::string(ROOT_DIR)+"/data/waifw_sdist.csv";
-	const std::string cfr_byage_file = std::string(ROOT_DIR)+"/data/cfr_byage.csv";
-	const std::string scot_frail_file = std::string(ROOT_DIR)+"/data/scot_frail.csv";
 	
 	//Uploading observed disease data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	
-	(*log) << "\t- " << scot_data_file << std::endl;
-	observations.cases = Utilities::read_csv<int>(scot_data_file,',');
+	(*log) << "\t- " << data_files.data << std::endl;
+	observations.cases = Utilities::read_csv<int>(data_files.data,',');
 	
 	//Uploading observed death data
 	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
 	//rows from 1 are indivudual health board
 	//last row is for all of scotland
 	
-	(*log) << "\t- " << scot_deaths_file << std::endl;
-	observations.deaths = Utilities::read_csv<int>(scot_deaths_file,',');
+	(*log) << "\t- " << data_files.deaths << std::endl;
+	observations.deaths = Utilities::read_csv<int>(data_files.deaths,',');
 	
 	//Uploading population per age group
 	//columns are for each individual Health Borad
 	//last column is for Scotland
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << scot_ages_file << std::endl;
-	observations.age_pop = Utilities::read_csv<double>(scot_ages_file,',');	
+	(*log) << "\t- " << data_files.ages << std::endl;
+	observations.age_pop = Utilities::read_csv<double>(data_files.ages,',');	
 	
 	//mean number of daily contacts per age group (overall)	
-	(*log) << "\t- " << waifw_norm_file << std::endl;
-	observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file,',');
+	(*log) << "\t- " << data_files.waifw.norm << std::endl;
+	observations.waifw_norm = Utilities::read_csv<double>(data_files.waifw.norm,',');
 
 	//mean number of daily contacts per age group (home only)		
-	(*log) << "\t- " << waifw_home_file << std::endl;
-	observations.waifw_home = Utilities::read_csv<double>(waifw_home_file,',');
+	(*log) << "\t- " << data_files.waifw.home << std::endl;
+	observations.waifw_home = Utilities::read_csv<double>(data_files.waifw.home,',');
 	
 	//mean number of daily contacts per age group (not school, not work)			
-	(*log) << "\t- " << waifw_sdist_file << std::endl;
-	observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file,',');	
+	(*log) << "\t- " << data_files.waifw.sdist << std::endl;
+	observations.waifw_sdist = Utilities::read_csv<double>(data_files.waifw.sdist,',');	
 	
 	//Upload cfr by age group
 	//col0: p_h: probability of hospitalisation
 	//col1: cfr: case fatality ratio
 	//col2: p_d: probability of death, given hospitalisation
 	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << cfr_byage_file << std::endl;
-	observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file,',');	
+	(*log) << "\t- " << data_files.cfr_byage << std::endl;
+	observations.cfr_byage = Utilities::read_csv<double>(data_files.cfr_byage,',');	
 		
 	//Upload frailty probability p_f by age group
 	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	//rows are for each individual Health Borad
 	//last row is for Scotland
-	(*log) << "\t- " << scot_frail_file << std::endl;
-	observations.pf_pop = Utilities::read_csv<double>(scot_frail_file,',');	
+	(*log) << "\t- " << data_files.frail << std::endl;
+	observations.pf_pop = Utilities::read_csv<double>(data_files.frail,',');	
 
 	return observations;
 }
