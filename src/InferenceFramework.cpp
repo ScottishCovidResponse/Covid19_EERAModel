@@ -38,7 +38,9 @@ int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputPara
 
 void InferenceFramework::Run()
 {
-    	/*---------------------------------------
+    const unsigned int nInferenceParams = Model::ModelParameters::NPARAMS;
+
+    /*---------------------------------------
 	 * Model parameters and fitting settings
 	 *---------------------------------------*/
 	//get the start time
@@ -46,7 +48,7 @@ void InferenceFramework::Run()
 	clock_t time_taken1=0;
 
     (*log_) << "[Settings]:\n";
-	(*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
+	(*log_) << "    number of parameters tested: "<< nInferenceParams << std::endl;
     (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
 	if (modelInputParameters_.seedlist.seedmethod == "random"){
 		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
@@ -133,8 +135,7 @@ void InferenceFramework::Run()
 		modelInputParameters_.prior_lambda_shape2
 	};
 
-    Inference::InferenceParameterGenerator inferenceParameterGenerator(
-        modelInputParameters_.nPar, rng_, flag1, flag2);
+    InferenceParameterGenerator inferenceParameterGenerator(rng_, flag1, flag2);
 
 	//declare vectors of outputs/inputs for ABC process
 	std::vector<particle > particleList, particleList1;
@@ -158,16 +159,16 @@ void InferenceFramework::Run()
 		int acceptedParticleCount = 0;
 
 		//initialise the weight and particle lists
-		std::vector<double> vect_Max(modelInputParameters_.nPar, 0.0);
-		std::vector<double> vect_min(modelInputParameters_.nPar, 0.0);
-		std::vector<double> vlimitKernel(modelInputParameters_.nPar, 0.0);
+		std::vector<double> vect_Max(nInferenceParams, 0.0);
+		std::vector<double> vect_min(nInferenceParams, 0.0);
+		std::vector<double> vlimitKernel(nInferenceParams, 0.0);
 
 		if (smc > 0) {
 			//update the vectors
 			particleList = particleList1;
 			particleList1.clear();
 
-			ComputeKernelWindow(modelInputParameters_.nPar, particleList, 
+			ComputeKernelWindow(nInferenceParams, particleList, 
 				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
@@ -192,7 +193,7 @@ void InferenceFramework::Run()
 				particle outs_vec;
 				outs_vec.iter = sim;				
 //				outs_vec.sum_sq = 1.e06;
-				for (int i{0}; i < modelInputParameters_.nPar; ++i) {
+				for (int i{0}; i < nInferenceParams; ++i) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
 				//pick the values of each particles
@@ -226,7 +227,7 @@ void InferenceFramework::Run()
                         //#pragma omp critical
                         {
                             FittingProcess::weight_calc(smc, prevAcceptedParticleCount, particleList, outs_vec, 
-                                vlimitKernel, modelInputParameters_.nPar);
+                                vlimitKernel, nInferenceParams);
                             particleList1.push_back(outs_vec);
                             ++acceptedParticleCount;
                             if (acceptedParticleCount % 10 == 0) (*log_) << "|" << std::flush;
@@ -263,7 +264,7 @@ void InferenceFramework::Run()
 		//break the ABC-smc at the step where no particles were accepted
 		if (prevAcceptedParticleCount > 0) {
 			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, prevAcceptedParticleCount,
-				modelInputParameters_.nPar, particleList1, outDir_, log_);
+				nInferenceParams, particleList1, outDir_, log_);
 		}
 	}
 
