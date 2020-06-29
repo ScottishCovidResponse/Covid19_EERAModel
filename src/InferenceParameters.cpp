@@ -1,42 +1,38 @@
 #include "InferenceParameters.h"
+#include "ModelCommon.h"
 #include <cmath>
-#include <gsl/gsl_randist.h>
 
 namespace EERAModel {
 namespace Inference {
 
 InferenceParameterGenerator::InferenceParameterGenerator(
-    std::size_t nParameters,
     Random::RNGInterface::Sptr rng,
     const std::vector<double>& flag1,
     const std::vector<double>& flag2) 
-     : nParameters_(nParameters), rng_(rng), flag1_(flag1), flag2_(flag2) {}
+     : rng_(rng), flag1_(flag1), flag2_(flag2) {}
 
 std::vector<double> InferenceParameterGenerator::GenerateInitial()
 {
-    std::vector<double> parameterSet(nParameters_, 0.0);
+    std::vector<double> parameterSet(Model::ModelParameters::NPARAMS);
 
-    for (std::size_t i = 0; i < nParameters_; ++i) {
-        double tmpval = 0.0;
-
-        if (i == 2) 
+    for (unsigned int i = 0; i < Model::ModelParameters::NPARAMS; ++i) 
+    {
+        if (Model::ModelParameters::CHCW == i) 
         {
-            tmpval = (double) rng_->Poisson(flag1_[i]);
+            parameterSet[i] = (double) rng_->Poisson(flag1_[i]);
         }
-        else if (i == (nParameters_ - 1)) 
+        else if (Model::ModelParameters::LAMBDA == i) 
         {
-            tmpval = rng_->Flat(flag1_[i], flag2_[i]);
+            parameterSet[i] = rng_->Flat(flag1_[i], flag2_[i]);
         } 
-        else if (i == 6)
+        else if (Model::ModelParameters::RRD == i)
         {
-            tmpval = rng_->Gamma(flag1_[i], flag2_[i]);
+            parameterSet[i] = rng_->Gamma(flag1_[i], flag2_[i]);
         }
         else
         {
-            tmpval = rng_->Beta(flag1_[i], flag2_[i]);
+            parameterSet[i] = rng_->Beta(flag1_[i], flag2_[i]);
         }
-        
-        parameterSet[i] = tmpval;
 	}
 
 	return parameterSet;
@@ -48,9 +44,9 @@ std::vector<double> InferenceParameterGenerator::GenerateWeighted(
     const std::vector<double>& vect_Max,
     const std::vector<double>& vect_Min) 
 {
-    std::vector<double> parameterSet(nParameters_, 0.0);
+    std::vector<double> parameterSet(Model::ModelParameters::NPARAMS);
     
-    for (size_t i = 0; i < nParameters_; ++i) 
+    for (unsigned int i = 0; i < Model::ModelParameters::NPARAMS; ++i) 
     {
         parameterSet[i] = PerturbParameter(
             existingSet[i], vlimitKernel[i], vect_Max[i], vect_Min[i]

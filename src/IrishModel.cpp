@@ -101,10 +101,8 @@ Status IrishModel::Run(std::vector<double> parameter_set, std::vector<::EERAMode
 		//introduce disease from background infection until lockdown
 		if(!inLockdown && seedlist.seedmethod == "background")
 		{
-			const double bkg_lambda = parameter_set[parameter_set.size()-1];
-
 			//compute the total number of susceptible and the number of susceptible per age class			
-			GenerateDiseasedPopulation(poparray, seed_pop, bkg_lambda);
+			GenerateDiseasedPopulation(poparray, seed_pop, parameter_set[ModelParameters::LAMBDA]);
 		}
 
         //compute the forces of infection
@@ -154,10 +152,10 @@ InfectionState IrishModel::GenerateInfectionSpread(Compartments& pop,
     double capacity = n_hospitalised / K;
     capacity = std::min(1.0, capacity);
 
-    const double p_h= cfr_tab[0];
-    const double p_d= cfr_tab[2];	
-    const double p_s= parameter_set[5];
-    const double rrd= parameter_set[6];
+    const double p_h = cfr_tab[0];
+    const double p_d = cfr_tab[2];	
+    const double p_s = parameter_set[ModelParameters::PS];
+    const double rrd = parameter_set[ModelParameters::RRD];
 
     // hospitalized  - non-frail
     const int newdeathsH= Flow(rng_, pop.H, newpop.H, p_d * (1.0 / T_hos));
@@ -247,12 +245,11 @@ InfectionState IrishModel::GenerateInfectionSpread(Compartments& pop,
 std::vector<double> IrishModel::GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut) 
 {
-
-	double p_i = parameter_set[0];	
-	double p_hcw = parameter_set[1];	
-	double c_hcw = parameter_set[2];	
-	double d_val = parameter_set[3];					
-	double q_val = parameter_set[4];
+	double p_i = parameter_set[ModelParameters::PINF];	
+	double p_hcw = parameter_set[ModelParameters::PHCW];	
+	double c_hcw = parameter_set[ModelParameters::CHCW];	
+	double d_val = parameter_set[ModelParameters::D];					
+	double q_val = parameter_set[ModelParameters::Q];
 	
 	int n_agegroup = age_data.waifw_norm.size();
 
