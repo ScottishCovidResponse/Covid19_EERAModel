@@ -162,14 +162,11 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	}
 	std::vector<double> line_select = lines[set_selection];
 
-	/** Extract posterior parameters from selected line
-	 * the slicing is relevant to the format of the output file
-	 * *output_abc-smc_particles_step* coming from the inference framework
-	 */
-	auto first = line_select.cbegin() + 3;
-	auto last = line_select.cend() - 1;
-	int nPar = static_cast<int>(line_select.size()) - 4;
-	if ((last - line_select.begin()) - (first - line_select.begin()) < nPar) {
+	auto first = line_select.cbegin() + 1;
+	auto last = line_select.cend();
+	/** @todo Replace with constant from inference parameter description class */
+    const int nPar = 8;
+	if ((last - first) != nPar) {
 		std::stringstream PosteriorFileFormatError;
 		PosteriorFileFormatError << "Please check formatting of posterios parameter input file, 8 parameter values are needed..." << std::endl;
 		throw std::runtime_error(PosteriorFileFormatError.str());
