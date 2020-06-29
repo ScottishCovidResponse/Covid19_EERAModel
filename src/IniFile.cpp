@@ -213,15 +213,16 @@ vector<CIniFile::Record> CIniFile::GetRecord(string KeyName, string SectionName,
 	return data;															// Return the Record
 }
 
-string CIniFile::GetValue(string KeyName, string SectionName, string FileName)
+string CIniFile::GetValue(string& KeyName, string& SectionName, const string& FileName)
 {
-	vector<Record> content = GetRecord(KeyName,SectionName, FileName);		// Get the Record
+	vector<Record> content = GetRecord(KeyName, SectionName, FileName);		// Get the Record
 
 	if(!content.empty())													// Make sure there is a value to return
 		return content[0].Value;											// And return the value
 
 	return "";																// No value was found
 }
+
 
 bool CIniFile::SetValue(string KeyName, string Value, string SectionName, string FileName)
 {

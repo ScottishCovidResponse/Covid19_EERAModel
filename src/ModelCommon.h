@@ -5,7 +5,19 @@
 #include <vector>
 #include <memory>
 
+/**
+ * @brief Namespace for the EERA COVID-19 Model and member functions
+ *
+ * This namespace includes functions and variables used to access data,
+ * initiate, run and evaluate the model.
+ */
 namespace EERAModel {
+/**
+ * @brief Namespace containing the model definitions and execution
+ *
+ * This namespace contains functions which run the model using the given
+ * setup/parameters.
+ */
 namespace Model {
 
 /**
@@ -100,6 +112,18 @@ std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObse
  * @return Vector of @p size copies of @p parameters
  */
 std::vector<params> BuildFixedParameters(unsigned int size, params parameters);
+
+/**
+ * @brief Convert Vector of Compartments struct to a vector of integers
+ * 
+ * NOTE: This is a temporary function to allow compatibility
+ * converts the Compartments struct to a vector of integers
+ * 
+ * @param cmps_vec Vector of compartments struct containing population per category
+ * 
+ * @return Vector of population counters
+ */
+std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 } // namespace Model
 } // namespace EERAModel

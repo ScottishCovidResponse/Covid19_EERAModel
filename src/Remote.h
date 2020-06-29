@@ -18,7 +18,7 @@ namespace API
     template<typename T>
     T ReadParameterFromAPI(const std::string APIInfo, const std::string param_name, const std::string version="latest") {}
     ModelInputParameters ReadParametersFromAPI(const std::string APIInfo, Utilities::logging_stream::Sptr log);
-    PriorParticleParameters ReadPriorParametersFromAPI(const std::string APIInfo, Utilities::logging_stream::Sptr log);
+    std::vector<double> ReadPosteriorParametersFromAPI(const std::string APIInfo, int set_selection);
     InputObservations ReadObservationsFromAPI(const std::string APIInfo, Utilities::logging_stream::Sptr log);
 
     void PushOutputs();

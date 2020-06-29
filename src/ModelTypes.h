@@ -52,8 +52,10 @@ struct seed {
  */
 enum class ModelStructureId
 {
+    UNKNOWN,
     ORIGINAL,
-    IRISH
+    IRISH,
+	TEMP
 };
 
 /**
@@ -61,7 +63,8 @@ enum class ModelStructureId
  */
 enum class ModelModeId
 {
-	INFERENCE,
+	UNKNOWN,
+    INFERENCE,
 	PREDICTION
 };
 
@@ -73,7 +76,7 @@ struct ModelInputParameters
 	int herd_id;
 	double tau;
 	int num_threads;
-    ModelStructureId model_structure;
+    ModelStructureId model_structure = ModelStructureId::UNKNOWN;
 	int nsteps;
 	int nParticalLimit;
 	int nSim;
@@ -101,12 +104,9 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
-	ModelModeId run_type;
-	std::vector<double> prior_param_list;
-};
-
-struct PriorParticleParameters
-{
+	std::vector<double> posterior_param_list;
+	int posterior_parameter_select;
+	ModelModeId run_type = ModelModeId::UNKNOWN;
 	std::vector<double> prior_param_list;
 };
 
@@ -176,6 +176,8 @@ struct Status
 	std::vector<int> deaths;					/*!< Overall number of incident deaths due to covid in each simulation step. */
 	std::vector<int> hospital_deaths;			/*!< Number of incident deaths reported at hospital due to covid in each simulation step. */
 	std::vector<Compartments> ends;				/*!< Population per epidemiological state and per age group on last day. */
+	std::vector<std::vector<Compartments>> 
+		pop_array;								/*!< Population per epidemiological state and per age group on every day. */
 };
 
 /**

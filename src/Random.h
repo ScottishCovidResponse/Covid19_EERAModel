@@ -5,6 +5,13 @@
 #include <gsl/gsl_rng.h>
 
 namespace EERAModel {
+/**
+ * @brief Namespace containing objects related to random number generation
+ *
+ * This namespace contains a wrapper interace to existing random number
+ * generation libraries in order for them to be used within all
+ * model functions.
+ */
 namespace Random {
 
 /**
@@ -71,6 +78,18 @@ public:
      */
     virtual double Beta(double a, double b) = 0;
 
+   /**
+    * @brief Binomial distribution
+    * 
+    * Return a random number from a Binomial distribution
+    * 
+    * @param p Binomial p parameter: probability
+    * @param n Binomial n parameter: the population to sample
+    * 
+    * @return Random number
+    */
+   virtual unsigned int Binomial(double p, unsigned int n) = 0;
+
     /**
      * @brief MT19937 generator
      * 
@@ -115,6 +134,9 @@ public:
     /** @brief Beta distribution override */
     virtual double Beta(double a, double b) override;
 
+    /** @brief Binomial distribution override */
+    virtual unsigned int Binomial(double p, unsigned int n) override;
+	
     /** @brief MT19937 override */
     virtual std::mt19937& MT19937() override;
     

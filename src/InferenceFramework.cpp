@@ -3,6 +3,7 @@
 #include "InferenceParameters.h"
 #include "IO.h"
 #include "FittingProcess.h"
+#include "ModelCommon.h"
 #include <functional>
 #include <algorithm>
 
@@ -52,8 +53,17 @@ void InferenceFramework::Run()
 	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
 		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
 	}
-    (*log_) << "    model structure: " << 
-        ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
+	
+	if (modelInputParameters_.model_structure == ModelStructureId::ORIGINAL){
+		(*log_) << "    model structure: Original" <<std::endl;
+	} else if(modelInputParameters_.model_structure == ModelStructureId::IRISH){
+		(*log_) << "    model structure: Irish"  <<std::endl;
+	} else {
+		(*log_) << "    model structure: Temporary" <<std::endl; 
+	}	
+	
+ //   (*log_) << "    model structure: " << 
+ //       ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish" << std::endl;
 
     (*log_) << "[Fixed parameter values]:\n";
 	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
@@ -310,7 +320,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const std::vec
 	outvec.simu_outs = status.simulation;
 	outvec.hospital_death_outs = status.hospital_deaths;
 	outvec.death_outs = status.deaths;
-	outvec.end_comps = compartments_to_vector(status.ends);
+	outvec.end_comps = Model::compartments_to_vector(status.ends);
 }
 
 
@@ -343,21 +353,6 @@ std::discrete_distribution<int> ComputeWeightDistribution(
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
-}
-
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
-{
-	std::vector<std::vector<int>> _temp;
-
-	for(auto cmps : cmps_vec)
-	{
-		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
-						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
-						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
-						cmps.I_s4, cmps.H, cmps.R, cmps.D});
-	}
-
-	return _temp;
 }
 
 } // namespace Inference

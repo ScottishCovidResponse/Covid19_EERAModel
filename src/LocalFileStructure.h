@@ -26,7 +26,7 @@ namespace DataSourcing
         WAIFW waifw;
         std::string cfr_byage;
         std::string frail;
-        std::string prior_params;
+        std::string posterior_params;
     };
 
 };

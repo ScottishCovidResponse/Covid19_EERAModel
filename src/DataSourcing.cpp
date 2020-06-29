@@ -9,7 +9,7 @@ namespace DataSourcing
         // Read prior particle parameters if run type is "Prediction"
         if(_input_params.run_type == ModelModeId::PREDICTION)
         {
-            _input_params.prior_param_list = _prior_params.prior_param_list;
+            _input_params.posterior_param_list = _posterior_params;
         }
     }
 
@@ -20,7 +20,7 @@ namespace DataSourcing
         // Read prior particle parameters if run type is "Prediction"
         if(getInputParameters().run_type == ModelModeId::PREDICTION)
         {
-            setPriors(IO::ReadPriorParametersFromFile(_data_files, getLogger()));
+            setPosteriors(IO::ReadPosteriorParametersFromFile(_data_files, getInputParameters().posterior_parameter_select));
         }
 
         setInputObservations(IO::ReadObservationsFromFiles(_data_files, getLogger()));
@@ -33,7 +33,7 @@ namespace DataSourcing
 
         if(getInputParameters().run_type == ModelModeId::PREDICTION)
         {
-            setPriors(API::ReadPriorParametersFromAPI(_api_info, getLogger()));
+            setPosteriors(API::ReadPosteriorParametersFromAPI(_api_info, getInputParameters().posterior_parameter_select));
         }
 
         setInputObservations(API::ReadObservationsFromAPI(_api_info, getLogger()));

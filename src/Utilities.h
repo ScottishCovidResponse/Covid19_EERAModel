@@ -9,6 +9,12 @@
 #include <cmath>
 
 namespace EERAModel {
+/**
+ * @brief Namepace containing all utility functions
+ *
+ * This namepace contains functions which can be used universally
+ * even outside of the model itself
+ */
 namespace Utilities {
 
 /**
@@ -38,6 +44,18 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 	return sum_sq;
 	
 }
+
+/**
+ * @brief Check if a directory exists
+ * 
+ * Checks if the specified address actually exists and so
+ * can be written to
+ * 
+ * @param directory file directory
+ * 
+ * @return if directory exists
+ */
+bool directoryExists(const std::string& directory);
 
 /**
  * @brief Sum vector elements in blocks
@@ -146,7 +164,7 @@ class logging_stream
  * @return vector of vectors containing read in data values
  */
 template<typename T>
-std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimiter)
+std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimiter)
 {
 	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());

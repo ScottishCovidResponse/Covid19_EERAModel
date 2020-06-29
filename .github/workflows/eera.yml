@@ -9,7 +9,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-                os: ['ubuntu-latest', 'macos-latest']
+                os: ['ubuntu-20.04', 'macos-latest']
                 config: [{
                             compiler: gcc,
                             compilerpp: g++
@@ -23,17 +23,38 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Dependencies (Ubuntu)
-      run: sudo apt-get update && sudo apt-get install -y libgsl-dev clang lcov cppcheck htmldoc poppler-utils clang-tidy
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install Dependencies ( Ubuntu )
+      run: |
+           sudo apt-get update
+           sudo apt-get upgrade
+           sudo apt-get install -y libgsl-dev clang lcov cppcheck similarity-tester clang-format
+           sudo apt-get install -y htmldoc poppler-utils clang-tidy graphviz doxygen flawfinder
+      if: matrix.os == 'ubuntu-20.04'
 
-    - name: Install Brew (Mac OS X)
+    - name: Install Brew ( Mac OS X )
       run : /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
       if: matrix.os == 'macos-latest'
 
-    - name: Install Dependencies (Mac OS X)
-      run : brew update && brew install gsl cppcheck lcov poppler htmldoc
+    - name: Install Dependencies ( Mac OS X )
+      run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
+
+    - name: Format Code ( Ubuntu GCC Master )
+      run: |
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Action"
+           find . -iname *.h -o -iname *.cpp | xargs clang-format -style=file -i -fallback-style=none
+           git add -u
+           git commit -m "Applied Code Formatting `date`"
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
+    
+    - name: Push format changes to Master Branch ( Ubuntu GCC Master )
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: master
+        force: false
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
 
     - name: Compile
       env:
@@ -66,37 +87,69 @@ jobs:
           echo "Unit tests failed"
           exit 1
         fi
-    - name: Run Cpp Check
-      run: |
-         for i in src/*.h src/*.cpp test/unit/*.cpp; do 
-           if cppcheck --language=c++ --std=c++11 --error-exitcode=1 $i; then
-             continue
-           else
-             exit 1
-           fi
-         done
 
-    - name: Run GCov and LCov Code Coverage (Ubuntu GCC Only)
+    - name: Run Cpp Check ( Ubuntu GCC Dev/Master )
+      run: |
+        cppcheck --language=c++ --std=c++11 --enable=all -DROOT_DIR=$PWD -v --xml --xml-version=2 src/ 2>&1 | tee cpp-check.xml
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Run Flawfinder ( Ubuntu GCC Dev/Master )
+      run: |
+        flawfinder src/ | tee flawfinder.log
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Run Sim C++ ( Ubuntu GCC Dev/Master )
+      run: |
+        sim_c++ -aR -o "sim_cpp.log" src/*
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Run GCov and LCov Code Coverage ( Ubuntu GCC Dev/Master )
       run : |
             ./scripts/SetUpModelRun.sh ./data/ ./test/regression/run1/data/
             cd build
             make coverage
-            htmldoc --webpage -f coverage-src-output.pdf Covid19EERAModel_coverage/src/index-sort-l.html
-            htmldoc --webpage -f coverage-test-output.pdf Covid19EERAModel_coverage/test/unit/index-sort-l.html
-            pdfunite coverage-src-output.pdf coverage-test-output.pdf coverage-output.pdf
-            rm coverage-*-*.pdf
-      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
+      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-20.04' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
-    - name: Upload Coverage PDF (Ubuntu GCC Only)
-      uses: actions/upload-artifact@v1
-      with:
-              name: Coverage PDF
-              path: build/coverage-output.pdf
-      if: matrix.config.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
+    - name: Build Doxygen Documentation ( Ubuntu GCC Dev/Master )
+      run : |
+            mkdir -p doxygen
+            doxygen
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+    
+    - name: Commit Doxygen files ( Ubuntu GCC Dev/Master )
+      run: |
+           git config --local user.email "action@github.com"
+           git config --local user.name "GitHub Action"
+           git add -f doxygen/*
+           git commit -m "Updated Doxygen Documentation `date`"
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
 
-    - name: Upload CMake build (Clang-Tidy) Log
-      uses: actions/upload-artifact@v1
+    - name: Convert CPPCheck to HTML and push ( Ubuntu GCC Dev/Master )
+      run: |
+          mkdir -p site/cppcheck
+          cppcheck-htmlreport --title="COVID-19 EERA Model" --file=cpp-check.xml --report-dir=site/cppcheck --source-dir=.
+          git add -f site/cppcheck/*
+          git commit -m "Added CPPCheck Output `date`"
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+      
+    - name: Commit LCOV files ( Ubuntu GCC Dev/Master )
+      run: |
+           git add -f build/Covid19EERAModel_coverage/*
+           git commit -m "Updated LCOV report `date`"
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Build Website Files ( Ubuntu GCC Dev/Master )
+      run: |
+          python scripts/site_generation.py build/clang_tidy_build_results.log flawfinder.log sim_cpp.log
+          git add -f site/*.html
+          git add -f index.html
+          git commit -m "Updated Website Output `date`"
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )
+
+    - name: Push site changes to gh-pages ( Ubuntu GCC Dev/Master )
+      uses: ad-m/github-push-action@master
       with:
-              name: CMake (with Clang Tidy) Build Warning Log
-              path: build/clang_tidy_build_results.log
-      if: matrix.os == 'ubuntu-latest'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        force: true
+      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && ( github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master' )

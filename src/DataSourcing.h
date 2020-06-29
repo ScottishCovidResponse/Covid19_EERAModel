@@ -27,7 +27,7 @@ namespace DataSourcing
         private:
             InputObservations _input_obs;
             ModelInputParameters _input_params;
-            PriorParticleParameters _prior_params;
+            std::vector<double> _posterior_params;
             Utilities::logging_stream::Sptr _log;
         public:
             /**
@@ -56,7 +56,7 @@ namespace DataSourcing
              * 
              * @return current prior parameters
              */
-            PriorParticleParameters getPriorParameters() const {return _prior_params;}
+            std::vector<double> getPriorParameters() const {return _posterior_params;}
 
             /**
              * @brief Fetch current logger
@@ -78,7 +78,7 @@ namespace DataSourcing
             /**
              * @brief Set the current prior parameters
              */
-            void setPriors(const PriorParticleParameters& priors) {_prior_params = priors;}
+            void setPosteriors(const std::vector<double>& posteriors) {_posterior_params = posteriors;}
 
             /**
              * @brief Run global setup
@@ -124,7 +124,7 @@ namespace DataSourcing
                         root_dir+"/waifw_sdist.csv"},
                     root_dir+"/cfr_byage.csv",
                     root_dir+"/scot_frail.csv",
-                    root_dir+"/src/prior_particle_params.csv"})
+                    root_dir+"/example_posterior_parameter_sets.txt"})
             {
                 _extract_data();
                 (*log) << "[Parameters File]:\n    " << _data_files.parameters << std::endl;
