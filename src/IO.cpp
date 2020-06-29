@@ -121,12 +121,6 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
 	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
 
-	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	modelInputParameters.run_type = ModelModeId::INFERENCE;
-	// modelInputParameters.run_type = ModelModeId::PREDICTION;
-
-	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
-
 	return modelInputParameters;
 }
 
@@ -144,7 +138,7 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir)
         sectionId, configFile);
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
-    if (!Utilities::fileExists(parametersFile)) throw IOException(configDir + ": File not found!");
+    if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
     
     predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
         posterior_parameter_index);

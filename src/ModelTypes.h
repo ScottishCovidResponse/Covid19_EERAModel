@@ -104,8 +104,6 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
-	std::vector<double> posterior_param_list;
-	int posterior_parameter_select;
 	ModelModeId run_type = ModelModeId::UNKNOWN;
 	std::vector<double> prior_param_list;
 };
