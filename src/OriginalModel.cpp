@@ -160,26 +160,33 @@ InfectionState OriginalModel::GenerateInfectionSpread(Compartments& pop,
     const double rrd= parameter_set[6];
 
     // hospitalized  - non-frail
-    const int newdeathsH= Flow(rng_, pop.H, newpop.H, p_d * (1.0 / T_hos));
-    newpop.H -= newdeathsH;
+	const int outpatient = Flow(rng_, pop.H, newpop.H, (1.0 / T_hos));
+    const int newdeathsH = rng_->Binomial(p_d,outpatient);
+    const int recoverH = outpatient - newdeathsH;	
+	
+    newpop.H -= outpatient;
     newpop.D += newdeathsH;
-
-    const int recoverH = Flow(rng_, pop.H, newpop.H, (1.0 - p_d) * (1.0 / T_hos));
-    newpop.H -= recoverH;
     newpop.R += recoverH;
+	
 
     // symptomatic - non-frail
-    const int hospitalize = Flow(rng_, pop.I_s4, newpop.I_s4, p_h  * (1.0 - capacity) * (4.0 / T_sym));
-    newpop.I_s4 -= hospitalize;
-    newpop.H += hospitalize;
-
-    const int newdeathsI_s = Flow(rng_, pop.I_s4, newpop.I_s4, p_h  * p_d * rrd * capacity * ( 4.0 / T_sym));
-    newpop.I_s4 -= newdeathsI_s;
-    newpop.D += newdeathsI_s;
-
-    const int recoverI_s = Flow(rng_, pop.I_s4, newpop.I_s4, ( (1.0 - p_h) + p_h  * (1 - p_d * rrd) * capacity) * ( 4.0 / T_sym));
-    newpop.I_s4 -= recoverI_s;
-    newpop.R += recoverI_s;
+	
+	const int outClinical = Flow(rng_, pop.I_s4, newpop.I_s4, (4.0 / T_sym));
+	const int severe = rng_->Binomial(p_h,outClinical);
+	const int mild = outClinical - severe;
+	
+	const int hospitalize = rng_->Binomial((1.0 - capacity),severe);
+	const int nothospitalize = severe - hospitalize;
+	
+	const int newdeathsI_s = rng_->Binomial(p_d * rrd,nothospitalize);
+	const int recoverI_s = nothospitalize - newdeathsI_s;
+	
+	newpop.I_s4 -= outClinical;
+	newpop.H += hospitalize;
+	newpop.D += newdeathsI_s;
+	newpop.R += mild+recoverI_s;	
+	
+	
 
     const int Is_from3_to_4 = Flow(rng_, pop.I_s3, newpop.I_s3, (4.0 / T_sym));
     newpop.I_s3 -= Is_from3_to_4;
@@ -211,13 +218,14 @@ InfectionState OriginalModel::GenerateInfectionSpread(Compartments& pop,
     newpop.I2 += I_from1_to_2;
 
     // infectious - pre-clinical
-    int newasymptomatic = Flow(rng_, pop.I_p, newpop.I_p, (1.0 - p_s) * ( 1.0 / T_inf ));
-    newpop.I_p -= newasymptomatic;
-    newpop.I1 += newasymptomatic;
-
-    const int newsymptomatic = Flow(rng_, pop.I_p, newpop.I_p, p_s * ( 1.0 / T_inf ));
-    newpop.I_p -= newsymptomatic;
+	
+	const int outpreclin = Flow(rng_, pop.I_p, newpop.I_p,  ( 1.0 / T_inf ));	
+	const int newsymptomatic = rng_->Binomial(p_s,outpreclin);
+	int newasymptomatic = 	outpreclin - newsymptomatic;	
+			
+    newpop.I_p -= outpreclin;
     newpop.I_s1 += newsymptomatic;
+    newpop.I1 += newasymptomatic;
 
     // latent
     const int infectious = Flow(rng_, pop.E, newpop.E, ( 1.0 / T_lat ));
