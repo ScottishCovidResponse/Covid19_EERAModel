@@ -18,16 +18,6 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 
 	//Settings
 	//modelInputParameters.herd_id = atoi(parameters.GetValue_modif(&SettingName, &SettingCategory, &filePath).c_str());
-<<<<<<< HEAD
-	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
-
-	//time step for the modelling process
-	// modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", filePath).c_str());
-	modelInputParameters.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
-
-	//number of threads used for computation
-	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", filePath);
-=======
 	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", data_files.parameters);
 
 	//time step for the modelling process
@@ -36,16 +26,11 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 
 	//number of threads used for computation
 	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", data_files.parameters);
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
     // Model structure
 	std::string SettingName = "model";
 	std::string SettingCategory = "Settings";
-<<<<<<< HEAD
-    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
-=======
     std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, data_files.parameters));
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
     if ("irish" == model_structure) {
         modelInputParameters.model_structure = ModelStructureId::IRISH;
     } else if("original" == model_structure) {
@@ -57,29 +42,6 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 	//Seed settings
 	SettingName = "seedmethod";
 	SettingCategory = "Seed settings";
-<<<<<<< HEAD
-	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
-	if(modelInputParameters.seedlist.seedmethod == "random"){
-		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
-	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		modelInputParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
-	} else {
-		(*log) << "Warning!!! Unknown method - using random seed method instead." << endl;
-		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
-	}
-	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
-		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
-	);
-	modelInputParameters.seedlist.seed_value = ReadNumberFromFile<int>(
-		"seed_value", "Seed settings", filePath
-	);
-	
-	//Fit settings
-	modelInputParameters.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", filePath);
-	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
-	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
-	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
-=======
 	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, data_files.parameters);
 	if(modelInputParameters.seedlist.seedmethod == "random"){
 		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", data_files.parameters);
@@ -101,7 +63,6 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", data_files.parameters);
 	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", data_files.parameters);
 	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", data_files.parameters);
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	//Tolerance settings
 	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
@@ -111,47 +72,6 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 	for (int ii = 0; ii < modelInputParameters.nsteps; ++ii) {
 		std::stringstream KeyName;
 		KeyName << "Key" << (ii + 1);
-<<<<<<< HEAD
-		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
-	}
-
-	//Fixed parameters
-	modelInputParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
-	modelInputParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
-	modelInputParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
-
-	//priors settings
-	modelInputParameters.nPar = ReadNumberFromFile<int>("nPar", "Priors settings", filePath);
-	modelInputParameters.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", filePath);
-	modelInputParameters.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", filePath);
-	
-	modelInputParameters.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
-
-	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	modelInputParameters.run_type = ModelModeId::INFERENCE;
-	// modelInputParameters.run_type = ModelModeId::PREDICTION;
-
-	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
-=======
 		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", data_files.parameters);
 	}
 
@@ -191,26 +111,17 @@ ModelInputParameters ReadParametersFromFile(const DataSourcing::DataFiles& data_
 	// modelInputParameters.run_type = ModelModeId::PREDICTION;
 
 	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", data_files.parameters);
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	return modelInputParameters;
 }
 
-<<<<<<< HEAD
-std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
-=======
 std::vector<double> ReadPosteriorParametersFromFile(const DataSourcing::DataFiles& data_files, int set_selection)
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 {
 	// Temporary matrix to hold data from input file
 	std::vector<std::vector<double>> lines;
 	char delimiter = ',';
 	
-<<<<<<< HEAD
-	lines = Utilities::read_csv<double>(filePath, delimiter);
-=======
 	lines = Utilities::read_csv<double>(data_files.parameters, delimiter);
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 
 	// Select line from input file and store result in another temporary vector
 	if (set_selection >= static_cast<int>(lines.size())){
@@ -238,11 +149,7 @@ std::vector<double> ReadPosteriorParametersFromFile(const DataSourcing::DataFile
 	return parameter_sets;
 }
 
-<<<<<<< HEAD
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
-=======
 EERAModel::InputObservations ReadObservationsFromFiles(const DataSourcing::DataFiles& data_files, const Utilities::logging_stream::Sptr& log)
->>>>>>> kzscisoft/SCRC-440-abstraction-layer
 {
 	InputObservations observations;
 	(*log) << "[Observations Files]:" << std::endl;
