@@ -382,7 +382,7 @@ void LogRandomiserSettings(const ModelInputParameters& params, unsigned long ran
 
 void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 {
-    (*log) << "[Disease seeding settings]:\n";
+    (*log) << "[Disease seeding settings]:" << std::endl;
     (*log) << "    seeding method: "<< params.seedmethod <<  std::endl;
 	if (params.seedmethod == "random"){
 		(*log) << "    number of seed: " << params.nseed << std::endl;
@@ -391,5 +391,22 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 	}
 }
 
+void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Prediction Configuration]" << std::endl;
+    (*log) << "    n_sim_steps: "       << config.n_sim_steps << std::endl;
+    (*log) << "    parameter index: "   << config.index << std::endl;
+    (*log) << "    p_inf: "             << config.posterior_parameters[0] << std::endl;
+    (*log) << "    p_hcw: "             << config.posterior_parameters[1] << std::endl;
+    (*log) << "    c_hcw: "             << config.posterior_parameters[2] << std::endl;
+    (*log) << "    d: "                 << config.posterior_parameters[3] << std::endl;
+    (*log) << "    q: "                 << config.posterior_parameters[4] << std::endl;
+    (*log) << "    p_s: "               << config.posterior_parameters[5] << std::endl;
+    (*log) << "    rrd: "               << config.posterior_parameters[6] << std::endl;
+    (*log) << "    intro: "             << config.posterior_parameters[7] << std::endl;
+}
+
 } // namespace IO
 } // namespace EERAModel
+
+

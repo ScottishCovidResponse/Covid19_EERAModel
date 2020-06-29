@@ -144,5 +144,15 @@ void LogRandomiserSettings(const ModelInputParameters& params, unsigned long ran
  */
 void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log);
 
+/**
+ * @brief Log prediction configuration
+ * 
+ * Log the settings of a prediction run
+ * 
+ * @param params Model input parameters
+ * @param log Logger
+ */
+void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log);
+
 } // namespace IO
 } // namespace EERAModel

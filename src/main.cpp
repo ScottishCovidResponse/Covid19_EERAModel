@@ -70,6 +70,8 @@ int main(int argc, char** argv)
     {
         std::string configDir(std::string(ROOT_DIR) + "/data");
         PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir);
+        
+        IO::LogPredictionConfig(predictionConfig, logger);
 
         Prediction::PredictionFramework framework(model, modelInputParameters, predictionConfig, 
             rng, out_dir, logger);
