@@ -9,3 +9,5 @@ doxygen
 site/*
 index.html
 src/tclap/
+.DS_Store
+
