@@ -134,14 +134,14 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir)
     
     predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
         sectionId, configFile);
-    int posterior_parameter_index = ReadNumberFromFile<int>("posterior_parameter_index",
+    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
         sectionId, configFile);
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
     if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
     
     predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
-        posterior_parameter_index);
+        predictionConfig.index);
 
     return predictionConfig;
 }
