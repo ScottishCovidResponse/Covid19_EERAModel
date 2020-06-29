@@ -18,7 +18,7 @@ Simple COVID-19 simulation model with ABC-smc inference
  * Threads
 
 ## Third-party libraries
-The project uses Google Test (https://github.com/google/googletest) as it unit testing framework. It
+The project uses [Google Test](https://github.com/google/googletest) as its unit testing framework. It
 is downloaded and built automatically as part of the project build process. It is not required to be
 installed on the host system.
 
@@ -37,7 +37,7 @@ $ cmake ..
 $ make
 ```
 
-## Run the model
+## Running the model
 Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage is:
 ```
 Brief USAGE: 
@@ -56,6 +56,42 @@ parameters file (if specified in that file) or given the default value of `infer
 `original` for structure.
 
 At the present time, the `d` and `l` options are unused and can be omitted.
+
+### Prediction mode
+The model can be run in a prediction mode, where a fixed set of parameters is supplied to the model,
+and the model is run for a fixed number of simulation steps.
+
+To run the model in prediction mode, set the `-m` switch to prediction:
+```
+$ .build/bin/Covid19EERAModel -m prediction
+```
+To configure the prediction run, two main pieces of configuration are required: a posterior parameters
+file, and a `Prediction Config` category in the `parameters.ini` file.
+
+The posterior parameters file should be named `posterior_parameters.csv` and should be placed in the
+`data` directory. Its format should be:
+```
+Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro
+0,0.153532,0.60916,37.9059,0.525139,0.313957,0.787278,0.516736,8.50135E-07
+1,0.12602,0.429026,43.9404,0.277644,0.722916,0.470001,3.41006,6.27917E-07
+...
+```
+Each row in the file contains 9 entries: the first is the index of the row, and the remaining 8 are 
+the sets of posterior parameters that can be used by the predication run.
+
+The `parameters.ini` file must contain a category with the configuration of the prediction run, as
+below
+```
+[Prediction Configuration]
+posterior_parameter_index=2
+n_sim_steps=100000
+```
+The setting `n_sim_steps` is the number of iterations the model should be run for. The setting 
+`posterior_parameter_index` is the index of the selected posterior parameter set from the 
+`posterior_parameters.csv` file.
+
+When the model is run in prediction mode, all of the above configurations are logged to the terminal
+and the log file.
 
 ## Code Documentation Site
 
