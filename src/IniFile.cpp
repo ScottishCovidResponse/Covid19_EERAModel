@@ -11,22 +11,6 @@ void CIniFile::Trim(std::string& str, const std::string& CharsToTrim, int TrimDi
     if (TrimDir!=1) { str = str.substr(0, str.find_last_not_of(CharsToTrim) + 1); }
 }
 
-//inline void TrimRight(std::string& str, const std::string & ChrsToTrim = " \t\n\r")
-//{
-//    Trim(str, ChrsToTrim, 2);
-//}
-
-//inline void TrimLeft(std::string& str, const std::string & ChrsToTrim = " \t\n\r")
-//{
-//    Trim(str, ChrsToTrim, 1);
-//}
-
-// A function to transform a string to uppercase if neccessary
-//void UCase(string& str, bool ucase)
-//{
-//	if(ucase) transform(str.begin(), str.end(), str.begin(), toupper);
-//}
-
 bool CIniFile::Load(const std::string& FileName, std::vector<Record>& content)
 {
 	std::string s;																// Holds the current line from the ini file
@@ -469,41 +453,6 @@ std::vector<CIniFile::Record> CIniFile::GetSections(const std::string& FileName)
 	
 	return data;															// Return the data
 }
-
-/*bool CIniFile::Sort(string FileName, bool Descending)
-{
-	vector<CIniFile::Record> content;										// Used to hold the sorted content
-	vector<CIniFile::Record> sections = GetSections(FileName);				// Get a list of Sections
-
-	if(!sections.empty())													// Is there anything to process?
-	{
-
-		if(Descending)														// Descending or Ascending?
-			std::sort(sections.begin(), sections.end(), DescendingSectionSort());
-		else																// Sort the Sections
-			std::sort(sections.begin(), sections.end(), AscendingSectionSort());
-
-		for(vector<Record>::iterator iter = sections.begin(); iter < sections.end(); iter++) // For each Section
-		{																		
-			content.push_back(*iter);										// Add the sorted Section to the content
-
-			vector<CIniFile::Record> records = GetSection(iter->Section ,FileName); // Get a list of Records for this section
-
-			if(Descending)													// Descending or Ascending?
-				std::sort(records.begin(), records.end(), DescendingRecordSort());
-			else															// Sort the Records
-				std::sort(records.begin(), records.end(), AscendingRecordSort());
-
-			for(vector<Record>::iterator it = records.begin(); it < records.end(); it++) // For each Record
-				content.push_back(*it);										// Add the sorted Record to the content
-		}
-		
-		return Save(FileName,content);										// Save
-		}
-
-	return false;															// There were no sections
-}
-*/
 
 bool CIniFile::AddSection(std::string& SectionName, const std::string& FileName)
 {

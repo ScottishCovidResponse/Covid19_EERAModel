@@ -5,7 +5,6 @@
 #include <fstream>
 #include <algorithm>
 #include <functional>
-//#include <tchar.h>
 
 
 class CIniFile
@@ -45,7 +44,6 @@ public:
 	static bool SetRecordComments(std::string& Comments, std::string& KeyName, std::string& SectionName, const std::string& FileName);
 	static bool SetSectionComments(std::string& Comments, std::string& SectionName, const std::string& FileName);
 	static bool SetValue(std::string& KeyName, std::string& Value, std::string& SectionName, const std::string& FileName);
-	/*static bool Sort(string FileName, bool Descending);*/
 	static bool UnCommentRecord(std::string& KeyName, std::string& SectionName, const std::string& FileName);
 	static bool UnCommentSection(std::string& SectionName, const std::string& FileName);
 
