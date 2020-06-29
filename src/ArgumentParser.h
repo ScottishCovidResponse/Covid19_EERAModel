@@ -13,8 +13,8 @@
 #endif
 
 
-namespace EERAModel
-{
+namespace EERAModel {
+
 struct Arguments
 {
     bool isLocal = false;
@@ -29,15 +29,21 @@ struct Arguments
  * 
  * This class uses the TCLAP library to process command line arguments
  * relating to model structure, execution mode and input locations
- * 
- * @param argc number of command line arguments
- * @param argv argument char** strings
  */
 class ArgumentParser
 {
     private:
         Arguments _args;
     public:
+        /**
+         * @brief Constructor
+         * 
+         * Terminates the application and prints an error message if parsing of command line
+         * arguments fails.
+         * 
+         * @param argc Count of command line arguments
+         * @param argv Command line arguments
+         */
         ArgumentParser(int argc, char** argv);
 
         /**
@@ -72,4 +78,5 @@ class ArgumentParser
 
         Arguments getArgs() const {return _args;}
 };
-};
+
+} // namespace EERAModel

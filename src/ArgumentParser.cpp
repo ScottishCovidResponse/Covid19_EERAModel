@@ -1,15 +1,15 @@
 #include "ArgumentParser.h"
 
-namespace EERAModel
-{
+namespace EERAModel {
+
 ArgumentParser::ArgumentParser(int argc, char** argv)
 {
     try
     {
-        TCLAP::CmdLine cmd("Run model with specified set of options",                           // Help string message
-                            ' ',                                                                // Delimiter between arguments
-                            std::string(VERSION),                                               // Software version number
-                            true                                                                // Whether to generate the help and version flags
+        TCLAP::CmdLine cmd("Run model with specified set of options",   // Help string message
+                            ' ',                                        // Delimiter between arguments
+                            std::string(VERSION),                       // Software version number
+                            true                                        // Whether to generate the help and version flags
                         );
 
         std::vector<std::string> running_modes = {"inference", "prediction"};
@@ -19,8 +19,8 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
         TCLAP::ValueArg<std::string> structureArg("s", "structure", 
                                         "Model structure, if unset use 'original'", 
                                         false, "", &allowedStructures);
-        TCLAP::ValueArg<std::string> modeArg("m", "mode", "Running mode, if unset use parameter file value else 'inference'", 
-                                        false, "", &allowedModes);
+        TCLAP::ValueArg<std::string> modeArg("m", "mode", "Running mode. Can be either inference or prediction.", 
+                                        true, "", &allowedModes);
         TCLAP::ValueArg<std::string> dataLocArg("l", "local", "Location of local data repository", 
                                         false, "", "string");
         TCLAP::ValueArg<std::string> outputDirArg("d", "outdir", "Output directory of data files", false, _args.output_dir, "string");
@@ -45,18 +45,10 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
             _args.structure = ModelStructureId::UNKNOWN;
         }
 
-        if(Utilities::toUpper(modeArg.getValue()) == "INFERENCE")
-        {
+        if (modeArg.getValue() == "inference")
             _args.mode = ModelModeId::INFERENCE;
-        }
-        else if(Utilities::toUpper(modeArg.getValue()) == "PREDICTION")
-        {
-            _args.mode = ModelModeId::PREDICTION;
-        }
         else
-        {
-            _args.mode = ModelModeId::UNKNOWN;
-        }
+            _args.mode = ModelModeId::PREDICTION;
 
         _args.isLocal = dataLocArg.getValue().empty();
         _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
@@ -64,6 +56,7 @@ ArgumentParser::ArgumentParser(int argc, char** argv)
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
+        exit(1);
     }
 }
 
@@ -107,17 +100,7 @@ void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
         input_params.model_structure = _args.structure;
     }
 
-    // Only set run mode to default of "inference" if no option specified
-    // in parameters file
-    if(input_params.run_type == ModelModeId::UNKNOWN)
-    {
-        input_params.run_type = ModelModeId::INFERENCE;
-    }
-
-    // Only overwrite this run mode option if command line argument is not empty
-    if(_args.mode != ModelModeId::UNKNOWN)
-    {
-        input_params.run_type = _args.mode;
-    }
+    input_params.run_type = _args.mode;
 }
-};
+
+} // namespace EERAModel
