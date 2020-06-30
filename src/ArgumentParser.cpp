@@ -92,8 +92,10 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
 }
 
-void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
+void ArgumentParser::AppendOptions(DataSourcing::DataSource& data_source)
 {
+    ModelInputParameters input_params = data_source.getInputParameters();
+
     // Only set model structure to default of "original" if no option specified
     // in parameters file
     if(input_params.model_structure == ModelStructureId::UNKNOWN)
@@ -119,5 +121,7 @@ void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
     {
         input_params.run_type = _args.mode;
     }
+
+    data_source.setModelInputParameters(input_params);
 }
 };

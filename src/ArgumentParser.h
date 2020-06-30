@@ -7,6 +7,7 @@
 
 #include "Utilities.h"
 #include "ModelTypes.h"
+#include "DataSourcing.h"
 
 #ifndef VERSION
 #error Macro VERSION must be defined!
@@ -56,9 +57,9 @@ class ArgumentParser
          * Specifies options for structure, mode and input location
          * these overwrite values specified within a parameter file.
          * 
-         * @param input_params model input parameter object to update
+         * @param data_source data source for which to append options
          */
-        void AppendOptions(ModelInputParameters& input_params);
+        void AppendOptions(DataSourcing::DataSource& data_source);
 
         bool runLocal() const {return _args.isLocal;}
         
