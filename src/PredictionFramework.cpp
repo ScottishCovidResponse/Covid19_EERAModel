@@ -18,59 +18,14 @@ PredictionFramework::PredictionFramework(
        observations_(observations),
        rng_(rng),
        outDir_(outDir),
-       log_(log)
-{
-    fixedParameters_ = Model::BuildFixedParameters(
-        observations.waifw_norm.size(), modelInputParameters.paramlist
-    );
-        
-    ageGroupData_ = AgeGroupData{
-            observations.waifw_norm,
-            observations.waifw_home,
-            observations.waifw_sdist,
-            observations.cfr_byage,
-            observations.pf_pop[modelInputParameters.herd_id - 1]
-    };
-    
-    regionalPopulation_ = Model::GetPopulationOfRegion(
-        observations, modelInputParameters.herd_id
-    );
-
-    healthCareWorkers_ = Model::ComputeNumberOfHCWInRegion(
-        regionalPopulation_, modelInputParameters.totN_hcw, observations
-    );
-    
-    ageNums_ = Model::ComputeAgeNums(
-        modelInputParameters.herd_id, regionalPopulation_, healthCareWorkers_, observations
-    );
-}
+       log_(log) {}
 
 void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationSteps)
 {
     clock_t startTime = clock();
 
-    (*log_) << "[Settings]:\n";
-    (*log_) << "    number of parameters tested: "<< modelInputParameters_.nPar << std::endl;
-    (*log_) << "    seeding method: "<< modelInputParameters_.seedlist.seedmethod<<  std::endl;
-	if (modelInputParameters_.seedlist.seedmethod == "random"){
-		(*log_) << "    number of seed: " << modelInputParameters_.seedlist.nseed << std::endl;
-	} else if(modelInputParameters_.seedlist.seedmethod == "background"){
-		(*log_) << "    duration of the high risk period (hrp): " << modelInputParameters_.seedlist.hrp << std::endl;
-	}
-    (*log_) << "    model structure: " << 
-        ((modelInputParameters_.model_structure == ModelStructureId::ORIGINAL) ? "Original" : "Irish") << std::endl;
-    (*log_) << "[Fixed parameter values]:\n";
-	(*log_) << "    latent period (theta_l): " << modelInputParameters_.paramlist.T_lat <<std::endl;
-	(*log_) << "    pre-clinical period (theta_i): " << modelInputParameters_.paramlist.T_inf <<std::endl;
-	(*log_) << "    asymptomatic period (theta_r): " << modelInputParameters_.paramlist.T_rec <<std::endl;
-	(*log_) << "    symptomatic period (theta_s): " << modelInputParameters_.paramlist.T_sym <<std::endl;
-	(*log_) << "    hospitalisation stay (theta_h): " << modelInputParameters_.paramlist.T_hos <<std::endl;
-	(*log_) << "    pre-adult probability of symptoms devt (p_s[0]): " << modelInputParameters_.paramlist.juvp_s <<std::endl;
-	(*log_) << "    bed capacity at hospital (K): " << modelInputParameters_.paramlist.K <<std::endl;
-	(*log_) << "    relative infectiousness of asymptomatic (u): " << modelInputParameters_.paramlist.inf_asym <<std::endl;
-
-    Status status = model_->Run(parameterSet, fixedParameters_, ageGroupData_, modelInputParameters_.seedlist,
-        modelInputParameters_.day_shut, ageNums_, nSimulationSteps);
+    Status status = model_->Run(parameterSet, modelInputParameters_.seedlist,
+        modelInputParameters_.day_shut, nSimulationSteps);
 
     double time_taken = double(clock() - startTime)/(double)CLOCKS_PER_SEC;
 

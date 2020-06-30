@@ -1,6 +1,7 @@
 #include "ModelCommon.h"
 #include "ModelTypes.h"
 #include "Random.h"
+#include "Utilities.h"
 #include <memory>
 #include <vector>
 
@@ -15,26 +16,26 @@ public:
     /**
      * @brief Constructor
      * 
+     * @param modelInputParameters Model input parameters
+     * @param observations Observations
      * @param rng Random number generator to be used by the model
+     * @param log Logger
      */
-    OriginalModel(Random::RNGInterface::Sptr rng) : rng_(rng) {}
+    OriginalModel(const ModelInputParameters& modelInputParameters, InputObservations& observations,
+        Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**
      * @brief Run the model with the given parameters and configurations
      * 
      * @param parameter_set: set of parameters that are being infered (i.e. particles)
-     * @param fixed_parameters: set of fixed (known) parameters
-     * @param per_age_data: age-structured known parameters (such as case fatality ratio (CFR) and probability of severe clinical outcomes )
      * @param seedlist: seeding method to initialise infection ("random": randomly allocate n infectious individuaals at the start, or "background": background transmission over a defined pre-lockdown period )
      * @param day_shut: day of the lock down
-     * @param agenums: number of individuals in each age group in the study area
      * @param n_sim_steps: Number of steps to simulate
      * 
      * @return Status of model after run
      */
-    Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-                    AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-                    int n_sim_steps) override;
+    Status Run(std::vector<double> parameter_set, seed seedlist, int day_shut,
+        int n_sim_steps) override;
 
 private:
     /**
@@ -114,6 +115,24 @@ private:
      * @brief Random number generator
      */
     Random::RNGInterface::Sptr rng_;
+
+    /**
+     * @private
+     * @brief Numbers inside each age group
+     */
+    std::vector<int> ageNums_;
+
+    /**
+     * @private 
+     * @brief Distribution of population amongst different age groups
+     */
+    AgeGroupData ageGroupData_;
+
+    /**
+     * @private
+     * @brief Fixed model parameters
+     */
+    std::vector<EERAModel::params> fixedParameters_;
 };
 
 } // namespace Model

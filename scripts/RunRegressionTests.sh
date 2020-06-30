@@ -50,7 +50,6 @@ for i in $(seq $FIRST $LAST) ; do
 
   MODE_FLAG=$( echo "-m inference" )
   FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG" )
-  echo $FLAGS
   regression_test_dir=$REGRESSION_DIR/run$i
   
   $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data
