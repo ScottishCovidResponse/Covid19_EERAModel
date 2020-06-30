@@ -36,9 +36,7 @@ public:
      * 
      * Interface to model-specific implementation
      */
-    virtual Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps) = 0;
+    virtual Status Run(std::vector<double> parameter_set, seed seedlist, int day_shut, int n_sim_steps) = 0;
 };
 
 /**
