@@ -133,10 +133,8 @@ Status TempModel::Run(std::vector<double> parameter_set, seed seedlist, int day_
 		//introduce disease from background infection until lockdown
 		if(!inLockdown && seedlist.seedmethod == "background")
 		{
-			const double bkg_lambda = parameter_set[parameter_set.size()-1];
-
 			//compute the total number of susceptible and the number of susceptible per age class			
-			GenerateDiseasedPopulation(poparray, seed_pop, bkg_lambda);
+			GenerateDiseasedPopulation(poparray, seed_pop, parameter_set[ModelParameters::LAMBDA]);
 		}
 
         //compute the forces of infection
@@ -155,6 +153,7 @@ Status TempModel::Run(std::vector<double> parameter_set, seed seedlist, int day_
             infection_state.detected += new_spread.detected;
         }
 
+        status.pop_array.push_back(poparray);
         status.simulation.push_back(infection_state.detected); 
         status.deaths.push_back(infection_state.deaths); 
         status.hospital_deaths.push_back(infection_state.hospital_deaths);
@@ -187,8 +186,8 @@ InfectionState TempModel::GenerateInfectionSpread(Compartments& pop,
 
     const double p_h= cfr_tab[0];
     const double p_d= cfr_tab[2];	
-    const double p_s= parameter_set[5];
-    const double rrd= parameter_set[6];
+    const double p_s= parameter_set[ModelParameters::PS];
+    const double rrd= parameter_set[ModelParameters::RRD];
 
     // hospitalized 
 	const int outpatient = Flow(rng_, pop.H, newpop.H, (1.0 / T_hos));
@@ -291,11 +290,11 @@ std::vector<double> TempModel::GenerateForcesOfInfection(int& inf_hosp, const st
 			const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut) 
 {
 
-	double p_i = parameter_set[0];	
-	double p_hcw = parameter_set[1];	
-	double c_hcw = parameter_set[2];	
-	double d_val = parameter_set[3];					
-	double q_val = parameter_set[4];
+	double p_i = parameter_set[ModelParameters::PINF];	
+	double p_hcw = parameter_set[ModelParameters::PHCW];	
+	double c_hcw = parameter_set[ModelParameters::CHCW];	
+	double d_val = parameter_set[ModelParameters::D];					
+	double q_val = parameter_set[ModelParameters::Q];
 	
 	int n_agegroup = age_data.waifw_norm.size();
 

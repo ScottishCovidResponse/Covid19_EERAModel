@@ -40,6 +40,47 @@ public:
 };
 
 /**
+ * @class ModelParameters
+ * @brief Describes the parameters used by the model
+ * 
+ * Provides constants associated with the use of model parameter sets. Model parameter sets are
+ * stored as vectors, where each element of the vector corresponds to a particular parameter. In
+ * order to avoid the use of lots of magic numbers in the code, this class provides index constants
+ * with meaningful names.
+ * 
+ * @note Model parameters are distinct from "fixed parameters" to the model; the latter are also
+ * used to configure the behaviour of the model, but are not varies and inferred as part of the
+ * inference framework. The former are also referred to as "Inference Parameters" when speaking in 
+ * the context of the inference framework.
+ */
+class ModelParameters 
+{
+public:
+    /** @brief Enumeration for different parameter indices */
+    using Enum = unsigned int;
+
+    /** @brief Probability of infection (non-HCW) */
+    static constexpr Enum PINF   = 0; 
+    /** @brief Probability of infection (HCW) */
+    static constexpr Enum PHCW   = 1;
+    /** @brief Mean number of HCW contacts per day */
+    static constexpr Enum CHCW   = 2;
+    /** @brief Proportion of population observing social distancing */
+    static constexpr Enum D      = 3;
+    /** @brief Proportion of contacts made by self-isolaters */
+    static constexpr Enum Q      = 4;
+    /** @brief Age-dependent probability of developing symptoms */
+    static constexpr Enum PS     = 5;
+    /** @brief Risk of death if not hospitalised */
+    static constexpr Enum RRD    = 6;
+    /** @brief Background transmission rate */
+    static constexpr Enum LAMBDA = 7;
+
+    /** @brief Number of model parameters */
+    static constexpr unsigned int NPARAMS = 8;
+};
+
+/**
  * @brief Randomly assign movement of individuals between compartments
  * 
  * Uses a Poisson distribution for a given rate to deduce number of individuals

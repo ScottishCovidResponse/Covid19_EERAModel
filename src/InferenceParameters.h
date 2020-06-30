@@ -1,9 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <memory>
 #include <cstddef>
-#include <gsl/gsl_rng.h>
 #include "ModelTypes.h"
 #include "Random.h"
 
@@ -41,13 +39,11 @@ public:
     /**
      * @brief Constructor
      * 
-     * @param nParameters Number of inference parameters to generate in each set
      * @param rng Random number generator
      * @param flag1 First data set of priors 
      * @param flag2 Second data set of priors
      */
     InferenceParameterGenerator(
-        std::size_t nParameters,
         Random::RNGInterface::Sptr rng, 
         const std::vector<double>& flag1,
         const std::vector<double>& flag2
@@ -100,12 +96,6 @@ public:
     inline double PerturbParameter(double oldParam, double kernel, double max, double min);
 
 private:
-    /**
-     * @private
-     * @brief Number of parameters to generate in each set
-     */
-    std::size_t nParameters_;
-
     /**
      * @private
      * @brief Local random number generator
