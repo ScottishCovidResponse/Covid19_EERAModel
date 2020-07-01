@@ -93,6 +93,17 @@ The setting `n_sim_steps` is the number of iterations the model should be run fo
 When the model is run in prediction mode, all of the above configurations are logged to the terminal
 and the log file.
 
+### Inference mode
+To run the model in inference mode, set the `-m` switch to inference:
+```
+$ .build/bin/Covid19EERAModel -m inference
+```
+To configure the inference run, two main pieces of configuration must be supplied:
+  * A set of data files containing observations and population/age-group descriptions
+  * A `parameters.ini` file
+
+Examples of these files can be found in the regression tests directories: `test/regression/run<N>/data`.
+
 ## Code Documentation Site
 
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
