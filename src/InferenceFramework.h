@@ -25,12 +25,12 @@ public:
      * @param outDir Outputs directory path
      * @param log Logger
      */
-    InferenceFramework(Model::ModelInterface::Sptr model,
+    InferenceFramework(const Model::ModelInterface::Sptr& model,
         const ModelInputParameters& modelInputParameters,
         const InputObservations& observations,
-        Random::RNGInterface::Sptr rng,
+        const Random::RNGInterface::Sptr& rng,
         const std::string& outDir,
-        Utilities::logging_stream::Sptr log);
+        const Utilities::logging_stream::Sptr& log);
     
     /**
      * @brief Calculate the time offset for the dataset
@@ -43,7 +43,7 @@ public:
      * 
      * @return integer offset value
      */
-    int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
+    static int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
 
     /**
      * @brief Run the model within the inference framework
