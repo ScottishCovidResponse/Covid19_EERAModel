@@ -22,26 +22,23 @@ public:
      *
      * @param model Model interface
      * @param modelInputParameters Model input parameters
-     * @param observations Observations
+     * @param config Prediction configuration
      * @param rng Seeded random number generator
      * @param log Logger
      */
     PredictionFramework(Model::ModelInterface::Sptr model,
         const ModelInputParameters& modelInputParameters,
-        const InputObservations& observations,
+        const PredictionConfig& config,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
         Utilities::logging_stream::Sptr log);
 
     /**
      * @brief Run the model within the prediction framework
-     * 
-     * @param parameterSet Set of model parameters to use
-     * @param nSimulationSteps Number of simulation steps to run
-     * 
+     *  
      * @param Status at the end of the model run
      */
-     void Run(std::vector<double> parameterSet, int nSimulationSteps);
+     void Run();
 
 private:
     
@@ -59,9 +56,9 @@ private:
 
     /**
      * @private
-     * @brief Model input observations
+     * @brief Prediction configuration
      */
-    InputObservations observations_;
+    PredictionConfig config_;
 
     /**
      * @private

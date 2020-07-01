@@ -6,9 +6,24 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 namespace EERAModel {
 namespace IO {
+
+class IOException: public std::exception
+{
+public:
+    IOException(const std::string& message) : message_(message) {}
+    
+    const char* what() const throw() 
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
 
 ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
@@ -106,13 +121,29 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
 	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
 
-	// modelInputParameters.run_type = parameters.GetValue("run_type", "Run type", filePath).c_str();
-	modelInputParameters.run_type = ModelModeId::INFERENCE;
-	// modelInputParameters.run_type = ModelModeId::PREDICTION;
-
-	modelInputParameters.posterior_parameter_select = ReadNumberFromFile<int>("posterior_parameter_select", "Posterior Parameters Select", filePath);
-
 	return modelInputParameters;
+}
+
+PredictionConfig ReadPredictionConfig(const std::string& configDir)
+{
+    std::string configFile(configDir + "/parameters.ini");
+    if (!Utilities::fileExists(configFile)) throw IOException(configDir + ": File not found!");
+
+    PredictionConfig predictionConfig;
+    std::string sectionId("Prediction Configuration");
+    
+    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
+        sectionId, configFile);
+    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
+        sectionId, configFile);
+
+    std::string parametersFile(configDir + "/posterior_parameters.csv");
+    if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
+    
+    predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
+        predictionConfig.index);
+
+    return predictionConfig;
 }
 
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
@@ -131,14 +162,11 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	}
 	std::vector<double> line_select = lines[set_selection];
 
-	/** Extract posterior parameters from selected line
-	 * the slicing is relevant to the format of the output file
-	 * *output_abc-smc_particles_step* coming from the inference framework
-	 */
-	auto first = line_select.cbegin() + 3;
-	auto last = line_select.cend() - 1;
-	int nPar = static_cast<int>(line_select.size()) - 4;
-	if ((last - line_select.begin()) - (first - line_select.begin()) < nPar) {
+	auto first = line_select.cbegin() + 1;
+	auto last = line_select.cend();
+	/** @todo Replace with constant from inference parameter description class */
+    const int nPar = 8;
+	if ((last - first) != nPar) {
 		std::stringstream PosteriorFileFormatError;
 		PosteriorFileFormatError << "Please check formatting of posterios parameter input file, 8 parameter values are needed..." << std::endl;
 		throw std::runtime_error(PosteriorFileFormatError.str());
@@ -354,7 +382,7 @@ void LogRandomiserSettings(const ModelInputParameters& params, unsigned long ran
 
 void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 {
-    (*log) << "[Disease seeding settings]:\n";
+    (*log) << "[Disease seeding settings]:" << std::endl;
     (*log) << "    seeding method: "<< params.seedmethod <<  std::endl;
 	if (params.seedmethod == "random"){
 		(*log) << "    number of seed: " << params.nseed << std::endl;
@@ -363,5 +391,22 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 	}
 }
 
+void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Prediction Configuration]" << std::endl;
+    (*log) << "    n_sim_steps: "       << config.n_sim_steps << std::endl;
+    (*log) << "    parameter index: "   << config.index << std::endl;
+    (*log) << "    p_inf: "             << config.posterior_parameters[0] << std::endl;
+    (*log) << "    p_hcw: "             << config.posterior_parameters[1] << std::endl;
+    (*log) << "    c_hcw: "             << config.posterior_parameters[2] << std::endl;
+    (*log) << "    d: "                 << config.posterior_parameters[3] << std::endl;
+    (*log) << "    q: "                 << config.posterior_parameters[4] << std::endl;
+    (*log) << "    p_s: "               << config.posterior_parameters[5] << std::endl;
+    (*log) << "    rrd: "               << config.posterior_parameters[6] << std::endl;
+    (*log) << "    intro: "             << config.posterior_parameters[7] << std::endl;
+}
+
 } // namespace IO
 } // namespace EERAModel
+
+

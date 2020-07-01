@@ -104,8 +104,6 @@ struct ModelInputParameters
 	double prior_lambda_shape2;
 	double prior_ps_shape1;
 	double prior_ps_shape2;
-	std::vector<double> posterior_param_list;
-	int posterior_parameter_select;
 	ModelModeId run_type = ModelModeId::UNKNOWN;
 	std::vector<double> prior_param_list;
 };
@@ -192,6 +190,16 @@ struct InfectionState
 	int hospitalised = 0;			/*!< Number of newly detected cases due to their hospitalisation at each time step. */
 	int deaths = 0;					/*!< Overall number of incident deaths due to covid at each time step.  */
 	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
+};
+
+/**
+ * @brief Configuration for a prediction framework run
+ */
+struct PredictionConfig
+{
+    int n_sim_steps;    /*! Number of steps over which to run the model */
+    int index;          /*! Index of selected parameters within posterior parameters file */
+    std::vector<double> posterior_parameters;  /*! Set of model parameters */
 };
 
 } // namespace EERAModel
