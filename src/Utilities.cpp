@@ -14,8 +14,8 @@ std::string toUpper(std::string str)
 bool directoryExists(const std::string& directory)
 {
     struct stat buffer{};
-    
-    return ((stat(directory.c_str(), &buffer) == 0u) && S_ISDIR(buffer.st_mode));
+
+    return (stat(directory.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
 }
 
 } //namespace Utilities

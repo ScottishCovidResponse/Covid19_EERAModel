@@ -25,12 +25,12 @@ public:
      * @param outDir Outputs directory path
      * @param log Logger
      */
-    InferenceFramework(const Model::ModelInterface::Sptr& model,
-        const ModelInputParameters& modelInputParameters,
-        const InputObservations& observations,
-        const Random::RNGInterface::Sptr& rng,
-        const std::string& outDir,
-        const Utilities::logging_stream::Sptr& log);
+    InferenceFramework(Model::ModelInterface::Sptr& model,
+        ModelInputParameters& modelInputParameters,
+        InputObservations& observations,
+        Random::RNGInterface::Sptr rng,
+        const std::string outDir,
+        Utilities::logging_stream::Sptr& log);
     
     /**
      * @brief Calculate the time offset for the dataset

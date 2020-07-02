@@ -22,7 +22,7 @@ public:
      * @param log Logger
      */
     IrishModel(const ModelInputParameters& modelInputParameters, const InputObservations& observations,
-        const Random::RNGInterface::Sptr& rng, const Utilities::logging_stream::Sptr& log);
+        Random::RNGInterface::Sptr rng, const Utilities::logging_stream::Sptr& log);
 
     /**
      * @brief Run the model with the given parameters and configurations

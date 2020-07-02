@@ -10,17 +10,17 @@
 namespace EERAModel {
 namespace Inference {
 
-InferenceFramework::InferenceFramework(const Model::ModelInterface::Sptr& model,
-    const ModelInputParameters& modelInputParameters,
-    const InputObservations& observations,
-    const Random::RNGInterface::Sptr& rng,
-    const std::string& outDir,
-    const Utilities::logging_stream::Sptr& log)
+InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr& model,
+    ModelInputParameters& modelInputParameters,
+    InputObservations& observations,
+    Random::RNGInterface::Sptr rng,
+    const std::string outDir,
+    Utilities::logging_stream::Sptr& log)
     : model_(model),
       modelInputParameters_(modelInputParameters),
       observations_(observations),
-      rng_(rng),
-      outDir_(outDir),
+      rng_(std::move(rng)),
+      outDir_(std::move(outDir)),
       log_(log) {}
 
 int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)

@@ -41,7 +41,7 @@ public:
      * 
      * @param Status at the end of the model run
      */
-     void Run(std::vector<double> parameterSet, int nSimulationSteps);
+     void Run(std::vector<double>& parameterSet, int nSimulationSteps);
 
 private:
     

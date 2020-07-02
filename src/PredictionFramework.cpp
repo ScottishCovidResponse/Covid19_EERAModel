@@ -17,10 +17,10 @@ PredictionFramework::PredictionFramework(
        modelInputParameters_(modelInputParameters),
        observations_(observations),
        rng_(std::move(rng)),
-       outDir_(outDir),
+       outDir_(std::move(outDir)),
        log_(log) {}
 
-void PredictionFramework::Run(std::vector<double> parameterSet, int nSimulationSteps)
+void PredictionFramework::Run(std::vector<double>& parameterSet, int nSimulationSteps)
 {
     clock_t startTime = clock();
 

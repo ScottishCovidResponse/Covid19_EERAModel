@@ -22,7 +22,7 @@ public:
      * @param log Logger
      */
     TempModel(const ModelInputParameters& modelInputParameters, InputObservations& observations,
-        Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
+        Random::RNGInterface::Sptr rng, const Utilities::logging_stream::Sptr& log);
 
     /**
      * @brief Run the model with the given parameters and configurations
@@ -48,7 +48,7 @@ private:
      * 
      * @return Seed population
      */
-    std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
+    static std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
 
     /**
      * @brief Construct the population array
@@ -89,7 +89,7 @@ private:
      * @param pops Population array containing compartments for each age group
      * @param shut State of lockdown
      */
-    std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+    static std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
                 const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut);
 
     /**
