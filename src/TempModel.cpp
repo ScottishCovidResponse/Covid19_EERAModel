@@ -146,7 +146,7 @@ Status TempModel::Run(std::vector<double> parameter_set, seed& seedlist, int day
             InfectionState new_spread = 
                     GenerateInfectionSpread(poparray[age], infection_state.hospitalised,
                         fixedParameters_[age],parameter_fit[age],
-                        ageGroupData_.cfr_byage[age], ageGroupData_.pf_byage[age],lambda[age]);
+                        ageGroupData_.cfr_byage[age],lambda[age]);
 
             infection_state.deaths += new_spread.deaths;
             infection_state.hospital_deaths += new_spread.hospital_deaths;
@@ -169,7 +169,7 @@ Status TempModel::Run(std::vector<double> parameter_set, seed& seedlist, int day
 
 InfectionState TempModel::GenerateInfectionSpread(Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
-    std::vector<double> cfr_tab, double pf_val, double lambda)
+    std::vector<double> cfr_tab, double lambda)
 {
     Compartments newpop(pop);
 

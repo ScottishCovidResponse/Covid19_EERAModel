@@ -108,7 +108,7 @@ private:
     InfectionState GenerateInfectionSpread(Compartments& pop, const int& n_hospitalised,
         params fixed_parameters, 
         std::vector<double> parameter_set, std::vector<double> cfr_tab,
-        double pf_val, double lambda);
+        double lambda);
 
     /**
      * @private

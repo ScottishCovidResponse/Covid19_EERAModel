@@ -75,14 +75,14 @@ bool directoryExists(const std::string& directory);
  * @return Vector of summation values
  */
 template<typename T>
-std::vector<T> AccumulateEveryN(const std::vector<T>& data, int n)
+std::vector<T> AccumulateEveryN(const std::vector<T>& data, unsigned n)
 {
     std::vector<T> _temp;
     T data_val(0);
 
     if (n <= data.size())
     {
-        for (int i{0}; i < data.size(); ++i)
+        for (unsigned int i = 0; i < data.size(); i++)
         {
             data_val += data[i];
 
