@@ -2,7 +2,7 @@
 
 namespace EERAModel {
 
-ArgumentParser::ArgumentParser(int argc, char** argv)
+ArgumentParser::ArgumentParser(int argc, const char* const * argv)
 {
     try
     {

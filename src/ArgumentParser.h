@@ -44,7 +44,7 @@ class ArgumentParser
          * @param argc Count of command line arguments
          * @param argv Command line arguments
          */
-        ArgumentParser(int argc, char** argv);
+        ArgumentParser(int argc, const char* const * argv);
 
         /**
          * @brief Log argument values to output
