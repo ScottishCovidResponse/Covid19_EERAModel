@@ -4,61 +4,69 @@
 
 #include <iostream>
 
-TEST(TestArgumentParser, TestModeSwitching)
-{
-    char* _test_args_inf[] = {"exe", "-m", "inference", NULL};
-    int argc_inf = sizeof(_test_args_inf)/sizeof(char*) - 1;
-    char** _p_test_args_inf = _test_args_inf;
-    char* _test_args_prd[] = {"exe", "-m", "prediction", NULL};
-    int argc_prd = sizeof(_test_args_prd)/sizeof(char*) - 1;
-    char** _p_test_args_prd = _test_args_prd;
+using namespace EERAModel;
 
-    EERAModel::ArgumentParser parse_inf(argc_inf, _p_test_args_inf);
-    EERAModel::ArgumentParser parse_prd(argc_prd, _p_test_args_prd);
+TEST(AnArgumentParser, RecognisesInferenceMode)
+{
+    const char* _test_args_inf[] = {"exe", "-m", "inference"};
+
+    ArgumentParser parse_inf(3, _test_args_inf);
     
-    EXPECT_EQ(parse_inf.getArgs().mode, EERAModel::ModelModeId::INFERENCE);
-    EXPECT_EQ(parse_prd.getArgs().mode, EERAModel::ModelModeId::PREDICTION);
+    EXPECT_EQ(parse_inf.getArgs().mode, ModelModeId::INFERENCE);
 }
 
-TEST(TestArgumentParser, TestStructureSwitching)
+TEST(AnArgumentParser, RecognisesPredictionMode)
 {
-    char* _test_args_inf[] = {"exe", "-s", "original", "-m", "inference", NULL};
-    int argc_inf = sizeof(_test_args_inf)/sizeof(char*) - 1;
-    char** _p_test_args_inf = _test_args_inf;
-    char* _test_args_prd[] = {"exe", "-s", "irish", "-m", "inference", NULL};
-    int argc_prd = sizeof(_test_args_prd)/sizeof(char*) - 1;
-    char** _p_test_args_prd = _test_args_prd;
-    char* _test_args_default[] = {"exe", "-m", "inference", NULL};
-    int argc_default = sizeof(_test_args_default)/sizeof(char*) - 1;
-    char** _p_test_default = _test_args_default;
+    const char* _test_args_prd[] = {"exe", "-m", "prediction"};
 
-    EERAModel::ArgumentParser parse_inf(argc_inf, _p_test_args_inf);
-    EERAModel::ArgumentParser parse_prd(argc_prd, _p_test_args_prd);
-    EERAModel::ArgumentParser parse_default(argc_default, _p_test_default);
+    ArgumentParser parse_prd(3, _test_args_prd);
     
-    EXPECT_EQ(parse_inf.getArgs().structure, EERAModel::ModelStructureId::ORIGINAL);
-    EXPECT_EQ(parse_prd.getArgs().structure, EERAModel::ModelStructureId::IRISH);
-    EXPECT_EQ(parse_default.getArgs().structure, EERAModel::ModelStructureId(0));
+    EXPECT_EQ(parse_prd.getArgs().mode, ModelModeId::PREDICTION);
 }
 
-TEST(TestArgumentParser, TestExistingOutputDirectory)
+TEST(AnArgumentParser, RecognisesOriginalModelStructure)
 {
-    char* _test_args[] = {"exe", "-d", "test", "-m", "inference", NULL};
-    int argc = sizeof(_test_args)/sizeof(char*) - 1;
-    char** _p_test_args = _test_args;
+    const char* _test_args_inf[] = {"exe", "-s", "original", "-m", "inference"};
 
-    EERAModel::ArgumentParser parse(argc, _p_test_args);
+    ArgumentParser parse_inf(5, _test_args_inf);
+    
+    EXPECT_EQ(parse_inf.getArgs().structure, ModelStructureId::ORIGINAL);
+}
+
+TEST(AnArgumentParser, RecognisesIrishModelStructure)
+{
+    const char* _test_args_prd[] = {"exe", "-s", "irish", "-m", "inference"};
+
+    ArgumentParser parse_prd(5, _test_args_prd);
+    
+    EXPECT_EQ(parse_prd.getArgs().structure, ModelStructureId::IRISH);
+}
+
+TEST(AnArgumentParser, RecognisesNoModelStructure)
+{
+    const char* _test_args_default[] = {"exe", "-m", "inference"};
+
+    ArgumentParser parse_default(3, _test_args_default);
+    
+    EXPECT_EQ(parse_default.getArgs().structure, ModelStructureId::UNKNOWN);
+}
+
+TEST(AnArgumentParser, RecognisesOutputDirectory)
+{
+    const char* _test_args[] = {"exe", "-d", "test", "-m", "inference"};
+
+    ArgumentParser parse(5, _test_args);
 
     EXPECT_EQ(parse.getArgs().output_dir, "test");
 }
 
-TEST(TestArgumentParser, TestNonExistingOutputDirectory)
+TEST(AnArgumentParser, SwitchesToDefaultWhenNoOutputDirectoryIsSupplied)
 {
-    char* _test_args[] = {"exe", "-d", "my_outputs", "-m", "inference", NULL};
-    int argc = sizeof(_test_args)/sizeof(char*) - 1;
-    char** _p_test_args = _test_args;
+    std::string default_dir(std::string(ROOT_DIR)+"/outputs");
+    
+    const char* _test_args[] = {"exe", "-d", "my_outputs", "-m", "inference"};
 
-    EERAModel::ArgumentParser parse(argc, _p_test_args);
+    ArgumentParser parse(5, _test_args);
 
-    EXPECT_EQ(parse.getArgs().output_dir, std::string(ROOT_DIR)+"/outputs");
+    EXPECT_EQ(parse.getArgs().output_dir, default_dir);
 }
