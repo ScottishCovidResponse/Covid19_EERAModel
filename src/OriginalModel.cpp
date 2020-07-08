@@ -4,8 +4,8 @@ namespace EERAModel {
 namespace Model {
 
 OriginalModel::OriginalModel(const ModelInputParameters& modelInputParameters,
-    InputObservations& observations, Random::RNGInterface::Sptr rng, const Utilities::logging_stream::Sptr& log) 
-    : rng_(std::move(rng)) {
+    InputObservations& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(
         observations.waifw_norm.size(), modelInputParameters.paramlist
@@ -57,7 +57,7 @@ std::vector<Compartments> OriginalModel::BuildPopulationArray(const std::vector<
     unsigned int distribution_size = 6;
 
     std::vector<Compartments> _temp(age_nums.size(), Compartments());
-    for (size_t age = 0; age < age_nums.size(); ++age) 
+    for (unsigned int age = 0; age < age_nums.size(); ++age) 
     {
         //set up the starting population as fully susceptible
          _temp[age].S = age_nums[age];

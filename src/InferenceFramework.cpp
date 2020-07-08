@@ -10,17 +10,17 @@
 namespace EERAModel {
 namespace Inference {
 
-InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr& model,
-    ModelInputParameters& modelInputParameters,
-    InputObservations& observations,
+InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
+    const ModelInputParameters& modelInputParameters,
+    const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
-    const std::string outDir,
-    Utilities::logging_stream::Sptr& log)
+    const std::string& outDir,
+    Utilities::logging_stream::Sptr log)
     : model_(model),
       modelInputParameters_(modelInputParameters),
       observations_(observations),
-      rng_(std::move(rng)),
-      outDir_(std::move(outDir)),
+      rng_(rng),
+      outDir_(outDir),
       log_(log) {}
 
 int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
@@ -297,10 +297,9 @@ std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList) {
 	
 	std::vector<double> weight_val(particleList.size(), 0.0);
-	int counter = 0;
-	for (const auto& p : particleList) {
-		weight_val[counter] = p.weight;
-		counter += 1;
+
+	for (unsigned int i = 0; i < weight_val.size(); i++) {
+		weight_val[i] = particleList[i].weight;
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());

@@ -26,12 +26,12 @@ public:
      * @param rng Seeded random number generator
      * @param log Logger
      */
-    PredictionFramework(Model::ModelInterface::Sptr& model,
-        ModelInputParameters& modelInputParameters,
-        InputObservations& observations,
+    PredictionFramework(Model::ModelInterface::Sptr model,
+        const ModelInputParameters& modelInputParameters,
+        const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
-        const std::string outDir,
-        Utilities::logging_stream::Sptr& log);
+        const std::string& outDir,
+        Utilities::logging_stream::Sptr log);
 
     /**
      * @brief Run the model within the prediction framework
@@ -41,7 +41,7 @@ public:
      * 
      * @param Status at the end of the model run
      */
-     void Run(std::vector<double>& parameterSet, int nSimulationSteps);
+     void Run(const std::vector<double>& parameterSet, int nSimulationSteps);
 
 private:
     

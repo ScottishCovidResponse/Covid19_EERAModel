@@ -4,8 +4,8 @@ namespace EERAModel {
 namespace Model {
 
 IrishModel::IrishModel(const ModelInputParameters& modelInputParameters,
-    const InputObservations& observations, Random::RNGInterface::Sptr rng, const Utilities::logging_stream::Sptr& log) 
-    : rng_(std::move(rng)) {
+    const InputObservations& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(
         observations.waifw_norm.size(), modelInputParameters.paramlist

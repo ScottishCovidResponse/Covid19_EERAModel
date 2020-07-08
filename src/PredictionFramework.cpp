@@ -7,20 +7,20 @@ namespace EERAModel {
 namespace Prediction {
 
 PredictionFramework::PredictionFramework(
-    Model::ModelInterface::Sptr& model,
-    ModelInputParameters& modelInputParameters,
-    InputObservations& observations,
+    Model::ModelInterface::Sptr model,
+    const ModelInputParameters& modelInputParameters,
+    const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
-    const std::string outDir,
-    Utilities::logging_stream::Sptr& log)
+    const std::string& outDir,
+    Utilities::logging_stream::Sptr log)
      : model_(model),
        modelInputParameters_(modelInputParameters),
        observations_(observations),
-       rng_(std::move(rng)),
-       outDir_(std::move(outDir)),
+       rng_(rng),
+       outDir_(outDir),
        log_(log) {}
 
-void PredictionFramework::Run(std::vector<double>& parameterSet, int nSimulationSteps)
+void PredictionFramework::Run(const std::vector<double>& parameterSet, int nSimulationSteps)
 {
     clock_t startTime = clock();
 
