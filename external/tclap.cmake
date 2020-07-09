@@ -11,6 +11,5 @@ ExternalProject_Get_Property(tclap_src source_dir)
 set(TCLAP_INCLUDE_DIRS ${source_dir}/include)
 
 set(TCLAP tclap)
-add_library(${TCLAP} UNKNOWN IMPORTED)
-set_target_properties(${TCLAP} PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${TCLAP_INCLUDE_DIRS})
+add_library(${TCLAP} INTERFACE)
+target_include_directories(${TCLAP} INTERFACE ${TCLAP_INCLUDE_DIRS})
