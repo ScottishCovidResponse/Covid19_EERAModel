@@ -43,7 +43,7 @@ public:
      * 
      * @return integer offset value
      */
-    int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
+    static int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
 
     /**
      * @brief Run the model within the inference framework
