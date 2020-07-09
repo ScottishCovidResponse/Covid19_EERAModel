@@ -6,6 +6,7 @@ Simple COVID-19 simulation model with ABC-smc inference
 ## Project structure
  * `data/` Working input data directory: used to store inputs to a model run
  * `doc/` Documentation associated with the model
+ * `external/` External third-party libraries
  * `outputs/` Working outputs data directory: used to store outputs from a model run
  * `scripts/` Utility scripts for setting up and executing model runs
  * `src/` Model source code
@@ -24,8 +25,7 @@ installed on the host system.
 
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is
 downloaded and built automatically as part of the project build process. It is not required to be 
-installed on the host system. If fetching of the repository by CMake fails, a copy of TCLAP will be 
-needed. The contents of the `include/tclap` folder should be placed into `src/tclap` within this repository.
+installed on the host system. 
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
