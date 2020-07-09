@@ -21,7 +21,7 @@ public:
      * @param rng Random number generator to be used by the model
      * @param log Logger
      */
-    TempModel(const ModelInputParameters& modelInputParameters, InputObservations& observations,
+    TempModel(const ModelInputParameters& modelInputParameters, const InputObservations& observations,
         Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**
@@ -34,7 +34,7 @@ public:
      * 
      * @return Status of model after run
      */
-    Status Run(std::vector<double> parameter_set, seed seedlist, int day_shut, int n_sim_steps) override;
+    Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) override;
 
 private:
     /**
@@ -48,7 +48,7 @@ private:
      * 
      * @return Seed population
      */
-    std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
+    static std::vector<double> BuildPopulationSeed(const std::vector<int>& age_nums);
 
     /**
      * @brief Construct the population array
@@ -89,7 +89,7 @@ private:
      * @param pops Population array containing compartments for each age group
      * @param shut State of lockdown
      */
-    std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
+    static std::vector<double> GenerateForcesOfInfection(int& inf_hosp, const std::vector<double>& parameter_set, double u_val, 
                 const AgeGroupData& age_data, const std::vector<Compartments>& pops, bool shut);
 
     /**
@@ -108,7 +108,7 @@ private:
     InfectionState GenerateInfectionSpread(Compartments& pop, const int& n_hospitalised,
         params fixed_parameters, 
         std::vector<double> parameter_set, std::vector<double> cfr_tab,
-        double pf_val, double lambda);
+        double lambda);
 
     /**
      * @private

@@ -27,7 +27,7 @@ void PredictionFramework::Run()
     Status status = model_->Run(config_.posterior_parameters, modelInputParameters_.seedlist,
         modelInputParameters_.day_shut, config_.n_sim_steps);
 
-    double time_taken = double(clock() - startTime)/(double)CLOCKS_PER_SEC;
+    double time_taken = static_cast<double>(clock() - startTime)/static_cast<double>(CLOCKS_PER_SEC);
 
     (*log_) << "\n <computation time> " << time_taken << " seconds.\n";
 

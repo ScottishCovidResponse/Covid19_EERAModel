@@ -29,7 +29,7 @@ int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputPara
 	if(modelInputParameters.seedlist.seedmethod == "background") {
 		time_back = modelInputParameters.seedlist.hrp;
 	} else {
-		time_back = modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym;
+		time_back = static_cast<int>(modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym);
 		
 	}
 
@@ -145,7 +145,7 @@ void InferenceFramework::Run()
 				particle outs_vec;
 				outs_vec.iter = sim;				
 //				outs_vec.sum_sq = 1.e06;
-				for (int i{0}; i < nInferenceParams; ++i) {
+				for (unsigned int i = 0; i < nInferenceParams; i++) {
 					outs_vec.parameter_set.push_back(0.0);
 				}
 				//pick the values of each particles
@@ -167,7 +167,7 @@ void InferenceFramework::Run()
 							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
-                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) ++nsim_count;
+                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) { ++nsim_count; }
                 
                 //if the particle agrees with the different criteria defined for each ABC-smc step
                 if (
@@ -181,7 +181,7 @@ void InferenceFramework::Run()
                                 vlimitKernel, nInferenceParams);
                             particleList1.push_back(outs_vec);
                             ++acceptedParticleCount;
-                            if (acceptedParticleCount % 10 == 0) (*log_) << "|" << std::flush;
+                            if (acceptedParticleCount % 10 == 0) { (*log_) << "|" << std::flush; }
                             //(*log_) << acceptedParticleCount << " " ;
                         }
 						
@@ -192,13 +192,13 @@ void InferenceFramework::Run()
 		prevAcceptedParticleCount = acceptedParticleCount;
 
 		//time taken per step
-		double time_taken;
+		double time_taken = 0.0;
 		if(smc == 0){
-			time_taken = double( clock() - startTime ) / (double)CLOCKS_PER_SEC;
+			time_taken = static_cast<double>( clock() - startTime ) / static_cast<double>(CLOCKS_PER_SEC);
 			time_taken1 = clock();
 		} else {
-			time_taken = double( clock() - time_taken1 ) / (double)CLOCKS_PER_SEC;
-			time_taken1 = clock();
+			time_taken = static_cast<double>( clock() - time_taken1 ) / static_cast<double>(CLOCKS_PER_SEC);
+			time_taken1 = clock();	
 		}
 
 		/*---------------------------------------
@@ -220,7 +220,7 @@ void InferenceFramework::Run()
 	}
 
 	//output on screen the overall computation time
-	(*log_) << double( clock() - startTime ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
+	(*log_) << static_cast<double>( clock() - startTime ) / static_cast<double>(CLOCKS_PER_SEC) << " seconds." << std::endl;
 }
 
 void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const int& n_sim_steps, 
@@ -245,8 +245,8 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, const int& n_s
 
 	const int week_length = 7;
 
-	const std::vector<int> obs_death_red = Utilities::AccumulateEveryN(obsDeaths, week_length);
-	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryN(status.hospital_deaths, week_length);
+	const std::vector<int> obs_death_red = Utilities::AccumulateEveryN<int>(obsDeaths, week_length);
+	const std::vector<int> sim_hospital_death_red = Utilities::AccumulateEveryN<int>(status.hospital_deaths, week_length);
 	
 	double sum_sq_deaths = Utilities::sse_calc<int>(sim_hospital_death_red, obs_death_red);
 
@@ -296,9 +296,10 @@ void ComputeKernelWindow(int nPar, const std::vector<particle>& particleList, do
 std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList) {
 	
-	std::vector<double> weight_val;
-	for (auto p : particleList) {
-		weight_val.push_back(p.weight);
+	std::vector<double> weight_val(particleList.size(), 0.0);
+
+	for (unsigned int i = 0; i < weight_val.size(); i++) {
+		weight_val[i] = particleList[i].weight;
 	}
 	
 	return std::discrete_distribution<int>(weight_val.begin(), weight_val.end());
