@@ -4,6 +4,9 @@ namespace EERAModel {
 
 ArgumentParser::ArgumentParser(int argc, const char* const * argv)
 {
+    for (int i = 0; i < argc; ++i)
+        raw_args_.push_back(std::string(argv[i]));
+        
     try
     {
         TCLAP::CmdLine cmd("Run model with specified set of options",   // Help string message
@@ -13,12 +16,12 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
                         );
 
         std::vector<std::string> running_modes = {"inference", "prediction"};
-        std::vector<std::string> structures = {"original", "irish"};
-        TCLAP::ValuesConstraint<std::string> allowedStructures( structures );
-        TCLAP::ValuesConstraint<std::string> allowedModes( running_modes );
+        std::vector<std::string> structures = {"original", "irish", "irish2"};
+        TCLAP::ValuesConstraint<std::string> allowedStructures(structures);
+        TCLAP::ValuesConstraint<std::string> allowedModes(running_modes);
         TCLAP::ValueArg<std::string> structureArg("s", "structure", 
-                                        "Model structure, if unset use 'original'", 
-                                        false, "", &allowedStructures);
+                                        "Model structure. Can be original, irish or irish2", 
+                                        true, "", &allowedStructures);
         TCLAP::ValueArg<std::string> modeArg("m", "mode", "Running mode. Can be either inference or prediction.", 
                                         true, "", &allowedModes);
         TCLAP::ValueArg<std::string> dataLocArg("l", "local", "Location of local data repository", 
@@ -32,18 +35,12 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
 
         _args.output_dir = (Utilities::directoryExists(outputDirArg.getValue())) ? outputDirArg.getValue() : _args.output_dir;
 
-        if(Utilities::toUpper(structureArg.getValue()) == "IRISH")
-        {
+        if (Utilities::toUpper(structureArg.getValue()) == "IRISH")
             _args.structure = ModelStructureId::IRISH;
-        }
-        else if(Utilities::toUpper(structureArg.getValue()) == "ORIGINAL")
-        {
-            _args.structure = ModelStructureId::ORIGINAL;
-        }
+        else if (Utilities::toUpper(structureArg.getValue()) == "IRISH2")
+            _args.structure = ModelStructureId::TEMP;
         else 
-        {
-            _args.structure = ModelStructureId::UNKNOWN;
-        }
+            _args.structure = ModelStructureId::ORIGINAL;
 
         if (modeArg.getValue() == "inference")
             _args.mode = ModelModeId::INFERENCE;
@@ -63,6 +60,11 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
 void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Arguments]:" << std::endl;
+    
+    (*log) << "\t" << "Command line: ";
+    for (const auto& s : raw_args_) (*log) << s << " ";
+    (*log) << std::endl;
+
     (*log) << "\t" << "Local: " << ((_args.isLocal) ? "True" : "False") << std::endl;
     if(_args.isLocal){(*log) << "\t" << "Local Directory: " << _args.local_location << std::endl;}
     (*log) << "\t" << "Structure: ";
@@ -87,19 +89,7 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
 
 void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
 {
-    // Only set model structure to default of "original" if no option specified
-    // in parameters file
-    if(input_params.model_structure == ModelStructureId::UNKNOWN)
-    {
-        input_params.model_structure = ModelStructureId::ORIGINAL;
-    }
-
-    // Only overwrite this model structure option if command line argument is not empty
-    if(_args.structure != ModelStructureId::UNKNOWN)
-    {
-        input_params.model_structure = _args.structure;
-    }
-
+    input_params.model_structure = _args.structure;
     input_params.run_type = _args.mode;
 }
 

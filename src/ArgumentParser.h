@@ -34,6 +34,7 @@ class ArgumentParser
 {
     private:
         Arguments _args;
+        std::vector<std::string> raw_args_;
     public:
         /**
          * @brief Constructor

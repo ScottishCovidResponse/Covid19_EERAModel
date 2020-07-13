@@ -40,22 +40,20 @@ $ make
 ## Running the model
 Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage is:
 ```
-Brief USAGE: 
-   ./Covid19_EERAModel/build/bin/Covid19EERAModel  [-d <string>] -s
-                                        <original|irish> [-l <string>] [-m
-                                        <inference|prediction>] [--]
-                                        [--version] [-h]
 
-For complete USAGE and HELP type: 
-   ./Covid19_EERAModel/build/bin/Covid19EERAModel --help
+$ Covid19EERAModel  -m <inference|prediction>]
+                    -s <original|irish|irish2>
+                    [-d <string>]
+                    [-l <string>] [--]
+                    [--version] [-h]
+
 ```
+The two mandatory options are "-s" for the model structure, and "-m" for the run mode. Omission of
+either of these options will cause the run to terminate with an error message.
 
-If the options for `structure` or `mode` are not set they will have the value `Default` in the 
-`[Arguments]` log section, this means that the value will either be obtained from the included 
-parameters file (if specified in that file) or given the default value of `inference` for mode and
-`original` for structure.
+At the present time, the `-d` and `-l` options are unused by the code and can be omitted.
 
-At the present time, the `d` and `l` options are unused and can be omitted.
+The command line options supplied are logged in the output log file for future reference.
 
 ### Prediction mode
 The model can be run in a prediction mode, where a fixed set of parameters is supplied to the model,
@@ -63,7 +61,7 @@ and the model is run for a fixed number of simulation steps.
 
 To run the model in prediction mode, set the `-m` switch to prediction:
 ```
-$ .build/bin/Covid19EERAModel -m prediction
+$ .build/bin/Covid19EERAModel -m prediction ...
 ```
 To configure the prediction run, two main pieces of configuration are required: a posterior parameters
 file, and a `Prediction Config` category in the `parameters.ini` file.
@@ -96,7 +94,7 @@ and the log file.
 ### Inference mode
 To run the model in inference mode, set the `-m` switch to inference:
 ```
-$ .build/bin/Covid19EERAModel -m inference
+$ .build/bin/Covid19EERAModel -m inference ...
 ```
 To configure the inference run, two main pieces of configuration must be supplied:
   * A set of data files containing observations and population/age-group descriptions
@@ -110,8 +108,7 @@ Code documentation generated using Doxygen and Code Coverage reports can be foun
 
 ## Automated Code Formatting
 
-As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry
-about following a convention. Settings are given in the `.clang-format` file.
+As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry about following a convention. Settings are given in the `.clang-format` file.
 
 ## Tests
 
