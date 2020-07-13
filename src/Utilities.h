@@ -171,11 +171,12 @@ class logging_stream
  * 
  * @param inputfile address of input file
  * @param delimiter column separator character
+ * @param header True if the file has a header row which should be skipped
  * 
  * @return vector of vectors containing read in data values
  */
 template<typename T>
-std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimiter)
+std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimiter, bool header=false)
 {
 	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());
@@ -183,6 +184,9 @@ std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimite
 	std::string line;
 	std::vector<T> record;
 	
+    // Skip the header row if there is one
+    if (header) std::getline(infile, line, '\n');
+
 	while (std::getline(infile, line,'\n'))
 	{
 		int linepos = 0;
