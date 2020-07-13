@@ -22,6 +22,7 @@ struct Arguments
     ModelStructureId structure = ModelStructureId::ORIGINAL;
     ModelModeId mode = ModelModeId::INFERENCE;
     std::string output_dir = std::string(ROOT_DIR)+"/outputs";
+    int parameter_set_index;
 };
 
 /**
@@ -76,6 +77,8 @@ class ArgumentParser
         ModelStructureId modelStructure() const {return _args.structure;}
 
         std::string outputDir() const {return _args.output_dir;}
+
+        int parameterSetIndex() const { return _args.parameter_set_index; }
 
         Arguments getArgs() const {return _args;}
 };
