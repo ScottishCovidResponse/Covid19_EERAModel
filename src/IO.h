@@ -32,10 +32,11 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
  * @brief Read prediction framework configuration from input files
  * 
  * @param configDir Directory containing the configuration and data files
+ * @param index Index of the parameter set to select from the posterior parameters file
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index);
 
 /**
  * @brief Read model posterior parameters from a CSV file

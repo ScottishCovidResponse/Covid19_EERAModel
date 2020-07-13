@@ -117,7 +117,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	return modelInputParameters;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir)
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index)
 {
     std::string configFile(configDir + "/parameters.ini");
     if (!Utilities::fileExists(configFile)) throw IOException(configDir + ": File not found!");
@@ -127,8 +127,7 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir)
     
     predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
         sectionId, configFile);
-    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
-        sectionId, configFile);
+    predictionConfig.index = index;
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
     if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");

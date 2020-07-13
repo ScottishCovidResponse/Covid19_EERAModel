@@ -85,3 +85,21 @@ TEST(AnArgumentParser, SwitchesToDefaultWhenNoOutputDirectoryIsSupplied)
 
     EXPECT_EQ(parse.getArgs().output_dir, default_dir);
 }
+
+TEST(AnArgumentParser, DefaultsToZeroParameterSetIndex)
+{    
+    const char* _test_args[] = {"exe", "-m", "inference", "-s", "original"};
+
+    ArgumentParser parse(5, _test_args);
+
+    EXPECT_EQ(parse.getArgs().parameter_set_index, 0);
+}
+
+TEST(AnArgumentParser, RecognisesParameterSetIndex)
+{    
+    const char* _test_args[] = {"exe", "-m", "inference", "-s", "original", "-i", "2"};
+
+    ArgumentParser parse(7, _test_args);
+
+    EXPECT_EQ(parse.getArgs().parameter_set_index, 2);
+}

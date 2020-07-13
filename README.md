@@ -43,13 +43,15 @@ Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage
 
 $ Covid19EERAModel  -m <inference|prediction>]
                     -s <original|irish|irish2>
+                    [-i <integer>] 
                     [-d <string>]
                     [-l <string>] [--]
                     [--version] [-h]
 
 ```
 The two mandatory options are "-s" for the model structure, and "-m" for the run mode. Omission of
-either of these options will cause the run to terminate with an error message.
+either of these options will cause the run to terminate with an error message. The index option 
+specifies the parameter set that will be used in prediction mode: it is unused in inference mode.
 
 At the present time, the `-d` and `-l` options are unused by the code and can be omitted.
 
@@ -61,10 +63,12 @@ and the model is run for a fixed number of simulation steps.
 
 To run the model in prediction mode, set the `-m` switch to prediction:
 ```
-$ .build/bin/Covid19EERAModel -m prediction ...
+$ .build/bin/Covid19EERAModel -m prediction [-i <integer>]...
 ```
-To configure the prediction run, two main pieces of configuration are required: a posterior parameters
-file, and a `Prediction Config` category in the `parameters.ini` file.
+To configure the prediction run, three main pieces of configuration are required: a posterior parameters
+file; a `Prediction Config` category in the `parameters.ini` file; and an index as a command line
+argument. The index should be provided by using the "-i" option on the command line. If it is omitted,
+it will default to 0.
 
 The posterior parameters file should be named `posterior_parameters.csv` and should be placed in the
 `data` directory. Its format should be:
@@ -75,20 +79,18 @@ Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro
 ...
 ```
 Each row in the file contains 9 entries: the first is the index of the row, and the remaining 8 are 
-the sets of posterior parameters that can be used by the predication run.
+the sets of posterior parameters that can be used by the predication run. The row selected for use 
+in the prediction run will be that specified by the index argument on the command line.
 
 The `parameters.ini` file must contain a category with the configuration of the prediction run, as
 below
 ```
 [Prediction Configuration]
-posterior_parameter_index=2
 n_sim_steps=100000
 ```
-The setting `n_sim_steps` is the number of iterations the model should be run for. The setting 
-`posterior_parameter_index` is the index of the selected posterior parameter set from the 
-`posterior_parameters.csv` file.
+The setting `n_sim_steps` is the number of iterations the model should be run for. 
 
-When the model is run in prediction mode, all of the above configurations are logged to the terminal
+When the model is run in prediction mode, all of the above configuration is logged to the terminal
 and the log file.
 
 ### Inference mode

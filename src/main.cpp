@@ -69,8 +69,9 @@ int main(int argc, char** argv)
     if (ModelModeId::PREDICTION == modelInputParameters.run_type)
     {
         std::string configDir(std::string(ROOT_DIR) + "/data");
-        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir);
-        
+        int index = arg_parser.parameterSetIndex();
+
+        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index);
         IO::LogPredictionConfig(predictionConfig, logger);
 
         Prediction::PredictionFramework framework(model, modelInputParameters, predictionConfig, 

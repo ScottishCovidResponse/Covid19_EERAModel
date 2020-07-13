@@ -22,6 +22,9 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
         TCLAP::ValueArg<std::string> structureArg("s", "structure", 
                                         "Model structure. Can be original, irish or irish2", 
                                         true, "", &allowedStructures);
+        TCLAP::ValueArg<int> indexArg("i", "index", 
+                                        "Parameter set index for forward prediction mode. Defaults to zero.", 
+                                        false, 0, "integer");
         TCLAP::ValueArg<std::string> modeArg("m", "mode", "Running mode. Can be either inference or prediction.", 
                                         true, "", &allowedModes);
         TCLAP::ValueArg<std::string> dataLocArg("l", "local", "Location of local data repository", 
@@ -30,6 +33,7 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
         cmd.add( modeArg );
         cmd.add( dataLocArg );
         cmd.add( structureArg );
+        cmd.add( indexArg );
         cmd.add( outputDirArg );
         cmd.parse( argc, argv);
 
@@ -49,6 +53,8 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
 
         _args.isLocal = dataLocArg.getValue().empty();
         _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
+
+        _args.parameter_set_index = indexArg.getValue();
     }
     catch(const std::exception& e)
     {
@@ -85,6 +91,7 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
         (*log) << "Default" << std::endl;
     }
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
+    (*log) << "\t" << "Forward prediction parameter set index: " << _args.parameter_set_index << std::endl;
 }
 
 void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
