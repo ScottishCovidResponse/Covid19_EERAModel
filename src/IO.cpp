@@ -144,12 +144,12 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	std::vector<std::vector<double>> lines;
 	char delimiter = ',';
 	
-	lines = Utilities::read_csv<double>(filePath, delimiter);
+	lines = Utilities::read_csv<double>(filePath, delimiter, true);
 
 	// Select line from input file and store result in another temporary vector
 	if (set_selection >= static_cast<int>(lines.size())){
 		std::stringstream SetSelectError;
-		SetSelectError << "Parameter set selection out of bounds! Please select between 0-" << (lines.size() - 1) << "..." << std::endl;
+		SetSelectError << "Parameter set index selection out of bounds! Please select between 0-" << (lines.size() - 1) << "..." << std::endl;
 		throw std::overflow_error(SetSelectError.str());
 	}
 	std::vector<double> line_select = lines[set_selection];
