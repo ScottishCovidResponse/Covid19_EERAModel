@@ -45,14 +45,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
     // Model structure
 	std::string SettingName = "model";
 	std::string SettingCategory = "Settings";
-    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
-    if ("irish" == model_structure) {
-        modelInputParameters.model_structure = ModelStructureId::IRISH;
-    } else if("original" == model_structure) {
-        modelInputParameters.model_structure = ModelStructureId::ORIGINAL;
-    } else {
-    	modelInputParameters.model_structure = ModelStructureId::TEMP;
-    }
+    modelInputParameters.model_structure = ModelStructureId::UNKNOWN;
 
 	//Seed settings
 	SettingName = "seedmethod";
