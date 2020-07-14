@@ -27,7 +27,6 @@ public:
      * @param log Logger
      */
     PredictionFramework(Model::ModelInterface::Sptr model,
-        const ModelInputParameters& modelInputParameters,
         const PredictionConfig& config,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
@@ -48,11 +47,11 @@ private:
      */
     Model::ModelInterface::Sptr model_;
 
-    /**
-     * @private
-     * @brief Model input parameters
-     */
-    ModelInputParameters modelInputParameters_;
+    // /**
+    //  * @private
+    //  * @brief Model input parameters
+    //  */
+    // ModelInputParameters modelInputParameters_;
 
     /**
      * @private

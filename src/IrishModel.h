@@ -21,7 +21,7 @@ public:
      * @param rng Random number generator to be used by the model
      * @param log Logger
      */
-    IrishModel(const ModelInputParameters& modelInputParameters, const InputObservations& observations,
+    IrishModel(const CommonModelInputParameters& commonParameters, const InputObservations& observations,
         Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**

@@ -25,6 +25,167 @@ private:
     std::string message_;
 };
 
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParameterDir, Utilities::logging_stream::Sptr log)
+{
+	std::string filePath(ParameterDir);
+
+	SupplementaryInputParameters supplementaryParameters;
+
+	std::string SettingName = "seedmethod";
+	std::string SettingCategory = "Seed settings";
+	supplementaryParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	if (supplementaryParameters.seedlist.seedmethod == "random") {
+		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	} else if (supplementaryParameters.seedlist.seedmethod == "background") {
+		supplementaryParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
+	} else {
+		(*log) << "Warning!!! Unknown method - using random seed method." << std::endl;
+		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	}
+	supplementaryParameters.seedlist.use_fixed_seed = static_cast<bool>(
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
+	);
+	supplementaryParameters.seedlist.seed_value = ReadNumberFromFile<int>(
+		"seed_value", "Seed settings", filePath
+	);
+
+	return supplementaryParameters;
+}
+CommonModelInputParameters ReadCommonParameters(const std::string& ParameterDir)
+{
+	std::string filePath(ParameterDir);
+
+	CommonModelInputParameters commonParameters;
+
+	commonParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
+	commonParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
+	commonParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
+	commonParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
+	commonParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
+	commonParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
+	commonParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
+	commonParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
+
+	commonParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
+
+	commonParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", filePath);
+
+	return commonParameters;
+}
+
+InferenceConfig ReadInferenceConfig(const std::string& ParameterDir, Utilities::logging_stream::Sptr log) 
+{
+	std::string filePath(ParameterDir);
+
+	InferenceConfig inferenceConfig;
+	std::string SettingName = "seedmethod";
+	std::string SettingCategory = "Seed settings";
+	inferenceConfig.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	if (inferenceConfig.seedlist.seedmethod == "random") {
+		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	} else if (inferenceConfig.seedlist.seedmethod == "background") {
+		inferenceConfig.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
+	} else {
+		(*log) << "Warning!!! Unknown method - using random seed method." << std::endl;
+		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	}
+	inferenceConfig.seedlist.use_fixed_seed = static_cast<bool>(
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
+	);
+	inferenceConfig.seedlist.seed_value = ReadNumberFromFile<int>(
+		"seed_value", "Seed settings", filePath
+	);
+	
+	inferenceConfig.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
+
+	inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
+	inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
+	inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
+
+	inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", filePath);
+	inferenceConfig.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", filePath);
+	
+	inferenceConfig.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
+	inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
+
+	inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", filePath);
+	inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
+	inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
+	inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
+
+	for (int ii = 1; ii <= inferenceConfig.nsteps; ii++) {
+		inferenceConfig.toleranceLimit.push_back(0.0);
+	}
+
+	for (int ii = 0; ii < inferenceConfig.nsteps; ii++) {
+		std::stringstream KeyName;
+		KeyName << "Key" << (ii + 1);
+		inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
+	}
+
+	return inferenceConfig;
+}
+
+PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::logging_stream::Sptr log)
+{
+    std::string filePath(configDir + "/parameters.ini");
+    if (!Utilities::fileExists(filePath)) throw IOException(configDir + ": File not found!");
+
+    PredictionConfig predictionConfig;
+    
+	std::string SettingName = "seedmethod";
+	std::string SettingCategory = "Seed settings";
+	predictionConfig.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	if (predictionConfig.seedlist.seedmethod == "random") {
+		predictionConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	} else if (predictionConfig.seedlist.seedmethod == "background") {
+		predictionConfig.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
+	} else {
+		(*log) << "Warning!!! Unknown method - using random seed method." << std::endl;
+		predictionConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+	}
+	predictionConfig.seedlist.use_fixed_seed = static_cast<bool>(
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
+	);
+	predictionConfig.seedlist.seed_value = ReadNumberFromFile<int>(
+		"seed_value", "Seed settings", filePath
+	);
+	
+	predictionConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
+
+	std::string sectionId("Prediction Configuration");    
+    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
+        sectionId, filePath);
+    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
+        sectionId, filePath);
+
+    std::string parametersFile(configDir + "/posterior_parameters.csv");
+    if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
+    
+    predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
+        predictionConfig.index);
+
+    return predictionConfig;
+}
+
 ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
 {
 	ModelInputParameters modelInputParameters;
@@ -32,11 +193,9 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	CIniFile parameters;
 
 	//Settings
-	//modelInputParameters.herd_id = atoi(parameters.GetValue_modif(&SettingName, &SettingCategory, &filePath).c_str());
 	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
 
 	//time step for the modelling process
-	// modelInputParameters.tau = atof(parameters.GetValue("tau", "Settings", filePath).c_str());
 	modelInputParameters.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
 
 	//number of threads used for computation
@@ -124,28 +283,6 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
 	return modelInputParameters;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir)
-{
-    std::string configFile(configDir + "/parameters.ini");
-    if (!Utilities::fileExists(configFile)) throw IOException(configDir + ": File not found!");
-
-    PredictionConfig predictionConfig;
-    std::string sectionId("Prediction Configuration");
-    
-    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
-        sectionId, configFile);
-    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
-        sectionId, configFile);
-
-    std::string parametersFile(configDir + "/posterior_parameters.csv");
-    if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
-    
-    predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
-        predictionConfig.index);
-
-    return predictionConfig;
-}
-
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)
 {
 	// Temporary matrix to hold data from input file
@@ -168,7 +305,7 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
     const int nPar = 8;
 	if ((last - first) != nPar) {
 		std::stringstream PosteriorFileFormatError;
-		PosteriorFileFormatError << "Please check formatting of posterios parameter input file, 8 parameter values are needed..." << std::endl;
+		PosteriorFileFormatError << "Please check formatting of posterior parameter input file, 8 parameter values are needed..." << std::endl;
 		throw std::runtime_error(PosteriorFileFormatError.str());
 	}
 
@@ -358,7 +495,7 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 	output_full.close();
 }
 
-void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log)
+void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Fixed parameter values]:\n";
 	(*log) << "    latent period (theta_l): " << params.paramlist.T_lat <<std::endl;
@@ -371,7 +508,7 @@ void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_s
 	(*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
 }
 
-void LogRandomiserSettings(const ModelInputParameters& params, unsigned long randomiser_seed, 
+void LogRandomiserSettings(const SupplementaryInputParameters& params, unsigned long randomiser_seed, 
     Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Randomisation Settings]:\n";

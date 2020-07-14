@@ -192,11 +192,57 @@ struct InfectionState
 	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
 };
 
+struct SupplementaryInputParameters
+{
+	seed seedlist;
+	ModelStructureId model_structure = ModelStructureId::UNKNOWN;
+	ModelModeId run_type = ModelModeId::UNKNOWN;
+};
+
+struct CommonModelInputParameters 
+{
+	params paramlist;
+	int herd_id;
+	int totN_hcw;
+};
+
+struct InferenceConfig
+{
+	seed seedlist;
+	params paramlist;
+	int herd_id;
+	int day_shut;
+	double tau;
+	double prior_pinf_shape1;
+	double prior_pinf_shape2;
+	double prior_phcw_shape1;
+	double prior_phcw_shape2;
+	double prior_chcw_mean;
+	double prior_d_shape1;
+	double prior_d_shape2;
+	double prior_q_shape1;
+	double prior_q_shape2;
+	double prior_rrd_shape1;
+	double prior_rrd_shape2;
+	double prior_lambda_shape1;
+	double prior_lambda_shape2;
+	double prior_ps_shape1;
+	double prior_ps_shape2;
+	int nsteps;
+	double kernelFactor;
+	int nSim;
+	int nParticleLimit;
+	std::vector<double> toleranceLimit;
+
+};
+
 /**
  * @brief Configuration for a prediction framework run
  */
 struct PredictionConfig
 {
+	seed seedlist;
+	int day_shut;
     int n_sim_steps;    /*! Number of steps over which to run the model */
     int index;          /*! Index of selected parameters within posterior parameters file */
     std::vector<double> posterior_parameters;  /*! Set of model parameters */

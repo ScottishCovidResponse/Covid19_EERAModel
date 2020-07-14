@@ -85,7 +85,7 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
 }
 
-void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
+void ArgumentParser::AppendOptions(SupplementaryInputParameters& input_params)
 {
     // Only set model structure to default of "original" if no option specified
     // in parameters file

@@ -26,8 +26,9 @@ int main(int argc, char** argv)
 
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
-    arg_parser.AppendOptions(modelInputParameters);
+	// ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
+    SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
+    arg_parser.AppendOptions(supplementaryParameters);
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
@@ -36,51 +37,55 @@ int main(int argc, char** argv)
 
 	// Set up the random number generator, deciding what kind of seed to use
 	unsigned long randomiser_seed;
-	if (modelInputParameters.seedlist.use_fixed_seed) {
-		randomiser_seed = modelInputParameters.seedlist.seed_value;
+	if (supplementaryParameters.seedlist.use_fixed_seed) {
+		randomiser_seed = supplementaryParameters.seedlist.seed_value;
 	} else {
         randomiser_seed = time(nullptr);
 	}
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
-    IO::LogRandomiserSettings(modelInputParameters, randomiser_seed, logger);
+    IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
+
+    CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
     // Log the fixed parameters
-    IO::LogFixedParameters(modelInputParameters, logger);
+    IO::LogFixedParameters(commonParameters, logger);
 
     // Log the disease seed settings
-    IO::LogSeedSettings(modelInputParameters.seedlist, logger);
+    IO::LogSeedSettings(supplementaryParameters.seedlist, logger);
     
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
-    if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
+    if (ModelStructureId::ORIGINAL == supplementaryParameters.model_structure)
     {
-        model = std::make_shared<Model::OriginalModel>(modelInputParameters, observations, rng, logger);
+        model = std::make_shared<Model::OriginalModel>(commonParameters, observations, rng, logger);
     }
-    else if (ModelStructureId::IRISH == modelInputParameters.model_structure)
+    else if (ModelStructureId::IRISH == supplementaryParameters.model_structure)
     {
-        model = std::make_shared<Model::IrishModel>(modelInputParameters, observations, rng, logger);
+        model = std::make_shared<Model::IrishModel>(commonParameters, observations, rng, logger);
     }
 	else
 	{
-		model = std::make_shared<Model::TempModel>(modelInputParameters, observations, rng, logger);
+		model = std::make_shared<Model::TempModel>(commonParameters, observations, rng, logger);
 	}
 
     // Select the mode to run in - prediction or inference    
-    if (ModelModeId::PREDICTION == modelInputParameters.run_type)
+    if (ModelModeId::PREDICTION == supplementaryParameters.run_type)
     {
         std::string configDir(std::string(ROOT_DIR) + "/data");
-        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir);
+        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, logger);
         
         IO::LogPredictionConfig(predictionConfig, logger);
 
-        Prediction::PredictionFramework framework(model, modelInputParameters, predictionConfig, 
+        Prediction::PredictionFramework framework(model, predictionConfig, 
             rng, out_dir, logger);
 
 		framework.Run();
     }
     else
     {
-        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
+        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(params_addr, logger);
+
+        Inference::InferenceFramework framework(model, inferenceConfig, observations, rng, out_dir, logger);
         
         framework.Run();
     }

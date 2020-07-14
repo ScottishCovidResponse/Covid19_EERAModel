@@ -26,7 +26,7 @@ public:
      * @param log Logger
      */
     InferenceFramework(Model::ModelInterface::Sptr model,
-        const ModelInputParameters& modelInputParameters,
+        const InferenceConfig& inferenceConfig,
         const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
@@ -43,7 +43,7 @@ public:
      * 
      * @return integer offset value
      */
-    static int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
+    static int GetTimeOffSet(const InferenceConfig& inferenceConfig);
 
     /**
      * @brief Run the model within the inference framework
@@ -63,11 +63,13 @@ private:
      */
     Model::ModelInterface::Sptr model_;
 
-    /**
-     * @private
-     * @brief Model input parameters
-     */
-    ModelInputParameters modelInputParameters_;
+    // /**
+    //  * @private
+    //  * @brief Model input parameters
+    //  */
+    // ModelInputParameters modelInputParameters_;
+
+    InferenceConfig inferenceConfig_;
 
     /**
      * @private

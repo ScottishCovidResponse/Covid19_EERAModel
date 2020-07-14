@@ -19,6 +19,13 @@ namespace EERAModel {
  */
 namespace IO {
 
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParameterDir, Utilities::logging_stream::Sptr log);
+
+CommonModelInputParameters ReadCommonParameters(const std::string& ParameterDir);
+
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
+
+
 /**
  * @brief Read model input parameters from an INI file
  * 
@@ -35,7 +42,7 @@ ModelInputParameters ReadParametersFromFile(const std::string& filePath, const U
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read model posterior parameters from a CSV file
@@ -121,7 +128,7 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
  * @param params Model input parameters
  * @param log Logger
  */
-void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
+void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Log randomiser settings
@@ -131,7 +138,7 @@ void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_s
  * @param params Model input parameters
  * @param log Logger
  */
-void LogRandomiserSettings(const ModelInputParameters& params, unsigned long randomiser_seed, 
+void LogRandomiserSettings(const SupplementaryInputParameters& params, unsigned long randomiser_seed, 
     Utilities::logging_stream::Sptr log);
 
 /**

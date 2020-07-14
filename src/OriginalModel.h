@@ -21,7 +21,7 @@ public:
      * @param rng Random number generator to be used by the model
      * @param log Logger
      */
-    OriginalModel(const ModelInputParameters& modelInputParameters, InputObservations& observations,
+    OriginalModel(const CommonModelInputParameters& commonParameters, InputObservations& observations,
         Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**
