@@ -49,4 +49,6 @@ public:
   static std::string CommitSubject();
   // The commit body.
   static std::string CommitBody();
+  // The commit tag
+  static std::string Tag();
 };

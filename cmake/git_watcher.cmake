@@ -86,6 +86,7 @@ set(_state_variable_names
     GIT_COMMIT_DATE_ISO8601
     GIT_COMMIT_SUBJECT
     GIT_COMMIT_BODY
+    GIT_TAG
     # >>>
     # 1. Add the name of the additional git variable you're interested in monitoring
     #    to this list.
@@ -178,6 +179,12 @@ function(GetGitState _working_dir)
         set(ENV{GIT_COMMIT_BODY} "\"\"") # empty string.
     endif()
 
+    RunGitCommand(describe --dirty --tags)
+    if(exit_code EQUAL 0)
+        set(ENV{GIT_TAG} "${output}")
+    else()
+        set(ENV{GIT_TAG} "")
+    endif()
     # >>>
     # 2. Additional git properties can be added here via the
     #    "execute_process()" command. Be sure to set them in

@@ -108,6 +108,23 @@ To configure the inference run, two main pieces of configuration must be supplie
 
 Examples of these files can be found in the regression tests directories: `test/regression/run<N>/data`.
 
+## Logging
+The code logs a large amount of information in its log file. This file has a name of the form
+`run_dd-mm-yyyy_hh-mm-ss.log`, timestamped with the time at which the code was run, and is stored in
+the `outputs/logs` directory.
+
+### Version information
+The log includes a section listing Git repository version information, of the form
+```
+[Git Versioning]
+    Commit SHA: xxxxxxx
+    Commit Date: 
+    Tag: 
+    Uncommitted changes:
+```
+Listed are the SHA of the `HEAD` commit, the corresponding commit date, the tag (if any), and a 
+message to say if there are any uncommitted changes in the repository.
+
 ## Code Documentation Site
 
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).

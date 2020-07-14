@@ -401,9 +401,10 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
 
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
 {
-    (*log) << "[Git Versioning]" << std::endl;
-    (*log) << "    Commit SHA: "       << GitMetadata::CommitSHA1() << std::endl;
+    (*log) << "[Git Versioning]"    << std::endl;
+    (*log) << "    Commit SHA: "    << GitMetadata::CommitSHA1() << std::endl;
     (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
+    (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;
     (*log) << "    Uncommitted changes: " << (GitMetadata::AnyUncommittedChanges() ? "Yes" : "No") << std::endl;
 }
 

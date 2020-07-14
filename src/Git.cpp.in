@@ -48,3 +48,6 @@ std::string GitMetadata::CommitSubject() {
 std::string GitMetadata::CommitBody() {
     return @GIT_COMMIT_BODY@;
 }
+std::string GitMetadata::Tag() {
+    return "@GIT_TAG@";
+}
