@@ -6,7 +6,7 @@ find_package(GSL REQUIRED)
 set(PRE_CONFIGURE_FILE "Git.cpp.in")
 set(POST_CONFIGURE_FILE "${CMAKE_CURRENT_BINARY_DIR}/Git.cpp")
 include(${CMAKE_SOURCE_DIR}/cmake/git_watcher.cmake)
-add_library(git STATIC ${POST_CONFIGURE_FILE})
+add_library(git SHARED ${POST_CONFIGURE_FILE})
 target_include_directories(git PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(git check_git)
 
