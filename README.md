@@ -25,7 +25,11 @@ installed on the host system.
 
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is
 downloaded and built automatically as part of the project build process. It is not required to be 
-installed on the host system. 
+installed on the host system.
+
+The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking)
+for encoding Git repository information in the project binary files. It was developed by
+Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
@@ -103,6 +107,23 @@ To configure the inference run, two main pieces of configuration must be supplie
   * A `parameters.ini` file
 
 Examples of these files can be found in the regression tests directories: `test/regression/run<N>/data`.
+
+## Logging
+The code logs a large amount of information in its log file. This file has a name of the form
+`run_dd-mm-yyyy_hh-mm-ss.log`, timestamped with the time at which the code was run, and is stored in
+the `outputs/logs` directory.
+
+### Version information
+The log includes a section listing Git repository version information, of the form
+```
+[Git Versioning]
+    Commit SHA: xxxxxxx
+    Commit Date: 
+    Tag: 
+    Uncommitted changes:
+```
+Listed are the SHA of the `HEAD` commit, the corresponding commit date, the tag (if any), and a 
+message to say if there are any uncommitted changes in the repository.
 
 ## Code Documentation Site
 
