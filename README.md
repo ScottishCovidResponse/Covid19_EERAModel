@@ -17,6 +17,13 @@ Simple COVID-19 simulation model with ABC-smc inference
  * GSL (GNU Scientific Library)
  * PkgConfig
  * Threads
+ * SCRC data pipeline
+   * Python 3
+   * pybind11
+   * pandas
+   * scipy
+   * toml
+   * semver
 
 ## Third-party libraries
 The project uses [Google Test](https://github.com/google/googletest) as its unit testing framework. It
@@ -27,15 +34,48 @@ The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command l
 downloaded and built automatically as part of the project build process. It is not required to be 
 installed on the host system. 
 
+## SCRC data pipeline
+The project is in the process of integrating with the SCRC data pipeline. Access to the pipline
+is provided via the [Data Pipeline API](git@github.com:ScottishCovidResponse/data_pipeline_api.git).
+The API is implemented in Python, and is used from the project via a C++ binding developed using
+[Pybind11](https://pybind11.readthedocs.io/en/stable/). 
+
+### Getting the data pipeline repository
+To get started with the data pipeline, it is first necessary to clone its repository. Run the standard
+clone command:
+```
+$ git clone git@github.com:ScottishCovidResponse/data_pipeline_api.git
+```
+Note that the repository should be in a location that is accessible from the Covid19_EERAModel
+repository.
+
+### Building the data pipeline
+As noted above, the data pipeline API is implemented in Python. However, the C++ binding needs to be
+compiled into a library that can be used from the Covid19_EERAModel build.
+
+The pipeline contains instructions on how to build the binding, found in the file `bindings/cpp/README.md` 
+within the pipeline repository. There are two possible build routes, depending on whether or not the host
+system has a pre-existing Python 3 installation available. 
+
+Following completion of the data pipeline build, it will then be possible to build the Covid19_EERAModel
+project itself.
+
 ## Build
-The build follows the normal CMake procedure. To do an out-of-source build, from the root project
-directory:
+The Covid19_EERAModel project uses CMake as its build system. The build follows the normal CMake
+procedure. To do an out-of-source build, from the root project directory:
 ```
 $ mkdir build
 $ cd build
-$ cmake ..
+cmake -DDATA_PIPELINE=<path to data pipeline repository> .. [-DPython3_EXECUTABLE=<path to Python 3 interpreter>]
 $ make
 ```
+The DATA_PIPELINE variable should be set to the root of the data pipeline repository. For example,
+if the repository is `/home/user/data_pipeline_api`, the the CMake command would be:
+```
+$ cmake -DDATA_PIPELINE=/home/user/data_pipeline_api ...
+```
+The variable `Python3_EXECUTABLE` may need to be specified if the user has more than one copy of 
+of Python 3 installed on their system: this allows the user to specify which one to use.
 
 ## Running the model
 Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage is:
