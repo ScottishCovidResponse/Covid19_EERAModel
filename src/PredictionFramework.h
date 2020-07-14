@@ -21,7 +21,6 @@ public:
      * @brief Framework constructor
      *
      * @param model Model interface
-     * @param modelInputParameters Model input parameters
      * @param config Prediction configuration
      * @param rng Seeded random number generator
      * @param log Logger

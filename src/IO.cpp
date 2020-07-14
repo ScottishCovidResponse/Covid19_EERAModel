@@ -25,111 +25,105 @@ private:
     std::string message_;
 };
 
-SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParameterDir, Utilities::logging_stream::Sptr log)
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParamsPath, Utilities::logging_stream::Sptr log)
 {
-	std::string filePath(ParameterDir);
-
 	SupplementaryInputParameters supplementaryParameters;
 
 	std::string SettingName = "seedmethod";
 	std::string SettingCategory = "Seed settings";
-	supplementaryParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	supplementaryParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, ParamsPath);
 	if (supplementaryParameters.seedlist.seedmethod == "random") {
-		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", ParamsPath);
 	} else if (supplementaryParameters.seedlist.seedmethod == "background") {
-		supplementaryParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
+		supplementaryParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", ParamsPath);
 	} else {
 		(*log) << "Warning!!! Unknown method - using random seed method." << std::endl;
-		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+		supplementaryParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", ParamsPath);
 	}
 	supplementaryParameters.seedlist.use_fixed_seed = static_cast<bool>(
-		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", ParamsPath)
 	);
 	supplementaryParameters.seedlist.seed_value = ReadNumberFromFile<int>(
-		"seed_value", "Seed settings", filePath
+		"seed_value", "Seed settings", ParamsPath
 	);
 
 	return supplementaryParameters;
 }
-CommonModelInputParameters ReadCommonParameters(const std::string& ParameterDir)
+CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 {
-	std::string filePath(ParameterDir);
-
 	CommonModelInputParameters commonParameters;
 
-	commonParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
-	commonParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
-	commonParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
-	commonParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
-	commonParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
-	commonParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
-	commonParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
-	commonParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
+	commonParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", ParamsPath);
+	commonParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", ParamsPath);
 
-	commonParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
+	commonParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
 
-	commonParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", filePath);
+	commonParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", ParamsPath);
 
 	return commonParameters;
 }
 
-InferenceConfig ReadInferenceConfig(const std::string& ParameterDir, Utilities::logging_stream::Sptr log) 
+InferenceConfig ReadInferenceConfig(const std::string& ParamsPath, Utilities::logging_stream::Sptr log) 
 {
-	std::string filePath(ParameterDir);
-
 	InferenceConfig inferenceConfig;
 	std::string SettingName = "seedmethod";
 	std::string SettingCategory = "Seed settings";
-	inferenceConfig.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	inferenceConfig.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, ParamsPath);
 	if (inferenceConfig.seedlist.seedmethod == "random") {
-		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", ParamsPath);
 	} else if (inferenceConfig.seedlist.seedmethod == "background") {
-		inferenceConfig.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
+		inferenceConfig.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", ParamsPath);
 	} else {
 		(*log) << "Warning!!! Unknown method - using random seed method." << std::endl;
-		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
+		inferenceConfig.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", ParamsPath);
 	}
 	inferenceConfig.seedlist.use_fixed_seed = static_cast<bool>(
-		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
+		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", ParamsPath)
 	);
 	inferenceConfig.seedlist.seed_value = ReadNumberFromFile<int>(
-		"seed_value", "Seed settings", filePath
+		"seed_value", "Seed settings", ParamsPath
 	);
 	
-	inferenceConfig.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
-	inferenceConfig.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
+	inferenceConfig.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", ParamsPath);
+	inferenceConfig.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", ParamsPath);
 
-	inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
-	inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
-	inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
+	inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
+	inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", ParamsPath);
+	inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
 
-	inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", filePath);
-	inferenceConfig.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", filePath);
-	inferenceConfig.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", filePath);
-	inferenceConfig.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", filePath);
-	inferenceConfig.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", filePath);
-	inferenceConfig.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", ParamsPath);
+	inferenceConfig.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", ParamsPath);
+	inferenceConfig.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", ParamsPath);
+	inferenceConfig.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", ParamsPath);
+	inferenceConfig.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", ParamsPath);
+	inferenceConfig.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", ParamsPath);
 	
-	inferenceConfig.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", filePath);
-	inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
-	inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
+	inferenceConfig.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", ParamsPath);
+	inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", ParamsPath);
+	inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", ParamsPath);
 
-	inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", filePath);
-	inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
-	inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
-	inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
+	inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
+	inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
+	inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
+	inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
 
 	for (int ii = 1; ii <= inferenceConfig.nsteps; ii++) {
 		inferenceConfig.toleranceLimit.push_back(0.0);
@@ -138,7 +132,7 @@ InferenceConfig ReadInferenceConfig(const std::string& ParameterDir, Utilities::
 	for (int ii = 0; ii < inferenceConfig.nsteps; ii++) {
 		std::stringstream KeyName;
 		KeyName << "Key" << (ii + 1);
-		inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
+		inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
 	}
 
 	return inferenceConfig;
@@ -184,103 +178,6 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::l
         predictionConfig.index);
 
     return predictionConfig;
-}
-
-ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log)
-{
-	ModelInputParameters modelInputParameters;
-
-	CIniFile parameters;
-
-	//Settings
-	modelInputParameters.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", filePath);
-
-	//time step for the modelling process
-	modelInputParameters.tau = ReadNumberFromFile<double>("tau", "Settings", filePath);
-
-	//number of threads used for computation
-	modelInputParameters.num_threads = ReadNumberFromFile<int>("num_threads", "Settings", filePath);
-
-    // Model structure
-	std::string SettingName = "model";
-	std::string SettingCategory = "Settings";
-    std::string model_structure(CIniFile::GetValue(SettingName, SettingCategory, filePath));
-    if ("irish" == model_structure) {
-        modelInputParameters.model_structure = ModelStructureId::IRISH;
-    } else if("original" == model_structure) {
-        modelInputParameters.model_structure = ModelStructureId::ORIGINAL;
-    } else {
-    	modelInputParameters.model_structure = ModelStructureId::TEMP;
-    }
-
-	//Seed settings
-	SettingName = "seedmethod";
-	SettingCategory = "Seed settings";
-	modelInputParameters.seedlist.seedmethod = CIniFile::GetValue(SettingName, SettingCategory, filePath);
-	if(modelInputParameters.seedlist.seedmethod == "random"){
-		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
-	} else if(modelInputParameters.seedlist.seedmethod == "background"){
-		modelInputParameters.seedlist.hrp = ReadNumberFromFile<int>("hrp", "Seed settings", filePath);
-	} else {
-		(*log) << "Warning!!! Unknown method - using random seed method instead." << std::endl;
-		modelInputParameters.seedlist.nseed = ReadNumberFromFile<int>("nseed", "Seed settings", filePath);
-	}
-	modelInputParameters.seedlist.use_fixed_seed = static_cast<bool>(
-		ReadNumberFromFile<int>("use_fixed_seed", "Seed settings", filePath)
-	);
-	modelInputParameters.seedlist.seed_value = ReadNumberFromFile<int>(
-		"seed_value", "Seed settings", filePath
-	);
-	
-	//Fit settings
-	modelInputParameters.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", filePath);
-	modelInputParameters.nParticalLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", filePath);
-	modelInputParameters.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", filePath);
-	modelInputParameters.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", filePath);
-
-	//Tolerance settings
-	for (int ii = 1; ii <= modelInputParameters.nsteps; ++ii) {
-		modelInputParameters.toleranceLimit.push_back(0.0);
-	}
-
-	for (int ii = 0; ii < modelInputParameters.nsteps; ++ii) {
-		std::stringstream KeyName;
-		KeyName << "Key" << (ii + 1);
-		modelInputParameters.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", filePath);
-	}
-
-	//Fixed parameters
-	modelInputParameters.paramlist.T_lat = ReadNumberFromFile<double>("T_lat", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.juvp_s = ReadNumberFromFile<double>("juvp_s", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_inf = ReadNumberFromFile<double>("T_inf", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_rec = ReadNumberFromFile<double>("T_rec", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_sym = ReadNumberFromFile<double>("T_sym", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.T_hos = ReadNumberFromFile<double>("T_hos", "Fixed parameters", filePath);
-	modelInputParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
-	modelInputParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.K = ReadNumberFromFile<int>("K", "Fixed parameters", filePath);
-	modelInputParameters.paramlist.inf_asym = ReadNumberFromFile<double>("inf_asym", "Fixed parameters", filePath);
-
-	//priors settings
-	modelInputParameters.nPar = ReadNumberFromFile<int>("nPar", "Priors settings", filePath);
-	modelInputParameters.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_phcw_shape1 = ReadNumberFromFile<double>("prior_phcw_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_phcw_shape2 = ReadNumberFromFile<double>("prior_phcw_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_chcw_mean = ReadNumberFromFile<double>("prior_chcw_mean", "Priors settings", filePath);
-	modelInputParameters.prior_d_shape1 = ReadNumberFromFile<double>("prior_d_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_d_shape2 = ReadNumberFromFile<double>("prior_d_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_q_shape1 = ReadNumberFromFile<double>("prior_q_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_q_shape2 = ReadNumberFromFile<double>("prior_q_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_lambda_shape1 = ReadNumberFromFile<double>("prior_lambda_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_lambda_shape2 = ReadNumberFromFile<double>("prior_lambda_shape2", "Priors settings", filePath);
-	
-	modelInputParameters.prior_ps_shape1 = ReadNumberFromFile<double>("prior_ps_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", filePath);
-	modelInputParameters.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", filePath);
-	modelInputParameters.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", filePath);
-
-	return modelInputParameters;
 }
 
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)

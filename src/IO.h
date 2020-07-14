@@ -19,21 +19,34 @@ namespace EERAModel {
  */
 namespace IO {
 
-SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParameterDir, Utilities::logging_stream::Sptr log);
-
-CommonModelInputParameters ReadCommonParameters(const std::string& ParameterDir);
-
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
-
+/**
+ * @brief Read supplementary parameters used for main.cpp.
+ * 
+ * @param ParamsPath Path to INI file
+ * @param log Logger 
+ * 
+ * @return Supplementary parameters
+ */
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
 
 /**
- * @brief Read model input parameters from an INI file
+ * @brief Read common model input parameters used by all model types
  * 
- * @param filePath Path to the INI file
+ * @param ParamsPath Path to INI file
  * 
- * @return Model parameters
+ * @return Common model input parameters
+ */ 
+CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
+
+/**
+ * @brief Read parameters for the inference mode
+ * 
+ * @param ParamsPath Path to INI file
+ * @param Logger
+ * 
+ * @return Inference parameters
  */
-ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+InferenceConfig ReadInferenceConfig(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read prediction framework configuration from input files
@@ -125,7 +138,7 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
  * 
  * Log the fixed parameters of a model
  * 
- * @param params Model input parameters
+ * @param params Common model input parameters
  * @param log Logger
  */
 void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log);
@@ -135,7 +148,7 @@ void LogFixedParameters(const CommonModelInputParameters& params, Utilities::log
  * 
  * Log the settings of the configured randomiser
  * 
- * @param params Model input parameters
+ * @param params Supplementary input parameters
  * @param log Logger
  */
 void LogRandomiserSettings(const SupplementaryInputParameters& params, unsigned long randomiser_seed, 

@@ -26,7 +26,6 @@ int main(int argc, char** argv)
 
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
-	// ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
 

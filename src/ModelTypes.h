@@ -192,6 +192,9 @@ struct InfectionState
 	int hospital_deaths = 0;		/*!< Number of incident deaths reported at hospital due to covid at each time step. */
 };
 
+/**
+ * @brief Supplementary input parameters used by main.cpp
+ */
 struct SupplementaryInputParameters
 {
 	seed seedlist;
@@ -199,6 +202,9 @@ struct SupplementaryInputParameters
 	ModelModeId run_type = ModelModeId::UNKNOWN;
 };
 
+/**
+ * @brief Common model input parameters used by all models
+ */
 struct CommonModelInputParameters 
 {
 	params paramlist;
@@ -206,6 +212,9 @@ struct CommonModelInputParameters
 	int totN_hcw;
 };
 
+/**
+ * @brief Configuration for an inference config run
+ */
 struct InferenceConfig
 {
 	seed seedlist;

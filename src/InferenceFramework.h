@@ -19,7 +19,7 @@ public:
      * @brief Framework constructor
      *
      * @param model Model interface
-     * @param modelInputParameters Model input parameters
+     * @param inferenceConfig Inference config
      * @param observations Observations
      * @param rng Seeded random number generator
      * @param outDir Outputs directory path
