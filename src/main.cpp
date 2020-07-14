@@ -20,8 +20,7 @@ int main(int argc, char** argv)
 	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
 	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
-
-	// Read in the model's input parameters
+    IO::LogGitVersionInfo(logger);
 	arg_parser.logArguments(logger);
 
 	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";

@@ -155,5 +155,12 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log);
  */
 void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log);
 
+/**
+ * @brief Log Git repository version information
+ * 
+ * @param log Logger
+ */
+void LogGitVersionInfo(Utilities::logging_stream::Sptr log);
+
 } // namespace IO
 } // namespace EERAModel

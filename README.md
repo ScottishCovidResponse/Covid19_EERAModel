@@ -25,7 +25,11 @@ installed on the host system.
 
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is
 downloaded and built automatically as part of the project build process. It is not required to be 
-installed on the host system. 
+installed on the host system.
+
+The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking)
+for encoding Git repository information in the project binary files. It was developed by
+Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project

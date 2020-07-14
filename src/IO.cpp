@@ -1,6 +1,7 @@
 #include "IO.h"
 #include "ModelCommon.h"
 #include "Utilities.h"
+#include "Git.h"
 
 #include <valarray>
 #include <fstream>
@@ -396,6 +397,14 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
     (*log) << "    p_s: "               << config.posterior_parameters[5] << std::endl;
     (*log) << "    rrd: "               << config.posterior_parameters[6] << std::endl;
     (*log) << "    intro: "             << config.posterior_parameters[7] << std::endl;
+}
+
+void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Git Versioning]" << std::endl;
+    (*log) << "    Commit SHA: "       << GitMetadata::CommitSHA1() << std::endl;
+    (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
+    (*log) << "    Uncommitted changes: " << (GitMetadata::AnyUncommittedChanges() ? "Yes" : "No") << std::endl;
 }
 
 } // namespace IO
