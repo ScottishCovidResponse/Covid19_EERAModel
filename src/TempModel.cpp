@@ -4,7 +4,7 @@ namespace EERAModel {
 namespace Model {
 
 TempModel::TempModel(const CommonModelInputParameters& commonParameters,
-    const InputObservations& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    const ObservationsForModels& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
     : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(

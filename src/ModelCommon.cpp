@@ -16,7 +16,7 @@ std::vector<params> BuildFixedParameters(unsigned int size, params parameters)
     return std::vector<params>(size, parameters);
 }
 
-std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs) {
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const ObservationsForModels& obs) {
 	std::vector<int> agenums;
 	
 	// define age structure of the shb of interest. the -1 is to account for difference in number of
@@ -33,12 +33,12 @@ std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObse
 	return agenums;
 }
 
-int GetPopulationOfRegion(const InputObservations& obs, int region_id)
+int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
 {
 	return obs.cases[region_id][0];
 }
 
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations)
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& observations)
 {
     int scotlandPopulation = 0;
 	for (unsigned int region = 0; region < observations.cases.size() - 1; ++region) {

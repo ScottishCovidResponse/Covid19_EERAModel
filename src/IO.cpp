@@ -69,8 +69,11 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 	return commonParameters;
 }
 
-InferenceConfig ReadInferenceConfig(const std::string& ParamsPath, Utilities::logging_stream::Sptr log) 
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log) 
 {
+	std::string ParamsPath(configDir + "/parameters.ini");
+	if (!Utilities::fileExists(ParamsPath)) throw IOException(ParamsPath + ": File not found!");;
+
 	InferenceConfig inferenceConfig;
 	std::string SettingName = "seedmethod";
 	std::string SettingCategory = "Seed settings";
@@ -135,13 +138,15 @@ InferenceConfig ReadInferenceConfig(const std::string& ParamsPath, Utilities::lo
 		inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
 	}
 
+	inferenceConfig.observations = ReadInferenceObservations(configDir, log);
+
 	return inferenceConfig;
 }
 
 PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::logging_stream::Sptr log)
 {
     std::string filePath(configDir + "/parameters.ini");
-    if (!Utilities::fileExists(filePath)) throw IOException(configDir + ": File not found!");
+    if (!Utilities::fileExists(filePath)) throw IOException(filePath + ": File not found!");
 
     PredictionConfig predictionConfig;
     
@@ -178,6 +183,78 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::l
         predictionConfig.index);
 
     return predictionConfig;
+}
+
+ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
+{
+	ObservationsForInference observations;
+	
+	(*log) << "Observations For Inference Config:" << std::endl;
+
+	const std::string scot_data_file = configDir + "/scot_data.csv";
+	if (!Utilities::fileExists(scot_data_file)) throw IOException(scot_data_file + ": File not found!");
+	
+	const std::string scot_deaths_file = configDir + "/scot_deaths.csv";
+	if (!Utilities::fileExists(scot_deaths_file)) throw IOException(scot_deaths_file + ": File not found!");
+
+	(*log) << "\t- " << scot_data_file << std::endl;
+	observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+
+	(*log) << "\t- " << scot_deaths_file << std::endl;
+	observations.deaths = Utilities::read_csv<int>(scot_deaths_file, ',');
+
+	return observations;
+}
+
+ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
+{
+	ObservationsForModels observations;
+
+	(*log) << "Observations For Models:" << std::endl;
+
+	const std::string scot_data_file = configDir + "/scot_data.csv";
+	if (!Utilities::fileExists(scot_data_file)) throw IOException(scot_data_file + ": File not found!");
+	
+	const std::string scot_ages_file = configDir + "/scot_age.csv";
+	if (!Utilities::fileExists(scot_ages_file)) throw IOException(scot_ages_file + ": File not found!");
+
+	const std::string waifw_norm_file = configDir + "/waifw_norm.csv";
+	if (!Utilities::fileExists(waifw_norm_file)) throw IOException(waifw_norm_file + ": File not found!");
+
+	const std::string waifw_home_file = configDir + "/waifw_home.csv";
+	if (!Utilities::fileExists(waifw_home_file)) throw IOException(waifw_home_file + ": File not found!");
+
+	const std::string waifw_sdist_file = configDir + "/waifw_sdist.csv";
+	if (!Utilities::fileExists(waifw_sdist_file)) throw IOException(waifw_sdist_file + ": File not found!");
+
+	const std::string cfr_byage_file = configDir + "/cfr_byage.csv";
+	if (!Utilities::fileExists(cfr_byage_file)) throw IOException(cfr_byage_file + ": File not found!");
+
+	const std::string scot_frail_file = configDir + "/scot_frail.csv";
+	if (!Utilities::fileExists(scot_frail_file)) throw IOException(scot_frail_file + ": File not found!");
+
+	(*log) << "\t- " << scot_data_file << std::endl;
+	observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+
+	(*log) << "\t- " << scot_ages_file << std::endl;
+	observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
+
+	(*log) << "\t- " << waifw_norm_file << std::endl;
+	observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file, ',');
+
+	(*log) << "\t- " << waifw_home_file << std::endl;
+	observations.waifw_home = Utilities::read_csv<double>(waifw_home_file, ',');
+
+	(*log) << "\t- " << waifw_sdist_file << std::endl;
+	observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file, ',');
+
+	(*log) << "\t- " << cfr_byage_file << std::endl;
+	observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
+
+	(*log) << "\t- " << scot_frail_file << std::endl;
+	observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
+
+	return observations;
 }
 
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection)

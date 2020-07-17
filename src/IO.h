@@ -41,12 +41,12 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
 /**
  * @brief Read parameters for the inference mode
  * 
- * @param ParamsPath Path to INI file
- * @param Logger
+ * @param configDir Directory containing the configuration and data files
+ * @param log Logger
  * 
  * @return Inference parameters
  */
-InferenceConfig ReadInferenceConfig(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read prediction framework configuration from input files
@@ -66,6 +66,10 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::l
  * @return Model posterior parameters
  */
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
+
+ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+
+ObservationsForModels ReadModelObservations(const std::string& filePath, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read in observations

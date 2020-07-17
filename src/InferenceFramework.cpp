@@ -12,13 +12,13 @@ namespace Inference {
 
 InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
     const InferenceConfig& inferenceConfig,
-    const InputObservations& observations,
+    // const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
     : model_(model),
       inferenceConfig_(inferenceConfig),
-      observations_(observations),
+      // observations_(observations),
       rng_(rng),
       outDir_(outDir),
       log_(log) {}
@@ -49,9 +49,9 @@ void InferenceFramework::Run()
   
 
 	const int time_back = GetTimeOffSet(inferenceConfig_);
-	const std::vector<int>& regionalCases = observations_.cases[inferenceConfig_.herd_id];
-	const std::vector<int>& regionalDeaths = observations_.deaths[inferenceConfig_.herd_id];
-	const std::vector<int>& timeStamps = observations_.cases[0];
+	const std::vector<int>& regionalCases = inferenceConfig_.observations.cases[inferenceConfig_.herd_id];
+	const std::vector<int>& regionalDeaths = inferenceConfig_.observations.deaths[inferenceConfig_.herd_id];
+	const std::vector<int>& timeStamps = inferenceConfig_.observations.cases[0];
 
 	const Observations::ObsSelect obs_selections = Observations::SelectObservations(
 		inferenceConfig_.day_shut, timeStamps, regionalCases,

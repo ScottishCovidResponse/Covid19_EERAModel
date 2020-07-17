@@ -44,27 +44,32 @@ int main(int argc, char** argv)
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
+    // Import common parameters for all models
     CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
+
+    //Import model specific observations
+    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
+    ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
     // Log the fixed parameters
     IO::LogFixedParameters(commonParameters, logger);
 
     // Log the disease seed settings
     IO::LogSeedSettings(supplementaryParameters.seedlist, logger);
-    
+
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
     if (ModelStructureId::ORIGINAL == supplementaryParameters.model_structure)
     {
-        model = std::make_shared<Model::OriginalModel>(commonParameters, observations, rng, logger);
+        model = std::make_shared<Model::OriginalModel>(commonParameters, modelObservations, rng, logger);
     }
     else if (ModelStructureId::IRISH == supplementaryParameters.model_structure)
     {
-        model = std::make_shared<Model::IrishModel>(commonParameters, observations, rng, logger);
+        model = std::make_shared<Model::IrishModel>(commonParameters, modelObservations, rng, logger);
     }
 	else
 	{
-		model = std::make_shared<Model::TempModel>(commonParameters, observations, rng, logger);
+		model = std::make_shared<Model::TempModel>(commonParameters, modelObservations, rng, logger);
 	}
 
     // Select the mode to run in - prediction or inference    
@@ -82,9 +87,10 @@ int main(int argc, char** argv)
     }
     else
     {
-        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(params_addr, logger);
+        std::string configDir(std::string(ROOT_DIR) + "/data");
+        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger);
 
-        Inference::InferenceFramework framework(model, inferenceConfig, observations, rng, out_dir, logger);
+        Inference::InferenceFramework framework(model, inferenceConfig, rng, out_dir, logger);
         
         framework.Run();
     }
