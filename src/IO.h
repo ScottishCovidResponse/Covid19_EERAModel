@@ -52,6 +52,7 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
  * @brief Read prediction framework configuration from input files
  * 
  * @param configDir Directory containing the configuration and data files
+ * @param log Logger
  * 
  * @return Prediction configuration
  */
@@ -67,18 +68,25 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::l
  */
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
 
+/**
+ * @brief Read observations needed for Inference framework
+ * 
+ * @param configDir Directory containing the data files
+ * @param log Logger
+ * 
+ * @return Observations needed for Inference framework
+ */
 ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
 
-ObservationsForModels ReadModelObservations(const std::string& filePath, Utilities::logging_stream::Sptr log);
-
 /**
- * @brief Read in observations
+ * @brief Read observations needed for all models
  * 
- * @param dirPath Path to the directory containing the observation files
+ * @param configDir Directory containing the data files
+ * @param log Logger
  * 
- * @return Observations
+ * @return Observations needed for all models
  */
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
+ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief  Write outputs to files
@@ -100,6 +108,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
  * @param status Status object
  * @param end_comps Matrix to hold the end states of the simulation organised by compartments
  * @param outDirPath Path to output directory where output files will be stored
+ * @param log Logger
  */
 void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
 	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);

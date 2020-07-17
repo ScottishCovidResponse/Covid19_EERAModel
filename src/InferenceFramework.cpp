@@ -12,7 +12,6 @@ namespace Inference {
 
 InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
     const InferenceConfig& inferenceConfig,
-    // const InputObservations& observations,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)

@@ -68,27 +68,19 @@ enum class ModelModeId
 	PREDICTION
 };
 
+/**
+ * @brief Observations for Inference framework
+ */
 struct ObservationsForInference {
 	std::vector<std::vector<int>> cases;
 	std::vector<std::vector<int>> deaths;
 };
 
+/**
+ * @brief Observations for Models
+ */
 struct ObservationsForModels {
 	std::vector<std::vector<int>> cases;
-	std::vector<std::vector<double>> age_pop;
-	std::vector<std::vector<double>> waifw_norm;
-	std::vector<std::vector<double>> waifw_home;
-	std::vector<std::vector<double>> waifw_sdist;
-	std::vector<std::vector<double>> cfr_byage;
-	std::vector<std::vector<double> > pf_pop;
-};
-
-/**
- * @brief Model input observations
- */
-struct InputObservations {
-	std::vector<std::vector<int>> cases;
-	std::vector<std::vector<int>> deaths;
 	std::vector<std::vector<double>> age_pop;
 	std::vector<std::vector<double>> waifw_norm;
 	std::vector<std::vector<double>> waifw_home;

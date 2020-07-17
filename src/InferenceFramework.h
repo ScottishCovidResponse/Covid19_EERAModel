@@ -20,14 +20,12 @@ public:
      *
      * @param model Model interface
      * @param inferenceConfig Inference config
-     * @param observations Observations
      * @param rng Seeded random number generator
      * @param outDir Outputs directory path
      * @param log Logger
      */
     InferenceFramework(Model::ModelInterface::Sptr model,
         const InferenceConfig& inferenceConfig,
-        // const InputObservations& observations,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
         Utilities::logging_stream::Sptr log);
@@ -38,8 +36,7 @@ public:
      * Determines the offset for the start of the dataset based on
      * the given parameters
      * 
-     * @param modelInputParameters model parameters including seeding options
-     * @param log Logging stream
+     * @param inferenceConfig Inference config
      * 
      * @return integer offset value
      */

@@ -197,9 +197,17 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
 	const std::string scot_deaths_file = configDir + "/scot_deaths.csv";
 	if (!Utilities::fileExists(scot_deaths_file)) throw IOException(scot_deaths_file + ": File not found!");
 
+	//Uploading observed disease data
+	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
+	//rows from 1 are indivudual health board
+	//last row is for all of scotland
 	(*log) << "\t- " << scot_data_file << std::endl;
 	observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
 
+	//Uploading observed death data
+	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
+	//rows from 1 are indivudual health board
+	//last row is for all of scotland
 	(*log) << "\t- " << scot_deaths_file << std::endl;
 	observations.deaths = Utilities::read_csv<int>(scot_deaths_file, ',');
 
@@ -233,24 +241,45 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 	const std::string scot_frail_file = configDir + "/scot_frail.csv";
 	if (!Utilities::fileExists(scot_frail_file)) throw IOException(scot_frail_file + ": File not found!");
 
+
+	//Uploading observed disease data
+	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
+	//rows from 1 are indivudual health board
+	//last row is for all of scotland
 	(*log) << "\t- " << scot_data_file << std::endl;
 	observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
 
+	//Uploading population per age group
+	//columns are for each individual Health Borad
+	//last column is for Scotland
+	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	(*log) << "\t- " << scot_ages_file << std::endl;
 	observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
 
+	//mean number of daily contacts per age group (overall)	
 	(*log) << "\t- " << waifw_norm_file << std::endl;
 	observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file, ',');
 
+	//mean number of daily contacts per age group (home only)
 	(*log) << "\t- " << waifw_home_file << std::endl;
 	observations.waifw_home = Utilities::read_csv<double>(waifw_home_file, ',');
 
+	//mean number of daily contacts per age group (not school, not work)
 	(*log) << "\t- " << waifw_sdist_file << std::endl;
 	observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file, ',');
 
+	//Upload cfr by age group
+	//col0: p_h: probability of hospitalisation
+	//col1: cfr: case fatality ratio
+	//col2: p_d: probability of death, given hospitalisation
+	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
 	(*log) << "\t- " << cfr_byage_file << std::endl;
 	observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
 
+	//Upload frailty probability p_f by age group
+	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+	//rows are for each individual Health Borad
+	//last row is for Scotland
 	(*log) << "\t- " << scot_frail_file << std::endl;
 	observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
 
@@ -286,73 +315,6 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
 	std::vector<double> parameter_sets(first, last);
 
 	return parameter_sets;
-}
-
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log)
-{
-	InputObservations observations;
-	(*log) << "[Observations Files]:" << std::endl;
-
-	const std::string scot_data_file = std::string(ROOT_DIR)+"/data/scot_data.csv";
-	const std::string scot_deaths_file = std::string(ROOT_DIR)+"/data/scot_deaths.csv";
-	const std::string scot_ages_file = std::string(ROOT_DIR)+"/data/scot_age.csv";
-	const std::string waifw_norm_file = std::string(ROOT_DIR)+"/data/waifw_norm.csv";
-	const std::string waifw_home_file = std::string(ROOT_DIR)+"/data/waifw_home.csv";
-	const std::string waifw_sdist_file = std::string(ROOT_DIR)+"/data/waifw_sdist.csv";
-	const std::string cfr_byage_file = std::string(ROOT_DIR)+"/data/cfr_byage.csv";
-	const std::string scot_frail_file = std::string(ROOT_DIR)+"/data/scot_frail.csv";
-	
-	//Uploading observed disease data
-	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
-	//rows from 1 are indivudual health board
-	//last row is for all of scotland
-	
-	(*log) << "\t- " << scot_data_file << std::endl;
-	observations.cases = Utilities::read_csv<int>(scot_data_file,',');
-	
-	//Uploading observed death data
-	//Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
-	//rows from 1 are indivudual health board
-	//last row is for all of scotland
-	
-	(*log) << "\t- " << scot_deaths_file << std::endl;
-	observations.deaths = Utilities::read_csv<int>(scot_deaths_file,',');
-	
-	//Uploading population per age group
-	//columns are for each individual Health Borad
-	//last column is for Scotland
-	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << scot_ages_file << std::endl;
-	observations.age_pop = Utilities::read_csv<double>(scot_ages_file,',');	
-	
-	//mean number of daily contacts per age group (overall)	
-	(*log) << "\t- " << waifw_norm_file << std::endl;
-	observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file,',');
-
-	//mean number of daily contacts per age group (home only)		
-	(*log) << "\t- " << waifw_home_file << std::endl;
-	observations.waifw_home = Utilities::read_csv<double>(waifw_home_file,',');
-	
-	//mean number of daily contacts per age group (not school, not work)			
-	(*log) << "\t- " << waifw_sdist_file << std::endl;
-	observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file,',');	
-	
-	//Upload cfr by age group
-	//col0: p_h: probability of hospitalisation
-	//col1: cfr: case fatality ratio
-	//col2: p_d: probability of death, given hospitalisation
-	//rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	(*log) << "\t- " << cfr_byage_file << std::endl;
-	observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file,',');	
-		
-	//Upload frailty probability p_f by age group
-	//columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-	//rows are for each individual Health Borad
-	//last row is for Scotland
-	(*log) << "\t- " << scot_frail_file << std::endl;
-	observations.pf_pop = Utilities::read_csv<double>(scot_frail_file,',');	
-
-	return observations;
 }
 
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 

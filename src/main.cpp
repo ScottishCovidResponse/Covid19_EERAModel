@@ -31,9 +31,6 @@ int main(int argc, char** argv)
 
 	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
-	// Read in the observations
-	InputObservations observations = IO::ReadObservationsFromFiles(logger);
-
 	// Set up the random number generator, deciding what kind of seed to use
 	unsigned long randomiser_seed;
 	if (supplementaryParameters.seedlist.use_fixed_seed) {
