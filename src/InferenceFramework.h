@@ -19,15 +19,13 @@ public:
      * @brief Framework constructor
      *
      * @param model Model interface
-     * @param modelInputParameters Model input parameters
-     * @param observations Observations
+     * @param inferenceConfig Inference config
      * @param rng Seeded random number generator
      * @param outDir Outputs directory path
      * @param log Logger
      */
     InferenceFramework(Model::ModelInterface::Sptr model,
-        const ModelInputParameters& modelInputParameters,
-        const InputObservations& observations,
+        const InferenceConfig& inferenceConfig,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
         Utilities::logging_stream::Sptr log);
@@ -38,12 +36,11 @@ public:
      * Determines the offset for the start of the dataset based on
      * the given parameters
      * 
-     * @param modelInputParameters model parameters including seeding options
-     * @param log Logging stream
+     * @param inferenceConfig Inference config
      * 
      * @return integer offset value
      */
-    static int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
+    static int GetTimeOffSet(const InferenceConfig& inferenceConfig);
 
     /**
      * @brief Run the model within the inference framework
@@ -63,17 +60,7 @@ private:
      */
     Model::ModelInterface::Sptr model_;
 
-    /**
-     * @private
-     * @brief Model input parameters
-     */
-    ModelInputParameters modelInputParameters_;
-
-    /**
-     * @private
-     * @brief Model input observations
-     */
-    InputObservations observations_;
+    InferenceConfig inferenceConfig_;
 
     /**
      * @private

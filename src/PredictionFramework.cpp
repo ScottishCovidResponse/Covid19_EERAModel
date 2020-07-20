@@ -8,13 +8,11 @@ namespace Prediction {
 
 PredictionFramework::PredictionFramework(
     Model::ModelInterface::Sptr model,
-    const ModelInputParameters& modelInputParameters,
     const PredictionConfig& config,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
      : model_(model),
-       modelInputParameters_(modelInputParameters),
        config_(config),
        rng_(rng),
        outDir_(outDir),
@@ -24,8 +22,8 @@ void PredictionFramework::Run()
 {
     clock_t startTime = clock();
 
-    Status status = model_->Run(config_.posterior_parameters, modelInputParameters_.seedlist,
-        modelInputParameters_.day_shut, config_.n_sim_steps);
+    Status status = model_->Run(config_.posterior_parameters, config_.seedlist,
+        config_.day_shut, config_.n_sim_steps);
 
     double time_taken = static_cast<double>(clock() - startTime)/static_cast<double>(CLOCKS_PER_SEC);
 

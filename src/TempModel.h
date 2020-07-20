@@ -16,12 +16,12 @@ public:
     /**
      * @brief Constructor
      * 
-     * @param modelInputParameters Model input parameters
+     * @param commonParameters Common model input parameters
      * @param observations Observations
      * @param rng Random number generator to be used by the model
      * @param log Logger
      */
-    TempModel(const ModelInputParameters& modelInputParameters, const InputObservations& observations,
+    TempModel(const CommonModelInputParameters& commonParameters, const ObservationsForModels& observations,
         Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**

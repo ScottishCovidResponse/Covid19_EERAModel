@@ -20,23 +20,45 @@ namespace EERAModel {
 namespace IO {
 
 /**
- * @brief Read model input parameters from an INI file
+ * @brief Read supplementary parameters used for main.cpp.
  * 
- * @param filePath Path to the INI file
+ * @param ParamsPath Path to INI file
+ * @param log Logger
  * 
- * @return Model parameters
+ * @return Supplementary parameters
  */
-ModelInputParameters ReadParametersFromFile(const std::string& filePath, const Utilities::logging_stream::Sptr& log);
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParamsPath,
+    Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read common model input parameters used by all model types
+ * 
+ * @param ParamsPath Path to INI file
+ * 
+ * @return Common model input parameters
+ */ 
+CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
+
+/**
+ * @brief Read parameters for the inference mode
+ * 
+ * @param configDir Directory containing the configuration and data files
+ * @param log Logger
+ * 
+ * @return Inference parameters
+ */
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read prediction framework configuration from input files
  * 
  * @param configDir Directory containing the configuration and data files
  * @param index Index of the parameter set to select from the posterior parameters file
+ * @param log Logger
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read model posterior parameters from a CSV file
@@ -49,13 +71,43 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index);
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
 
 /**
- * @brief Read in observations
+ * @brief Read observations needed for Inference framework
  * 
- * @param dirPath Path to the directory containing the observation files
+ * @param configDir Directory containing the data files
+ * @param log Logger
  * 
- * @return Observations
+ * @return Observations needed for Inference framework
  */
-InputObservations ReadObservationsFromFiles(const Utilities::logging_stream::Sptr& log);
+ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read observations needed for all models
+ * 
+ * @param configDir Directory containing the data files
+ * @param log Logger
+ * 
+ * @return Observations needed for all models
+ */
+ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read seed settings from the parameters file
+ * 
+ * @param ParamsPath Path to INI file
+ * @param log Logger
+ * 
+ * @return Seed settings data structure
+ */
+seed ReadSeedSettings(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read the fixed model parameters from the parameters file
+ * 
+ * @param ParamsPath Path to INI file
+ * 
+ * @return Parameters data structure
+ */
+params ReadFixedModelParameters(const std::string& ParamsPath);
 
 /**
  * @brief  Write outputs to files
@@ -77,6 +129,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
  * @param status Status object
  * @param end_comps Matrix to hold the end states of the simulation organised by compartments
  * @param outDirPath Path to output directory where output files will be stored
+ * @param log Logger
  */
 void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
 	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
@@ -119,20 +172,20 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
  * 
  * Log the fixed parameters of a model
  * 
- * @param params Model input parameters
+ * @param params Common model input parameters
  * @param log Logger
  */
-void LogFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
+void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Log randomiser settings
  * 
  * Log the settings of the configured randomiser
  * 
- * @param params Model input parameters
+ * @param params Supplementary input parameters
  * @param log Logger
  */
-void LogRandomiserSettings(const ModelInputParameters& params, unsigned long randomiser_seed, 
+void LogRandomiserSettings(const SupplementaryInputParameters& params, unsigned long randomiser_seed, 
     Utilities::logging_stream::Sptr log);
 
 /**

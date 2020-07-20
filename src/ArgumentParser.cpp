@@ -94,7 +94,7 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
     (*log) << "\t" << "Forward prediction parameter set index: " << _args.parameter_set_index << std::endl;
 }
 
-void ArgumentParser::AppendOptions(ModelInputParameters& input_params)
+void ArgumentParser::AppendOptions(SupplementaryInputParameters& input_params)
 {
     input_params.model_structure = _args.structure;
     input_params.run_type = _args.mode;

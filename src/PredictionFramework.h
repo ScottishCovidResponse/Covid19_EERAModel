@@ -21,13 +21,11 @@ public:
      * @brief Framework constructor
      *
      * @param model Model interface
-     * @param modelInputParameters Model input parameters
      * @param config Prediction configuration
      * @param rng Seeded random number generator
      * @param log Logger
      */
     PredictionFramework(Model::ModelInterface::Sptr model,
-        const ModelInputParameters& modelInputParameters,
         const PredictionConfig& config,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
@@ -47,12 +45,6 @@ private:
      * @brief Model interface
      */
     Model::ModelInterface::Sptr model_;
-
-    /**
-     * @private
-     * @brief Model input parameters
-     */
-    ModelInputParameters modelInputParameters_;
 
     /**
      * @private

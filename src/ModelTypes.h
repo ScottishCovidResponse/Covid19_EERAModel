@@ -69,51 +69,18 @@ enum class ModelModeId
 };
 
 /**
- * @brief Structure containing the inputs to a model run
+ * @brief Observations for Inference framework
  */
-struct ModelInputParameters
-{
-	int herd_id;
-	double tau;
-	int num_threads;
-    ModelStructureId model_structure = ModelStructureId::UNKNOWN;
-	int nsteps;
-	int nParticalLimit;
-	int nSim;
-	double kernelFactor;
-	std::vector<double> toleranceLimit;
-	params paramlist;
-	seed seedlist;
-	int day_shut;
-	int totN_hcw;
-	int nPar;
-	double prior_pinf_shape1;
-	double prior_pinf_shape2;
-	double prior_phcw_shape1;
-	double prior_phcw_shape2;
-	double prior_chcw_mean;
-	double prior_d_shape1;
-	double prior_d_shape2;
-	double prior_q_shape1;
-	double prior_q_shape2;
-	double prior_rrd_shape1;
-	double prior_rrd_shape2;
-//	double prior_phf_shape1;
-//	double prior_phf_shape2;
-	double prior_lambda_shape1;
-	double prior_lambda_shape2;
-	double prior_ps_shape1;
-	double prior_ps_shape2;
-	ModelModeId run_type = ModelModeId::UNKNOWN;
-	std::vector<double> prior_param_list;
+struct ObservationsForInference {
+	std::vector<std::vector<int>> cases;
+	std::vector<std::vector<int>> deaths;
 };
 
 /**
- * @brief Model input observations
+ * @brief Observations for Models
  */
-struct InputObservations {
+struct ObservationsForModels {
 	std::vector<std::vector<int>> cases;
-	std::vector<std::vector<int>> deaths;
 	std::vector<std::vector<double>> age_pop;
 	std::vector<std::vector<double>> waifw_norm;
 	std::vector<std::vector<double>> waifw_home;
@@ -193,10 +160,65 @@ struct InfectionState
 };
 
 /**
+ * @brief Supplementary input parameters used by main.cpp
+ */
+struct SupplementaryInputParameters
+{
+	seed seedlist;
+	ModelStructureId model_structure = ModelStructureId::UNKNOWN;
+	ModelModeId run_type = ModelModeId::UNKNOWN;
+};
+
+/**
+ * @brief Common model input parameters used by all models
+ */
+struct CommonModelInputParameters 
+{
+	params paramlist;
+	int herd_id;
+	int totN_hcw;
+};
+
+/**
+ * @brief Configuration for an inference config run
+ */
+struct InferenceConfig
+{
+	seed seedlist;
+	params paramlist;
+	int herd_id;
+	int day_shut;
+	double tau;
+	double prior_pinf_shape1;
+	double prior_pinf_shape2;
+	double prior_phcw_shape1;
+	double prior_phcw_shape2;
+	double prior_chcw_mean;
+	double prior_d_shape1;
+	double prior_d_shape2;
+	double prior_q_shape1;
+	double prior_q_shape2;
+	double prior_rrd_shape1;
+	double prior_rrd_shape2;
+	double prior_lambda_shape1;
+	double prior_lambda_shape2;
+	double prior_ps_shape1;
+	double prior_ps_shape2;
+	int nsteps;
+	double kernelFactor;
+	int nSim;
+	int nParticleLimit;
+	std::vector<double> toleranceLimit;
+	ObservationsForInference observations;
+};
+
+/**
  * @brief Configuration for a prediction framework run
  */
 struct PredictionConfig
 {
+	seed seedlist;
+	int day_shut;
     int n_sim_steps;    /*! Number of steps over which to run the model */
     int index;          /*! Index of selected parameters within posterior parameters file */
     std::vector<double> posterior_parameters;  /*! Set of model parameters */

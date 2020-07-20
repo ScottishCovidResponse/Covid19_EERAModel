@@ -11,25 +11,23 @@ namespace EERAModel {
 namespace Inference {
 
 InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
-    const ModelInputParameters& modelInputParameters,
-    const InputObservations& observations,
+    const InferenceConfig& inferenceConfig,
     Random::RNGInterface::Sptr rng,
     const std::string& outDir,
     Utilities::logging_stream::Sptr log)
     : model_(model),
-      modelInputParameters_(modelInputParameters),
-      observations_(observations),
+      inferenceConfig_(inferenceConfig),
       rng_(rng),
       outDir_(outDir),
       log_(log) {}
 
-int InferenceFramework::GetTimeOffSet(const ModelInputParameters& modelInputParameters)
+int InferenceFramework::GetTimeOffSet(const InferenceConfig& inferenceConfig)
 {
 	int time_back = 0;
-	if(modelInputParameters.seedlist.seedmethod == "background") {
-		time_back = modelInputParameters.seedlist.hrp;
+	if(inferenceConfig.seedlist.seedmethod == "background") {
+		time_back = inferenceConfig.seedlist.hrp;
 	} else {
-		time_back = static_cast<int>(modelInputParameters.paramlist.T_inf + modelInputParameters.paramlist.T_sym);
+		time_back = static_cast<int>(inferenceConfig.paramlist.T_inf + inferenceConfig.paramlist.T_sym);
 		
 	}
 
@@ -48,43 +46,43 @@ void InferenceFramework::Run()
 	clock_t time_taken1=0;
   
 
-	const int time_back = GetTimeOffSet(modelInputParameters_);
-	const std::vector<int>& regionalCases = observations_.cases[modelInputParameters_.herd_id];
-	const std::vector<int>& regionalDeaths = observations_.deaths[modelInputParameters_.herd_id];
-	const std::vector<int>& timeStamps = observations_.cases[0];
+	const int time_back = GetTimeOffSet(inferenceConfig_);
+	const std::vector<int>& regionalCases = inferenceConfig_.observations.cases[inferenceConfig_.herd_id];
+	const std::vector<int>& regionalDeaths = inferenceConfig_.observations.deaths[inferenceConfig_.herd_id];
+	const std::vector<int>& timeStamps = inferenceConfig_.observations.cases[0];
 
 	const Observations::ObsSelect obs_selections = Observations::SelectObservations(
-		modelInputParameters_.day_shut, timeStamps, regionalCases,
+		inferenceConfig_.day_shut, timeStamps, regionalCases,
 		regionalDeaths, time_back, log_);
 	
-	modelInputParameters_.seedlist.day_intro = obs_selections.sim_time.day_intro;
+	inferenceConfig_.seedlist.day_intro = obs_selections.sim_time.day_intro;
 	
     (*log_) << "[Health Board settings]:\n";
-	(*log_) << "    SHB id: " << modelInputParameters_.herd_id <<'\n';
+	(*log_) << "    SHB id: " << inferenceConfig_.herd_id <<'\n';
 	(*log_) << "    Simulation period: " << obs_selections.sim_time.duration << "days\n";
-	(*log_) << "    time step: " << modelInputParameters_.tau << "days\n";
+	(*log_) << "    time step: " << inferenceConfig_.tau << "days\n";
 
-	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/modelInputParameters_.tau));
+	const int n_sim_steps = static_cast<int>(ceil(obs_selections.sim_time.duration/inferenceConfig_.tau));
 	
 	const std::vector<double> flag1 = {
-		modelInputParameters_.prior_pinf_shape1,
-	 	modelInputParameters_.prior_phcw_shape1,
-		modelInputParameters_.prior_chcw_mean, 
-		modelInputParameters_.prior_d_shape1, 
-		modelInputParameters_.prior_q_shape1,
-		modelInputParameters_.prior_ps_shape1,
-		modelInputParameters_.prior_rrd_shape1,		
-		modelInputParameters_.prior_lambda_shape1
+		inferenceConfig_.prior_pinf_shape1,
+	 	inferenceConfig_.prior_phcw_shape1,
+		inferenceConfig_.prior_chcw_mean, 
+		inferenceConfig_.prior_d_shape1, 
+		inferenceConfig_.prior_q_shape1,
+		inferenceConfig_.prior_ps_shape1,
+		inferenceConfig_.prior_rrd_shape1,		
+		inferenceConfig_.prior_lambda_shape1
 	};	
 	const std::vector<double> flag2 = {
-		modelInputParameters_.prior_pinf_shape2, 
-		modelInputParameters_.prior_phcw_shape2, 
-		modelInputParameters_.prior_chcw_mean, 
-		modelInputParameters_.prior_d_shape2, 
-		modelInputParameters_.prior_q_shape2,
-		modelInputParameters_.prior_ps_shape2,
-		modelInputParameters_.prior_rrd_shape2,		
-		modelInputParameters_.prior_lambda_shape2
+		inferenceConfig_.prior_pinf_shape2, 
+		inferenceConfig_.prior_phcw_shape2, 
+		inferenceConfig_.prior_chcw_mean, 
+		inferenceConfig_.prior_d_shape2, 
+		inferenceConfig_.prior_q_shape2,
+		inferenceConfig_.prior_ps_shape2,
+		inferenceConfig_.prior_rrd_shape2,		
+		inferenceConfig_.prior_lambda_shape2
 	};
 
     InferenceParameterGenerator inferenceParameterGenerator(rng_, flag1, flag2);
@@ -99,8 +97,7 @@ void InferenceFramework::Run()
 	 * abc-smc loop
 	 *-------------------------------------*/
 	(*log_) << "[Simulations]:\n";
-	for (int smc = 0; smc < modelInputParameters_.nsteps; ++smc) {//todo:
-
+	for (int smc = 0; smc < inferenceConfig_.nsteps; ++smc) {//todo:
 		//the abort statement for keeping the number of particles less than 1000
 		bool aborting = false;
 
@@ -121,7 +118,7 @@ void InferenceFramework::Run()
 			particleList1.clear();
 
 			ComputeKernelWindow(nInferenceParams, particleList, 
-				modelInputParameters_.kernelFactor, vlimitKernel, vect_Max, vect_min);
+				inferenceConfig_.kernelFactor, vlimitKernel, vect_Max, vect_min);
 		}
 
 		std::discrete_distribution<int> weight_distr = ComputeWeightDistribution(particleList);
@@ -131,12 +128,12 @@ void InferenceFramework::Run()
 	 *---------------------------------------*/
 		//omp_set_num_threads(num_threads); // Use maximum num_threads threads for all consecutive parallel regions
 		//#pragma omp parallel for default(shared), private(pick_val), firstprivate(weight_distr)
-		for (int sim = 0; sim < modelInputParameters_.nSim; ++sim) {//todo
+		for (int sim = 0; sim < inferenceConfig_.nSim; ++sim) {//todo
 			//abort statement if number of accepted particles reached nParticLimit particles
 			//#pragma omp flush (aborting)
 			if (!aborting) {
 				//Update progress
-				if (acceptedParticleCount >= modelInputParameters_.nParticalLimit) {
+				if (acceptedParticleCount >= inferenceConfig_.nParticleLimit) {
 					aborting = true;
 					//#pragma omp flush (aborting)
 				}
@@ -163,17 +160,17 @@ void InferenceFramework::Run()
 				}
 
 				//run the model and compute the different measures for each potential parameters value
-				ModelSelect(outs_vec, n_sim_steps, modelInputParameters_.seedlist,
-							modelInputParameters_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
+				ModelSelect(outs_vec, n_sim_steps, inferenceConfig_.seedlist,
+							inferenceConfig_.day_shut, obs_selections.hospitalised, obs_selections.deaths);
 
                 //count the number of simulations that were used to reach the maximum number of accepted particles
-                if (acceptedParticleCount < modelInputParameters_.nParticalLimit) { ++nsim_count; }
+                if (acceptedParticleCount < inferenceConfig_.nParticleLimit) { ++nsim_count; }
                 
                 //if the particle agrees with the different criteria defined for each ABC-smc step
                 if (
-                    acceptedParticleCount < modelInputParameters_.nParticalLimit &&
-                    outs_vec.nsse_cases <= modelInputParameters_.toleranceLimit[smc] &&
-                    outs_vec.nsse_deaths <= modelInputParameters_.toleranceLimit[smc]//*1.5
+                    acceptedParticleCount < inferenceConfig_.nParticleLimit &&
+                    outs_vec.nsse_cases <= inferenceConfig_.toleranceLimit[smc] &&
+                    outs_vec.nsse_deaths <= inferenceConfig_.toleranceLimit[smc]//*1.5
                     ) {				
                         //#pragma omp critical
                         {
@@ -214,7 +211,7 @@ void InferenceFramework::Run()
 
 		//break the ABC-smc at the step where no particles were accepted
 		if (prevAcceptedParticleCount > 0) {
-			IO::WriteOutputsToFiles(smc, modelInputParameters_.herd_id, prevAcceptedParticleCount,
+			IO::WriteOutputsToFiles(smc, inferenceConfig_.herd_id, prevAcceptedParticleCount,
 				nInferenceParams, particleList1, outDir_, log_);
 		}
 	}

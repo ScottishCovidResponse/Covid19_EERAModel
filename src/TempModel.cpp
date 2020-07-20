@@ -3,12 +3,12 @@
 namespace EERAModel {
 namespace Model {
 
-TempModel::TempModel(const ModelInputParameters& modelInputParameters,
-    const InputObservations& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+TempModel::TempModel(const CommonModelInputParameters& commonParameters,
+    const ObservationsForModels& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
     : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(
-        observations.waifw_norm.size(), modelInputParameters.paramlist
+        observations.waifw_norm.size(), commonParameters.paramlist
     );
         
     ageGroupData_ = AgeGroupData{
@@ -16,19 +16,19 @@ TempModel::TempModel(const ModelInputParameters& modelInputParameters,
             observations.waifw_home,
             observations.waifw_sdist,
             observations.cfr_byage,
-            observations.pf_pop[modelInputParameters.herd_id - 1]
+            observations.pf_pop[commonParameters.herd_id - 1]
     };
     
     int regionalPopulation = GetPopulationOfRegion(
-        observations, modelInputParameters.herd_id
+        observations, commonParameters.herd_id
     );
 
     int healthCareWorkers = ComputeNumberOfHCWInRegion(
-        regionalPopulation, modelInputParameters.totN_hcw, observations
+        regionalPopulation, commonParameters.totN_hcw, observations
     );
     
     ageNums_ = ComputeAgeNums(
-        modelInputParameters.herd_id, regionalPopulation, healthCareWorkers, observations
+        commonParameters.herd_id, regionalPopulation, healthCareWorkers, observations
     );
 
     (*log) << "[Model settings]" << std::endl;

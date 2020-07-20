@@ -66,7 +66,7 @@ class ArgumentParser
          * 
          * @param input_params model input parameter object to update
          */
-        void AppendOptions(ModelInputParameters& input_params);
+        void AppendOptions(SupplementaryInputParameters& input_params);
 
         bool runLocal() const {return _args.isLocal;}
         
