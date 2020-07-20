@@ -61,6 +61,91 @@ At the present time, the `-d` and `-l` options are unused by the code and can be
 
 The command line options supplied are logged in the output log file for future reference.
 
+### Inputs
+The model requires a number of input files to run, in addition to the command line arguments. Input files must be placed in the `data` directory, and must be named according to the table below. The required contents of each file are described in more detail underneath the table. Examples of each of the files can be found in the `data/example` directory.
+
+| File name        | Description           | Usage|
+| ------------- |:-------------:|:-------------:|
+| parameters.ini      | General parameters configuring model runs | All |
+| cfr_byage.csv | Case Fatality Ratios, by age group      | All |
+| scot_age.csv | Proportion of health board populations in each age group      | All |
+| scot_data.csv | Timeseries of observed disease cases, by health board      | Inference only|
+| scot_deaths.csv | Timeseries of observed disease deaths, by health board      | Inference only |
+| waifw_home.csv | Age Mixing Matrix (Home)| All |
+| waifw_norm.csv | Age Mixing Matrix (All contact included)| All |
+| waifw_sdist.csv |  Age Mixing Matrix (Social Distancing)| All |
+|posterior_parameters.csv| Posterior model parameters| Prediction only|
+
+#### parameters.ini
+This file contains general model parameters, in `.ini` format. Parameters are grouped into sections. The required sections and parameters are as follows. This file is used in both inference and prediction runs.
+
+| Section name        | Parameter name           | Parameter type        | Description           |
+| ------------- |:-------------:|:-------------:|:-------------:|
+| Settings      | shb\_id           | Integer        | Identifier for selected health board (1-15)           |
+| Settings       | tau           | Float        |  Time step scale factor           |
+| Seed settings       | seedmethod           | String        | Seeding method ("background" or "random")           |
+| Seed settings       | nseed           | Integer        | Population seeding number <br>(Random seeding only)           |
+| Seed settings       | hrp           | Integer        | High Risk Period in days <br>(Background seeding only)        |
+| Seed settings       | use\_fixed\_seed           | Integer        | If 1, use fixed randomiser seed value<br>If 0, use time-based seed           |
+| Seed settings       | seed\_value          | Integer        | If use\_fixed\_seed is 1, the randomiser seed value to use|
+| Fit settings       | nsteps          | Integer        | Number of inference steps to run|
+| Fit settings       | nParticLimit          | Integer        | Maximum number of inference particles to accept in an inference step|
+| Fit settings       | nSim          | Integer        | Maximum number of model runs to execute per inference step|
+| Fit settings       | kernelFactor          | Float        | Scale factor for inference parameter kernel window|
+| Tolerance settings       | Key1..10          | Float        | Tolerance factor for accepting inference particles|
+| Fixed parameters        | totN\_hcw          | Integer        | Total number of health care workers in Scotland|
+| Fixed parameters        | day\_shut          | Integer        | Time at which lockdown began <br>(days with respect to time series start)|
+| Fixed parameters        | T\_lat          | Float        | Mean latent period (days)|
+| Fixed parameters        | juvp\_s          | Float        | Probability of juvenile developing symptoms|
+| Fixed parameters        | T\_inf          | Float        | Mean asymptomatic period (days)|
+| Fixed parameters        | T\_rec          | Float        | Mean time to recovery if symptomatic (days)|
+| Fixed parameters        | T\_sym          | Float        | Mean symptomatic period prior to hospitalisation (days)|
+| Fixed parameters        | T\_hos          | Float        | Mean hospitalisation stay (days)|
+| Fixed parameters        | K          | Integer        | Hospital bed capacity|
+| Fixed parameters        | inf\_asym          | Float        | Reduction factor of infectiousness for asymptomatic infectious individuals|
+| Priors settings        | prior\_pinf\_shape1          | Float        | Probability of Infection <br>Beta distribution shapre parameter 1|
+| Priors settings        | prior\_pinf\_shape2          | Float        | Probability of Infection <br>Beta distribution shape parameter 2 |
+| Priors settings        | prior\_phcw\_shape1          | Float        | Probability of Infection (HCW) <br>Beta distribution shapre parameter 1|
+| Priors settings        | prior\_phcw\_shape2          | Float        |  Probability of Infection (HCW) <br>Beta distribution shapre parameter 2|
+| Priors settings        | prior\_chcw\_mean          | Float        | Mean number of HCW contacts per day<br>Poisson distribution mean|
+| Priors settings        | prior\_d\_shape1          | Float        | Proportion of population observing social distancing<br> Beta distribution shape parameter 1|
+| Priors settings        | prior\_d\_shape2          | Float        | Proportion of population observing social distancing<br> Beta distribution shape parameter 2|
+| Priors settings        | prior\_q\_shape1          | Float        | Proportion of normal contact made by people self-isolating<br> Beta distribution shape parameter 1|
+| Priors settings        | prior\_q\_shape2          | Float        | Proportion of normal contact made by people self-isolating<br> Beta distribution shape parameter 2|
+| Priors settings        | prior\_ps\_shape1          | Float        | Age-dependent probability of developing symptoms<br> Beta distribution shape parameter 1|
+| Priors settings        | prior\_ps\_shape2          | Float        | Age-dependent probability of developing symptoms<br> Beta distribution shape parameter 2|
+| Priors settings        | prior\_rrd\_shape1          | Float        | Risk of death if not hospitalised<br> Gamma distribution shape parameter 1|
+| Priors settings        | prior\_rrd\_shape2          | Float        |  Risk of death if not hospitalised<br> Gamma distribution shape parameter 2|
+| Priors settings        | prior\_lambda\_shape1          | Float        | Background transmission rate<br> Uniform distribution shape parameter 1|
+| Priors settings        | prior\_lambda\_shape2          | Float        |  Background transmission rate<br> Uniform distribution shape parameter 1|
+| Prediction Configuration        | n\_sim\_steps          | Float        | Number of model iterations <br>(prediction mode only)|
+
+#### cfr_byage.csv
+CSV file containing the Case Fatality Ratio, by age group. Each row is a different age group. The four columns are:
+
+* **Column 0**: Probability of hospitalisation
+* **Column 1**: Case Fatality Ratio
+* **Column 2**: Probability of Death, given hospitalisation
+* **Column 3**: Unused
+
+#### scot_age.csv
+CSV file containing the proportion of people in each age group, per health board population. Each row corresponds to a different health board, whicle each column is an age group. This file does not include HCW as a distinct age group. The proprotion of HCW in a population is estimated at run time.
+
+#### scot_data.csv, scot_deaths.csv
+CSV file containing the timeseries of cases and deaths, per health board. Each row corresponds to a different health board, while ach column is a day in the time series. The first column is the toal population of the health board.
+
+#### waifw_home.csv, waifw_norm.csv, waifw_sdist.csv
+CSV files containing the age mixing matrices for people (1) isolating at home, (2) behaving normally, and (3) socially distancing. 
+
+#### posterior_parameters.csv
+CSV file containing batched parameter sets (fixed and inferrred parameters). This file is only used in **prediction mode**.  Its format is:
+```
+Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro, T_lat, juvp_s, T_inf, T_rec, T_sym, T_hos, K, inf_asym
+0,0.153532,0.60916,37.9059,0.525139,0.313957,0.787278,0.516736,8.50135E-07,4,0.1, 1.5,11,7,5,2000,1
+...
+```
+Each row in the file contains 17 entries: the first is the index of the row; the following 8 are the inferred posterior parameters; and the remaining 8 are model fixed parameters. The row selected for use in the prediction run will be that specified by the index argument on the command line (see Prediction Mode discussion below).
+
 ### Prediction mode
 The model can be run in a prediction mode, where a fixed set of parameters is supplied to the model,
 and the model is run for a fixed number of simulation steps.
@@ -70,21 +155,7 @@ To run the model in prediction mode, set the `-m` switch to prediction:
 $ .build/bin/Covid19EERAModel -m prediction [-i <integer>]...
 ```
 To configure the prediction run, three main pieces of configuration are required: a posterior parameters
-file; a `Prediction Config` category in the `parameters.ini` file; and an index as a command line
-argument. The index should be provided by using the "-i" option on the command line. If it is omitted,
-it will default to 0.
-
-The posterior parameters file should be named `posterior_parameters.csv` and should be placed in the
-`data` directory. Its format should be:
-```
-Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro
-0,0.153532,0.60916,37.9059,0.525139,0.313957,0.787278,0.516736,8.50135E-07
-1,0.12602,0.429026,43.9404,0.277644,0.722916,0.470001,3.41006,6.27917E-07
-...
-```
-Each row in the file contains 9 entries: the first is the index of the row, and the remaining 8 are 
-the sets of posterior parameters that can be used by the predication run. The row selected for use 
-in the prediction run will be that specified by the index argument on the command line.
+file (described above); a `Prediction Config` settings category in the `parameters.ini` file; and an index as a command line argument. The index should be provided by using the "-i" option on the command line. If it is omitted, it will default to 0.
 
 The `parameters.ini` file must contain a category with the configuration of the prediction run, as
 below
@@ -94,19 +165,13 @@ n_sim_steps=100000
 ```
 The setting `n_sim_steps` is the number of iterations the model should be run for. 
 
-When the model is run in prediction mode, all of the above configuration is logged to the terminal
-and the log file.
+When the model is run in prediction mode, all of the above configuration is logged to the terminal and the log file.
 
 ### Inference mode
 To run the model in inference mode, set the `-m` switch to inference:
 ```
 $ .build/bin/Covid19EERAModel -m inference ...
 ```
-To configure the inference run, two main pieces of configuration must be supplied:
-  * A set of data files containing observations and population/age-group descriptions
-  * A `parameters.ini` file
-
-Examples of these files can be found in the regression tests directories: `test/regression/run<N>/data`.
 
 ## Logging
 The code logs a large amount of information in its log file. This file has a name of the form
