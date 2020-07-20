@@ -1,6 +1,7 @@
 #include "IO.h"
 #include "ModelCommon.h"
 #include "Utilities.h"
+#include "Git.h"
 
 #include <valarray>
 #include <fstream>
@@ -145,7 +146,7 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     return inferenceConfig;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::logging_stream::Sptr log)
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log)
 {
     std::string filePath(configDir + "/parameters.ini");
     if (!Utilities::fileExists(filePath)) throw IOException(filePath + ": File not found!");
@@ -159,8 +160,8 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::l
     std::string sectionId("Prediction Configuration");    
     predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
         sectionId, filePath);
-    predictionConfig.index = ReadNumberFromFile<int>("posterior_parameter_index",
-        sectionId, filePath);
+
+    predictionConfig.index = index;
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
     if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
@@ -463,6 +464,15 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
     (*log) << "    p_s: "               << config.posterior_parameters[5] << std::endl;
     (*log) << "    rrd: "               << config.posterior_parameters[6] << std::endl;
     (*log) << "    intro: "             << config.posterior_parameters[7] << std::endl;
+}
+
+void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Git Versioning]"    << std::endl;
+    (*log) << "    Commit SHA: "    << GitMetadata::CommitSHA1() << std::endl;
+    (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
+    (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;
+    (*log) << "    Uncommitted changes: " << (GitMetadata::AnyUncommittedChanges() ? "Yes" : "No") << std::endl;
 }
 
 } // namespace IO

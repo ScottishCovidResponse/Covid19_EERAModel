@@ -53,11 +53,12 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
  * @brief Read prediction framework configuration from input files
  * 
  * @param configDir Directory containing the configuration and data files
+ * @param index Index of the parameter set to select from the posterior parameters file
  * @param log Logger
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read model posterior parameters from a CSV file
@@ -206,6 +207,13 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log);
  * @param log Logger
  */
 void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Log Git repository version information
+ * 
+ * @param log Logger
+ */
+void LogGitVersionInfo(Utilities::logging_stream::Sptr log);
 
 } // namespace IO
 } // namespace EERAModel

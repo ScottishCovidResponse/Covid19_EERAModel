@@ -25,7 +25,11 @@ installed on the host system.
 
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is
 downloaded and built automatically as part of the project build process. It is not required to be 
-installed on the host system. 
+installed on the host system.
+
+The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking)
+for encoding Git repository information in the project binary files. It was developed by
+Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
@@ -40,22 +44,22 @@ $ make
 ## Running the model
 Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage is:
 ```
-Brief USAGE: 
-   ./Covid19_EERAModel/build/bin/Covid19EERAModel  [-d <string>] -s
-                                        <original|irish> [-l <string>] [-m
-                                        <inference|prediction>] [--]
-                                        [--version] [-h]
 
-For complete USAGE and HELP type: 
-   ./Covid19_EERAModel/build/bin/Covid19EERAModel --help
+$ Covid19EERAModel  -m <inference|prediction>]
+                    -s <original|irish|irish2>
+                    [-i <integer>] 
+                    [-d <string>]
+                    [-l <string>] [--]
+                    [--version] [-h]
+
 ```
+The two mandatory options are "-s" for the model structure, and "-m" for the run mode. Omission of
+either of these options will cause the run to terminate with an error message. The index option 
+specifies the parameter set that will be used in prediction mode: it is unused in inference mode.
 
-If the options for `structure` or `mode` are not set they will have the value `Default` in the 
-`[Arguments]` log section, this means that the value will either be obtained from the included 
-parameters file (if specified in that file) or given the default value of `inference` for mode and
-`original` for structure.
+At the present time, the `-d` and `-l` options are unused by the code and can be omitted.
 
-At the present time, the `d` and `l` options are unused and can be omitted.
+The command line options supplied are logged in the output log file for future reference.
 
 ### Prediction mode
 The model can be run in a prediction mode, where a fixed set of parameters is supplied to the model,
@@ -63,10 +67,12 @@ and the model is run for a fixed number of simulation steps.
 
 To run the model in prediction mode, set the `-m` switch to prediction:
 ```
-$ .build/bin/Covid19EERAModel -m prediction
+$ .build/bin/Covid19EERAModel -m prediction [-i <integer>]...
 ```
-To configure the prediction run, two main pieces of configuration are required: a posterior parameters
-file, and a `Prediction Config` category in the `parameters.ini` file.
+To configure the prediction run, three main pieces of configuration are required: a posterior parameters
+file; a `Prediction Config` category in the `parameters.ini` file; and an index as a command line
+argument. The index should be provided by using the "-i" option on the command line. If it is omitted,
+it will default to 0.
 
 The posterior parameters file should be named `posterior_parameters.csv` and should be placed in the
 `data` directory. Its format should be:
@@ -77,26 +83,24 @@ Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro
 ...
 ```
 Each row in the file contains 9 entries: the first is the index of the row, and the remaining 8 are 
-the sets of posterior parameters that can be used by the predication run.
+the sets of posterior parameters that can be used by the predication run. The row selected for use 
+in the prediction run will be that specified by the index argument on the command line.
 
 The `parameters.ini` file must contain a category with the configuration of the prediction run, as
 below
 ```
 [Prediction Configuration]
-posterior_parameter_index=2
 n_sim_steps=100000
 ```
-The setting `n_sim_steps` is the number of iterations the model should be run for. The setting 
-`posterior_parameter_index` is the index of the selected posterior parameter set from the 
-`posterior_parameters.csv` file.
+The setting `n_sim_steps` is the number of iterations the model should be run for. 
 
-When the model is run in prediction mode, all of the above configurations are logged to the terminal
+When the model is run in prediction mode, all of the above configuration is logged to the terminal
 and the log file.
 
 ### Inference mode
 To run the model in inference mode, set the `-m` switch to inference:
 ```
-$ .build/bin/Covid19EERAModel -m inference
+$ .build/bin/Covid19EERAModel -m inference ...
 ```
 To configure the inference run, two main pieces of configuration must be supplied:
   * A set of data files containing observations and population/age-group descriptions
@@ -104,14 +108,30 @@ To configure the inference run, two main pieces of configuration must be supplie
 
 Examples of these files can be found in the regression tests directories: `test/regression/run<N>/data`.
 
+## Logging
+The code logs a large amount of information in its log file. This file has a name of the form
+`run_dd-mm-yyyy_hh-mm-ss.log`, timestamped with the time at which the code was run, and is stored in
+the `outputs/logs` directory.
+
+### Version information
+The log includes a section listing Git repository version information, of the form
+```
+[Git Versioning]
+    Commit SHA: xxxxxxx
+    Commit Date: 
+    Tag: 
+    Uncommitted changes:
+```
+Listed are the SHA of the `HEAD` commit, the corresponding commit date, the tag (if any), and a 
+message to say if there are any uncommitted changes in the repository.
+
 ## Code Documentation Site
 
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
 
 ## Automated Code Formatting
 
-As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry
-about following a convention. Settings are given in the `.clang-format` file.
+As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry about following a convention. Settings are given in the `.clang-format` file.
 
 ## Tests
 
