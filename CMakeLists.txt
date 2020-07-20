@@ -20,6 +20,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "")
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+find_package(DataPipeline REQUIRED)
+
 message("----- EERA Model Build Options -----")
 message(STATUS "Clang Tidy: ${CLANG_TIDY}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
