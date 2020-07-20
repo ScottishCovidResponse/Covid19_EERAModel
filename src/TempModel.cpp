@@ -167,6 +167,11 @@ Status TempModel::Run(std::vector<double> parameter_set, seed& seedlist, int day
 	return status;
 }
 
+void TempModel::SetFixedParameters(const params& paramlist)
+{
+    fixedParameters_ = BuildFixedParameters(fixedParameters_.size(), paramlist);
+}
+
 InfectionState TempModel::GenerateInfectionSpread(Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double lambda)

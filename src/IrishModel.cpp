@@ -167,6 +167,11 @@ Status IrishModel::Run(std::vector<double> parameter_set, seed& seedlist, int da
 	return status;
 }
 
+void IrishModel::SetFixedParameters(const params& paramlist)
+{
+    fixedParameters_ = BuildFixedParameters(fixedParameters_.size(), paramlist);
+}
+
 InfectionState IrishModel::GenerateInfectionSpread(Compartments& pop,
     const int& n_hospitalised, params fixed_parameters, std::vector<double> parameter_set,
     std::vector<double> cfr_tab, double lambda)

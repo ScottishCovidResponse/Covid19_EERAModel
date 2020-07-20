@@ -37,6 +37,18 @@ public:
      * Interface to model-specific implementation
      */
     virtual Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) = 0;
+
+    /**
+     * @brief Set the fixed parameters in the model
+     * 
+     * @note This interface is required by the prediction framework, as when running in prediction
+     * mode, the fixed parameters come from a differen source than when running in inference mode. 
+     * When this function is called, it will overwrite the fixed parameters that were set when the
+     * model object was created.
+     * 
+     * @param paramlist Fixed model parameters
+     */
+    virtual void SetFixedParameters(const params& paramlist) = 0;
 };
 
 /**
