@@ -23,11 +23,12 @@ namespace IO {
  * @brief Read supplementary parameters used for main.cpp.
  * 
  * @param ParamsPath Path to INI file
- * @param log Logger 
+ * @param log Logger
  * 
  * @return Supplementary parameters
  */
-SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
+SupplementaryInputParameters ReadSupplementaryParameters(const std::string& ParamsPath,
+    Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Read common model input parameters used by all model types
@@ -87,6 +88,25 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
  * @return Observations needed for all models
  */
 ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read seed settings from the parameters file
+ * 
+ * @param ParamsPath Path to INI file
+ * @param log Logger
+ * 
+ * @return Seed settings data structure
+ */
+seed ReadSeedSettings(const std::string& ParamsPath, Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Read the fixed model parameters from the parameters file
+ * 
+ * @param ParamsPath Path to INI file
+ * 
+ * @return Parameters data structure
+ */
+params ReadFixedModelParameters(const std::string& ParamsPath);
 
 /**
  * @brief  Write outputs to files

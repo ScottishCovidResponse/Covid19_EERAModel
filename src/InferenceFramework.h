@@ -60,19 +60,7 @@ private:
      */
     Model::ModelInterface::Sptr model_;
 
-    // /**
-    //  * @private
-    //  * @brief Model input parameters
-    //  */
-    // ModelInputParameters modelInputParameters_;
-
     InferenceConfig inferenceConfig_;
-
-    // /**
-    //  * @private
-    //  * @brief Model input observations
-    //  */
-    // InputObservations observations_;
 
     /**
      * @private

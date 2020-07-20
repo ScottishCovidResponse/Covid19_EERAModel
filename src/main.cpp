@@ -15,36 +15,36 @@ using namespace EERAModel;
 
 int main(int argc, char** argv) 
 {
-	ArgumentParser arg_parser(argc, argv);
+    ArgumentParser arg_parser(argc, argv);
 
-	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
-	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
-	// Read in the model's input parameters
-	arg_parser.logArguments(logger);
+    // Read in the model's input parameters
+    arg_parser.logArguments(logger);
 
-	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
+    const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
 
-	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
+    (*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
-	// Set up the random number generator, deciding what kind of seed to use
-	unsigned long randomiser_seed;
-	if (supplementaryParameters.seedlist.use_fixed_seed) {
-		randomiser_seed = supplementaryParameters.seedlist.seed_value;
-	} else {
+    // Set up the random number generator, deciding what kind of seed to use
+    unsigned long randomiser_seed;
+    if (supplementaryParameters.seedlist.use_fixed_seed) {
+        randomiser_seed = supplementaryParameters.seedlist.seed_value;
+    } else {
         randomiser_seed = time(nullptr);
-	}
+    }
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
     // Import common parameters for all models
     CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
-    //Import model specific observations
+    // Import model observational data
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
     ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
@@ -64,10 +64,10 @@ int main(int argc, char** argv)
     {
         model = std::make_shared<Model::IrishModel>(commonParameters, modelObservations, rng, logger);
     }
-	else
-	{
-		model = std::make_shared<Model::TempModel>(commonParameters, modelObservations, rng, logger);
-	}
+    else
+    {
+        model = std::make_shared<Model::TempModel>(commonParameters, modelObservations, rng, logger);
+    }
 
     // Select the mode to run in - prediction or inference    
     if (ModelModeId::PREDICTION == supplementaryParameters.run_type)
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
         Prediction::PredictionFramework framework(model, predictionConfig, 
             rng, out_dir, logger);
 
-		framework.Run();
+        framework.Run();
     }
     else
     {

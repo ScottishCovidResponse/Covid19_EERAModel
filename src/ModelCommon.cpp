@@ -38,11 +38,11 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
 	return obs.cases[region_id][0];
 }
 
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& observations)
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs)
 {
     int scotlandPopulation = 0;
-	for (unsigned int region = 0; region < observations.cases.size() - 1; ++region) {
-		scotlandPopulation += observations.cases[region][0];
+	for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+		scotlandPopulation += obs.cases[region][0];
 	}
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
 	

@@ -127,9 +127,9 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id);
  * 
  * @param regionalPopulation Population of the region
  * @param totalHCW Total number of HCWs in the country
- * @param observations Input observations
+ * @param obs Input observations
  */
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& observations);
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs);
 
 /**
  * @brief Compute the agenums 

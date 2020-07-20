@@ -17,7 +17,6 @@ InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
     Utilities::logging_stream::Sptr log)
     : model_(model),
       inferenceConfig_(inferenceConfig),
-      // observations_(observations),
       rng_(rng),
       outDir_(outDir),
       log_(log) {}

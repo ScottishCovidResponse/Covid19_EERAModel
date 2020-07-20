@@ -46,12 +46,6 @@ private:
      */
     Model::ModelInterface::Sptr model_;
 
-    // /**
-    //  * @private
-    //  * @brief Model input parameters
-    //  */
-    // ModelInputParameters modelInputParameters_;
-
     /**
      * @private
      * @brief Prediction configuration
