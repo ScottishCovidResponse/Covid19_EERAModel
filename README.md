@@ -13,23 +13,19 @@ Simple COVID-19 simulation model with ABC-smc inference
  * `test/` Model test code
 
 ## Build dependencies
+The project has the following dependencies, which must be satisfied by installing the relevant packages on the host system. Where the version is prefixed by '~', this version has been tested, but it is likely that earlier versions will also work.
+
  * CMake (>= 3.10)
- * GSL (GNU Scientific Library)
- * PkgConfig
- * Threads
+ * GNU Scientific Library (~2.4)
+ * PkgConfig (~0.29.0)
+ * System threads package (pthread or other)
 
 ## Third-party libraries
-The project uses [Google Test](https://github.com/google/googletest) as its unit testing framework. It
-is downloaded and built automatically as part of the project build process. It is not required to be
-installed on the host system.
+The project uses [Google Test](https://github.com/google/googletest) as its unit testing framework. It is downloaded and built automatically as part of the project build process. It is not required to be installed on the host system.
 
-The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is
-downloaded and built automatically as part of the project build process. It is not required to be 
-installed on the host system.
+The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is downloaded and built automatically as part of the project build process. It is not required to be installed on the host system.
 
-The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking)
-for encoding Git repository information in the project binary files. It was developed by
-Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
+The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking) for encoding Git repository information in the project binary files. It was developed by Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
@@ -62,7 +58,9 @@ At the present time, the `-d` and `-l` options are unused by the code and can be
 The command line options supplied are logged in the output log file for future reference.
 
 ### Inputs
-The model requires a number of input files to run, in addition to the command line arguments. Input files must be placed in the `data` directory, and must be named according to the table below. The required contents of each file are described in more detail underneath the table. Examples of each of the files can be found in the `data/example` directory.
+The model requires a number of input files to run, in addition to the command line arguments. Input files must be placed in the `data` directory, and must be named according to the table below. The required contents of each file are described in more detail underneath the table. 
+
+** Examples of each of the files below can be found in the `data/example` directory.**
 
 | File name        | Description           | Usage|
 | ------------- |:-------------:|:-------------:|
@@ -71,6 +69,7 @@ The model requires a number of input files to run, in addition to the command li
 | scot_age.csv | Proportion of health board populations in each age group      | All |
 | scot_data.csv | Timeseries of observed disease cases, by health board      | Inference only|
 | scot_deaths.csv | Timeseries of observed disease deaths, by health board      | Inference only |
+| scot_frail.csv | Probability of frailty, by age group      | All |
 | waifw_home.csv | Age Mixing Matrix (Home)| All |
 | waifw_norm.csv | Age Mixing Matrix (All contact included)| All |
 | waifw_sdist.csv |  Age Mixing Matrix (Social Distancing)| All |
@@ -134,6 +133,9 @@ CSV file containing the proportion of people in each age group, per health board
 #### scot_data.csv, scot_deaths.csv
 CSV file containing the timeseries of cases and deaths, per health board. Each row corresponds to a different health board, while ach column is a day in the time series. The first column is the toal population of the health board.
 
+#### scot_frail.csv
+CSV file containing the probabilities of frailty for each age group, by health board. Each column is an age group. Each row is a health board, with the exception of the last row, which is for the whole of Scotland.
+
 #### waifw_home.csv, waifw_norm.csv, waifw_sdist.csv
 CSV files containing the age mixing matrices for people (1) isolating at home, (2) behaving normally, and (3) socially distancing. 
 
@@ -168,7 +170,7 @@ The setting `n_sim_steps` is the number of iterations the model should be run fo
 When the model is run in prediction mode, all of the above configuration is logged to the terminal and the log file.
 
 ### Inference mode
-To run the model in inference mode, set the `-m` switch to inference:
+To run the model in inference mode, set the `-m` command line switch to inference:
 ```
 $ .build/bin/Covid19EERAModel -m inference ...
 ```
@@ -187,19 +189,15 @@ The log includes a section listing Git repository version information, of the fo
     Tag: 
     Uncommitted changes:
 ```
-Listed are the SHA of the `HEAD` commit, the corresponding commit date, the tag (if any), and a 
-message to say if there are any uncommitted changes in the repository.
+Listed are the SHA of the `HEAD` commit, the corresponding commit date, the tag (if any), and a message to say if there are any uncommitted changes in the repository.
 
 ## Code Documentation Site
-
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
 
 ## Automated Code Formatting
-
 As part of GitHub actions `clang-format-10` is run on the source code, this ensures consistency between code files without each developer having to worry about following a convention. Settings are given in the `.clang-format` file.
 
 ## Tests
-
 ### Regression tests
 The regression tests can be found in `test/regression`. Each run uses a fixed seed value, fixed inputs,
 and a reference set of output data files. A regression test consists of:
@@ -208,26 +206,17 @@ and a reference set of output data files. A regression test consists of:
 * Running the model executable `./build/bin/Covid19EERAModel`
 * Compare the model outputs in `outputs` with the reference outputs in `test/regression/runN/outputs`
 
-There are two sets of regression tests: one set which use the original model structure, and another 
-set which use the Irish epidemiological structure. The former are regression tests 1-6; the latter
-are tests 7-12.
+There are two sets of regression tests: one set which use the original model structure, and another set which use the Irish epidemiological structure. The former are regression tests 1-6; the latter are tests 7-12.
 
-The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` 
-from the top-level roject directory. Each test will be run consecutively, and on completion the 
-script will provide a summary of successes and failures. The script takes the first and last tests
-to run as arguments i.e. to run tests 4 through 9, execute the command:
+The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` from the top-level roject directory. Each test will be run consecutively, and on completion the script will provide a summary of successes and failures. The script takes the first and last tests to run as arguments i.e. to run tests 4 through 9, execute the command:
 ```
 $ ./scripts/RunRegressionTests 4 9
 ```
 
-**Note:** The regression tests are an aid to refactoring with confidence: they should not be considered
-confirmation of the code's correctness. The reference outputs are updated periodically based on 
-changes in the core model logic.
+**Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 
 ### Unit tests
-The unit tests can be found in `test/unit`. They are built using the Google Test unit-testing framework.
-CMake automatically downloads and builds Google Test as an external project, so it is not required to have
-Google Test installed on the build system.
+The unit tests can be found in `test/unit`. They are built using the Google Test unit-testing framework. CMake automatically downloads and builds Google Test as an external project, so it is not required to have Google Test installed on the build system.
 
 Following build, the unit test executable is `build/bin/Covid19EERAModel-unit_tests`.
 
@@ -236,7 +225,6 @@ Code coverage is now checked by `lcov` as part of the GitHub actions Ubuntu GCC 
 
 ### Check with CppCheck
 
-As part of the validation procedure source and header files are checked with CppCheck. It is recommended you run this on your code before
-pushing to the remote repository, from the repository root directory run:
+As part of the validation procedure source and header files are checked with CppCheck. It is recommended you run this on your code before pushing to the remote repository, from the repository root directory run:
 
 `cppcheck --language=c++ --std=c++11 <address-of-code-file(s)>`
