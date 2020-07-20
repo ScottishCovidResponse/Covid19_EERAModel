@@ -47,9 +47,6 @@ int main(int argc, char** argv)
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
     ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
-    // Log the fixed parameters
-    IO::LogFixedParameters(commonParameters, logger);
-
     // Log the disease seed settings
     IO::LogSeedSettings(supplementaryParameters.seedlist, logger);
 
@@ -77,6 +74,9 @@ int main(int argc, char** argv)
         PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger);
         IO::LogPredictionConfig(predictionConfig, logger);
 
+        // Update the model with the fixed parameters from the prediction configuration
+        model->SetFixedParameters(predictionConfig.fixedParameters);
+        
         Prediction::PredictionFramework framework(model, predictionConfig, 
             rng, out_dir, logger);
 
@@ -86,6 +86,8 @@ int main(int argc, char** argv)
     {
         std::string configDir(std::string(ROOT_DIR) + "/data");
         InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger);
+
+        IO::LogFixedParameters(commonParameters.paramlist, logger);
 
         Inference::InferenceFramework framework(model, inferenceConfig, rng, out_dir, logger);
         

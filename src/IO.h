@@ -71,6 +71,16 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
 std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath, int set_selection);
 
 /**
+ * @brief Read model parameters from a CSV file
+ * 
+ * @param filePath Path to CSV file
+ * @param set_selection Selection of row in CSV file for parameters
+ * 
+ * @return Model parameters
+ */
+std::vector<double> ReadPredictionParametersFromFile(const std::string& filePath, int set_selection);
+
+/**
  * @brief Read observations needed for Inference framework
  * 
  * @param configDir Directory containing the data files
@@ -172,10 +182,10 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
  * 
  * Log the fixed parameters of a model
  * 
- * @param params Common model input parameters
+ * @param paramlist Model fixed parameters
  * @param log Logger
  */
-void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log);
+void LogFixedParameters(const params& paramlist, Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Log randomiser settings
@@ -214,6 +224,16 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
  * @param log Logger
  */
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Write formatted fixed parameters to an output logging stream
+ * 
+ * @param log Output logger
+ * @param paramlist Fixed parameters
+ * 
+ * @return Output logger
+ */
+void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& paramlist);
 
 } // namespace IO
 } // namespace EERAModel
