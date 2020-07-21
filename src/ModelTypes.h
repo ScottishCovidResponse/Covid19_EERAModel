@@ -160,8 +160,19 @@ struct InfectionState
 };
 
 /**
- * @brief Supplementary input parameters used by main.cpp
+ * @class KernelWindow
+ * @brief Struct representing the kernel window for a given inference parameter
  */
+struct KernelWindow 
+{
+    double kernel;
+    double max;
+    double min; 
+}; 
+
+/**
+* @brief Supplementary input parameters used by main.cpp
+*/
 struct SupplementaryInputParameters
 {
 	seed seedlist;
