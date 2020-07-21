@@ -2,6 +2,7 @@
 #include "Observations.h"
 #include "IO.h"
 #include "ModelCommon.h"
+#include "Timer.h"
 #include <functional>
 #include <algorithm>
 #include <cmath>
@@ -66,8 +67,7 @@ void InferenceFramework::Run()
 {
     const unsigned int nInferenceParams = Model::ModelParameters::NPARAMS;
     
-    InferenceTimer timer;
-    timer.StartInference();
+    SimpleTimer runTimer;
 
 	const int time_back = GetTimeOffSet(inferenceConfig_);
 	const std::vector<int>& regionalCases = inferenceConfig_.observations.cases[inferenceConfig_.herd_id];
@@ -97,7 +97,7 @@ void InferenceFramework::Run()
 	(*log_) << "[Simulations]:\n";
 	for (int smc = 0; smc < inferenceConfig_.nsteps; ++smc) {
 
-		timer.StartStep();
+		SimpleTimer stepTimer;
        
         //the abort statement for keeping the number of particles less than 1000
 		bool aborting = false;
@@ -150,11 +150,10 @@ void InferenceFramework::Run()
 			}
 		}
 
-		double time_taken = timer.EndStep();
 		(*log_) << "\nStep:" << smc
 			<< ", <number of accepted particles> " << currentParticles.size()
 			<< "; <number of simulations> " << nsim_count
-			<< "; <computation time> " <<  time_taken
+			<< "; <computation time> " <<  stepTimer.elapsedTime()
 			<< " seconds.\n";
 
 		// Record the list of accepted particles in the output files.
@@ -163,7 +162,7 @@ void InferenceFramework::Run()
 	}
 
 	// Output on screen the overall computation time
-	(*log_) << timer.EndInference() << " seconds." << std::endl;
+	(*log_) << runTimer.elapsedTime() << " seconds." << std::endl;
 }
 
 bool InferenceFramework::ParticlePassesTolerances(const particle& p, int smc) 
