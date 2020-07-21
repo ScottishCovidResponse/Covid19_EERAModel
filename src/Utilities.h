@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <memory>
 #include <cmath>
 
@@ -45,6 +46,29 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
 }
 
 /**
+ * @brief Check if a directory exists
+ * 
+ * Checks if the specified address actually exists and so
+ * can be written to
+ * 
+ * @param directory file directory
+ * 
+ * @return if directory exists
+ */
+bool directoryExists(const std::string& directory);
+
+/**
+ * @brief Check if a file exists
+ * 
+ * Checks if the specified file actually exists
+ * 
+ * @param file File path
+ * 
+ * @return True if the file exists; otherwise false
+ */
+bool fileExists(const std::string& file);
+
+/**
  * @brief Sum vector elements in blocks
  * 
  * Summate values at every Nth index, e.g. n = 7 would summate daily data to be weekly data. For 
@@ -62,14 +86,14 @@ double sse_calc(const std::vector<T>& simval, const std::vector<T>& obsval){
  * @return Vector of summation values
  */
 template<typename T>
-std::vector<T> AccumulateEveryN(const std::vector<T>& data, int n)
+std::vector<T> AccumulateEveryN(const std::vector<T>& data, unsigned int n)
 {
     std::vector<T> _temp;
     T data_val(0);
 
     if (n <= data.size())
     {
-        for (int i{0}; i < data.size(); ++i)
+        for (unsigned int i = 0; i < data.size(); i++)
         {
             data_val += data[i];
 
@@ -147,11 +171,12 @@ class logging_stream
  * 
  * @param inputfile address of input file
  * @param delimiter column separator character
+ * @param header True if the file has a header row which should be skipped
  * 
  * @return vector of vectors containing read in data values
  */
 template<typename T>
-std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimiter)
+std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimiter, bool header=false)
 {
 	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());
@@ -159,6 +184,9 @@ std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimite
 	std::string line;
 	std::vector<T> record;
 	
+    // Skip the header row if there is one
+    if (header) std::getline(infile, line, '\n');
+
 	while (std::getline(infile, line,'\n'))
 	{
 		int linepos = 0;
@@ -204,6 +232,18 @@ std::vector<std::vector<T>> read_csv(const std::string &inputfile, char delimite
 
 	return data;
 }
+
+/**
+ * @brief Convert a string to upper case
+ * 
+ * Iterates through a string converting the output to be
+ * all upper case.
+ * 
+ * @param str string to be converted
+ * 
+ * @return upper case string
+ */
+std::string toUpper(std::string str);
 
 } // namespace Utilities
 } // namespace EERAModel

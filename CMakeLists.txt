@@ -7,7 +7,7 @@ project(${PROJECT_NAME} VERSION 0.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\"")
+set(CMAKE_CXX_FLAGS "-DROOT_DIR=\\\"${CMAKE_SOURCE_DIR}\\\" -DVERSION=\\\"${PROJECT_VERSION}\\\" ")
 
 # Enable or Disable Clang Tidy in Build
 option(CLANG_TIDY "Enable Clang Tidy in Build" OFF)
@@ -31,7 +31,7 @@ if(CLANG_TIDY)
     # Disable Clang-Tidy for macOS (as not available by default)
 		message(WARNING "Clang Tidy option not currently supported on macOS, ignoring option")
 	else()
-		set(CLANG_TIDY_FLAGS -checks=*,-*default-arguments-calls*,-llvm-include-order*,-modernize-use-trailing-return-type*,-readability-isolate-declaration*,-google-runtime-references*,-fuchsia-*,-llvm-header-guard* -header-filter=${CMAKE_SOURCE_DIR}/src)
+		set(CLANG_TIDY_FLAGS -checks=*,-*default-arguments-calls*,-llvm-include-order*,-modernize-use-trailing-return-type*,-readability-isolate-declaration*,-google-runtime-references*,-fuchsia-*,-llvm-header-guard* -header-filter=${CMAKE_SOURCE_DIR}/src,-${CMAKE_CURRENT_SOURCE_DIR}/src/tclap)
 		set(CMAKE_CXX_CLANG_TIDY clang-tidy ${CLANG_TIDY_FLAGS})
 	endif(APPLE)
 endif()
@@ -44,7 +44,8 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	
+
+include(external/tclap.cmake)
 add_subdirectory(src)
 add_subdirectory(test)
 
@@ -64,7 +65,7 @@ if(CODE_COVERAGE)
 		COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -c -i -d . -b ${PROJECT_SOURCE_DIR} -o ${PROJECT_NAME}.base
 	
 	        # Run executables
-		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel
+		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel ${COV_TEST_FLAGS} -s original  -m inference
 		COMMAND ${CMAKE_SOURCE_DIR}/build/bin/Covid19EERAModel-unit_tests
 	
 	        # Capturing lcov counters and generating report

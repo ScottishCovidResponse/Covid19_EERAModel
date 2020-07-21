@@ -1,32 +1,3 @@
-/* Created on: 01 05 2020
- * Authors: Thibaud Porphyre
- *
- *
- *version 0.3.2.4
- *
- * version report: 
- *		  - change the whole model structure (changes in Lambda, infspread)
- *		  - fix issues in the selection processes
- * 		  - add/remove parameters to infer
- *        - add a void function _flow_ to simplify function _infspread_
- *  
- * fitting procedure: ABS-SMC
- * model to fit: spread, SEIIsHRD
- * number of herd: single
- * model type: stochastic, age-structured population, tau-leap
- *
- * time-step = 1 day
- *
- * selection measures: normalise sum squared error 
- *
- * fitted parameters: p_i, p_hcw, c_hcw, q and d, p_s, p_hf,rrdh,lambda
- *
- * main.cpp
- *
- *
- */
-
-
 #include <iostream>
 #include <time.h>
 #include "ModelTypes.h"
@@ -35,73 +6,91 @@
 #include "ModelCommon.h"
 #include "OriginalModel.h"
 #include "IrishModel.h"
+#include "TempModel.h"
 #include "PredictionFramework.h"
 #include "InferenceFramework.h"
+#include "ArgumentParser.h"
 
 using namespace EERAModel;
 
-int main() {
+int main(int argc, char** argv) 
+{
+    ArgumentParser arg_parser(argc, argv);
 
-	const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
 
-	Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+    IO::LogGitVersionInfo(logger);
+    arg_parser.logArguments(logger);
 
-	// Read in the model's input parameters
-	std::cout << "PROJECT ROOT DIRECTORY:\t"+std::string(ROOT_DIR) << std::endl;
-	const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
+    const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
-	ModelInputParameters modelInputParameters = IO::ReadParametersFromFile(params_addr, logger);
+    SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
+    arg_parser.AppendOptions(supplementaryParameters);
 
-	(*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
+    (*logger) << "[Parameters File]:\n    " << params_addr << std::endl;
 
-	// Read in the observations
-	InputObservations observations = IO::ReadObservationsFromFiles(logger);
-
-	// Set up the random number generator, deciding what kind of seed to use
-	unsigned long randomiser_seed;
-	if (modelInputParameters.seedlist.use_fixed_seed) {
-		randomiser_seed = modelInputParameters.seedlist.seed_value;
-	} else {
+    // Set up the random number generator, deciding what kind of seed to use
+    unsigned long randomiser_seed;
+    if (supplementaryParameters.seedlist.use_fixed_seed) {
+        randomiser_seed = supplementaryParameters.seedlist.seed_value;
+    } else {
         randomiser_seed = time(nullptr);
-	}
+    }
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
+    IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
-	(*logger) << "[Seed]:\n    Type: ";
-    (*logger) << ((modelInputParameters.seedlist.use_fixed_seed) ? "Fixed" : "Time based") << std::endl;
-	(*logger) << "    Value: " << randomiser_seed << std::endl;
+    // Import common parameters for all models
+    CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
+
+    // Import model observational data
+    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
+    ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
+
+    // Log the disease seed settings
+    IO::LogSeedSettings(supplementaryParameters.seedlist, logger);
 
     // Select the model structure to use
     Model::ModelInterface::Sptr model;
-    if (ModelStructureId::ORIGINAL == modelInputParameters.model_structure)
+    if (ModelStructureId::ORIGINAL == supplementaryParameters.model_structure)
     {
-        model = std::make_shared<Model::OriginalModel>(rng);
+        model = std::make_shared<Model::OriginalModel>(commonParameters, modelObservations, rng, logger);
+    }
+    else if (ModelStructureId::IRISH == supplementaryParameters.model_structure)
+    {
+        model = std::make_shared<Model::IrishModel>(commonParameters, modelObservations, rng, logger);
     }
     else
     {
-        model = std::make_shared<Model::IrishModel>(rng);
+        model = std::make_shared<Model::TempModel>(commonParameters, modelObservations, rng, logger);
     }
 
     // Select the mode to run in - prediction or inference    
-    if (modelInputParameters.run_type == "Prediction")
+    if (ModelModeId::PREDICTION == supplementaryParameters.run_type)
     {
-		const std::string posterior_params_addr = std::string(ROOT_DIR)+"/data/example_posterior_parameter_sets.txt";
-		
-		modelInputParameters.posterior_param_list = 
-			IO::ReadPosteriorParametersFromFile(posterior_params_addr, 
-												modelInputParameters.posterior_parameter_select, 
-												logger);
+        std::string configDir(std::string(ROOT_DIR) + "/data");
+        int index = arg_parser.parameterSetIndex();
 
-        Prediction::PredictionFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
+        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger);
+        IO::LogPredictionConfig(predictionConfig, logger);
 
-        int n_sim_steps = 100;
+        // Update the model with the fixed parameters from the prediction configuration
+        model->SetFixedParameters(predictionConfig.fixedParameters);
+        
+        Prediction::PredictionFramework framework(model, predictionConfig, 
+            rng, out_dir, logger);
 
-		framework.Run(modelInputParameters.posterior_param_list, n_sim_steps);
+        framework.Run();
     }
     else
     {
-        Inference::InferenceFramework framework(model, modelInputParameters, observations, rng, out_dir, logger);
+        std::string configDir(std::string(ROOT_DIR) + "/data");
+        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger);
+
+        IO::LogFixedParameters(commonParameters.paramlist, logger);
+
+        Inference::InferenceFramework framework(model, inferenceConfig, rng, out_dir, logger);
         
         framework.Run();
     }
-	
 }

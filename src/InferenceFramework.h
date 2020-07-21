@@ -171,15 +171,13 @@ public:
      * @brief Framework constructor
      *
      * @param model Model interface
-     * @param modelInputParameters Model input parameters
-     * @param observations Observations
+     * @param inferenceConfig Inference config
      * @param rng Seeded random number generator
      * @param outDir Outputs directory path
      * @param log Logger
      */
     InferenceFramework(Model::ModelInterface::Sptr model,
-        const ModelInputParameters& modelInputParameters,
-        const InputObservations& observations,
+        const InferenceConfig& inferenceConfig,
         Random::RNGInterface::Sptr rng,
         const std::string& outDir,
         Utilities::logging_stream::Sptr log);
@@ -190,12 +188,11 @@ public:
      * Determines the offset for the start of the dataset based on
      * the given parameters
      * 
-     * @param modelInputParameters model parameters including seeding options
-     * @param log Logging stream
+     * @param inferenceConfig Inference config
      * 
      * @return integer offset value
      */
-    int GetTimeOffSet(const ModelInputParameters& modelInputParameters);
+    static int GetTimeOffSet(const InferenceConfig& inferenceConfig);
 
     /**
      * @brief Run the model within the inference framework
@@ -206,10 +203,12 @@ private:
     /**
      * @private
      * @brief Run the model inside the inference framework
+     * 
+     * Runs the model and computes the measures associated with the difference between the model 
+     * outputs and the observations
      */
-    void ModelSelect(EERAModel::particle& outvec, const std::vector<params>& fixed_parameters,
-	    const AgeGroupData& per_age_data, std::vector <int> agenums, const int& n_sim_steps, 
-	    seed seedlist, int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths);
+    void ModelSelect(EERAModel::particle& outvec, int n_sim_steps, 
+        seed seedlist, int day_shut, const std::vector<int>& obsHosp, const std::vector<int>& obsDeaths);
 
     /**
      * @private
@@ -232,7 +231,10 @@ private:
      * @private
      * @brief Compute the weight of a particle
      * 
-     * If @p smc is zero, the a weight of 1.0 is returned. 
+     * The weight of a given particle is the weighted sum of the weights of all previous particles which
+     * are "close" to the given particle. 
+     * 
+     * @note If @p smc is zero, the a weight of 1.0 is returned. 
      * 
      * @param smc ABC-smc loop number
      * @param previousParticles Previously accepted particles
@@ -265,11 +267,9 @@ private:
      * 
      * Compute a new set of kernel windows, based on the accepted particles from the last ABC-smc
      * loop. Update the framework's kernel windows with the result of the computation
-     * 
+     */
     void UpdateKernelWindows(int smc, std::vector<particle> particles);
     
-    void UpdateWeightDistribution();
-
     /**
      * @private
      * @brief Model interface
@@ -278,15 +278,9 @@ private:
 
     /**
      * @private
-     * @brief Model input parameters
+     * @brief Inference configuration
      */
-    ModelInputParameters modelInputParameters_;
-
-    /**
-     * @private
-     * @brief Model input observations
-     */
-    InputObservations observations_;
+    InferenceConfig inferenceConfig_;
 
     /**
      * @private
@@ -308,17 +302,15 @@ private:
 
     /**
      * @private
-     * @brief Tolerance limits for accepting particles
-     */
-    std::vector<double> toleranceLimits_;
-
-    /**
-     * @private
      * Inference parameter generator
      */
     InferenceParameterGenerator::Sptr inferenceParameterGenerator_;
 
-    InferenceParticleGenerator:: Sptr inferenceParticleGenerator_;
+    /**
+     * @private
+     * @brief Inference particle generator
+     */
+    InferenceParticleGenerator::Sptr inferenceParticleGenerator_;
 };
 
 /**
@@ -347,22 +339,6 @@ std::vector<KernelWindow> ComputeKernelWindow(int nPar, const std::vector<partic
  */
 std::discrete_distribution<int> ComputeWeightDistribution(
 	const std::vector<EERAModel::particle>& particleList);
-
-/**
- * @brief Log the model settings
- * 
- * @param params Model input parameters
- * @param log Logger
- */
-void logSettings(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
-
-/**
- * @brief Log the model fixed parameters
- * 
- * @param params Model input parameters
- * @param log Logger
- */
-void logFixedParameters(const ModelInputParameters& params, Utilities::logging_stream::Sptr log);
 
 } // namespace Inference
 } // namespace EERAModel

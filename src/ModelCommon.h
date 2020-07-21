@@ -36,9 +36,19 @@ public:
      * 
      * Interface to model-specific implementation
      */
-    virtual Status Run(std::vector<double> parameter_set, std::vector<::EERAModel::params> fixed_parameters,
-				AgeGroupData per_age_data, seed seedlist, int day_shut, std::vector<int> agenums, 
-				int n_sim_steps) = 0;
+    virtual Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) = 0;
+
+    /**
+     * @brief Set the fixed parameters in the model
+     * 
+     * @note This interface is required by the prediction framework, as when running in prediction
+     * mode, the fixed parameters come from a differen source than when running in inference mode. 
+     * When this function is called, it will overwrite the fixed parameters that were set when the
+     * model object was created.
+     * 
+     * @param paramlist Fixed model parameters
+     */
+    virtual void SetFixedParameters(const params& paramlist) = 0;
 };
 
 /**
@@ -119,7 +129,7 @@ int accumulate_compartments(const Compartments& comp);
  * 
  * @return The population of the region
  */
-int GetPopulationOfRegion(const InputObservations& obs, int region_id);
+int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id);
 
 /**
  * @brief Compute number of health care workers (HCW) in the region
@@ -129,9 +139,9 @@ int GetPopulationOfRegion(const InputObservations& obs, int region_id);
  * 
  * @param regionalPopulation Population of the region
  * @param totalHCW Total number of HCWs in the country
- * @param observations Input observations
+ * @param obs Input observations
  */
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const InputObservations& observations);
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs);
 
 /**
  * @brief Compute the agenums 
@@ -142,7 +152,7 @@ int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const Input
  * 
  * @return agenums
  */
-std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const InputObservations& obs);
+std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const ObservationsForModels& obs);
 
 /**
  * @brief Build the fixed parameters data structure

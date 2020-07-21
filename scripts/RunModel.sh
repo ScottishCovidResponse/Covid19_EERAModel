@@ -9,8 +9,9 @@ function usage {
 
 EXEPATH=$1
 OUTPUT_DIR=$2
+FLAGS=${@:3}
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -le 2 || $# -gt 6 ]]; then
   echo "ERROR: Invalid ($#) number of arguments"
   usage
   exit 1
@@ -29,9 +30,9 @@ else
     rm $OUTPUT_DIR/* 2> /dev/null
   fi
   
-  $EXEPATH $OUTPUT_DIR
+  $EXEPATH $FLAGS
   if [ $? -ne 0 ]; then
-    echo "ERROR: Running command $EXEPATH $OUTPUT_DIR failed"
+    echo "ERROR: Running command $EXEPATH $FLAGS failed"
 	exit 1
   else
     echo "Model run completed"
