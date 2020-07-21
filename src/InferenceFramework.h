@@ -5,7 +5,6 @@
 #include "Random.h"
 #include "Utilities.h"
 #include "InferenceParameters.h"
-#include <ctime>
 
 namespace EERAModel {
 namespace Inference {
@@ -65,8 +64,16 @@ private:
      */
     unsigned int nInferenceParams_;
 
+    /**
+     * @private
+     * @brief Scale factor for the kernel windows
+     */
     double kernelFactor_;
 
+    /**
+     * @private
+     * @brief Seeded random number generator
+     */
     Random::RNGInterface::Sptr rng_;
     
     /**
