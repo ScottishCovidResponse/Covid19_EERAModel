@@ -106,7 +106,7 @@ void TempModel::GenerateDiseasedPopulation(std::vector<Compartments>& poparray,
 
 }
 
-Status TempModel::Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) {
+Status TempModel::Run(std::vector<double> parameter_set, const seed& seedlist, int day_shut, int n_sim_steps) {
 	Status status = {{0}, {0}, {0}, {}, {}};
 
 	const int n_agegroup = ageGroupData_.waifw_norm.size();
@@ -165,6 +165,11 @@ Status TempModel::Run(std::vector<double> parameter_set, seed& seedlist, int day
 	}
 
 	return status;
+}
+
+void TempModel::SetFixedParameters(const params& paramlist)
+{
+    fixedParameters_ = BuildFixedParameters(fixedParameters_.size(), paramlist);
 }
 
 InfectionState TempModel::GenerateInfectionSpread(Compartments& pop,

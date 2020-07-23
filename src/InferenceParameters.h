@@ -66,34 +66,28 @@ public:
      * @brief Generate a set of parameters by perturbing an existing set
      * 
      * @param existingSet Existing parameter set to perturb
-     * @param Kernel for the perturbation (scales the range of the perturbation)
-     * @param vect_Min Minimum allowed values for the perturbed parameters
-     * @param vect_Max Maximum allowed values for the perturbed parameters
+     * @param kernelWindows Kernel windows for each parameter
      * 
      * @return Parameter set
      */ 
     std::vector<double> GenerateWeighted(
         const std::vector<double>& existingSet,
-	    const std::vector<double>& vlimitKernel,
-	    const std::vector<double>& vect_Max,
-        const std::vector<double>& vect_Min
+	    const std::vector<KernelWindow>& kernelWindows
     );
 
     /**
      * @brief Generate a single parameter value by perturbing an existing value
      * 
      * Generates a single parameter value, as a perturbation of an existing parameter value. The 
-     * returned value is guaranteed to lie between @p min and @p max. The perturbation is performed
-     * using a uniform value in the range +/- @p kernel.
+     * returned value is guaranteed to lie between @p window.min and @p window.max. The perturbation is performed
+     * using a uniform value in the range +/- @p window.kernel.
      * 
      * @param oldParam Existing parameter value
-     * @param kernel Scale factor for generation
-     * @param max Upper limit for generated value
-     * @param min Lower limit for generated value
+     * @param window Kernel window for the parameter
      * 
      * @return Generated value
      */
-    inline double PerturbParameter(double oldParam, double kernel, double max, double min);
+    inline double PerturbParameter(double oldParam, const KernelWindow& window);
 
 private:
     /**

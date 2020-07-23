@@ -34,8 +34,15 @@ public:
      * 
      * @return Status of model after run
      */
-    Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) override;
+    Status Run(std::vector<double> parameter_set, const seed& seedlist, int day_shut, int n_sim_steps) override;
 
+    /**
+     * @brief Set the fixed parameters in the model
+     * 
+     * @param paramlist Fixed model parameters
+     */
+    void SetFixedParameters(const params& paramlist) override;
+    
 private:
     /**
      * @brief Construct the population seed

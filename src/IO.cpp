@@ -162,8 +162,17 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
     
-    predictionConfig.posterior_parameters = ReadPosteriorParametersFromFile(parametersFile,
-        predictionConfig.index);
+    // The posterior parameters are columns 0 to 7; the fixed parameters are columns 8 to 15
+    std::vector<double> modelParameters = ReadPredictionParametersFromFile(parametersFile, predictionConfig.index);
+    predictionConfig.posterior_parameters = std::vector<double>(modelParameters.begin(), modelParameters.begin() + 8);
+    predictionConfig.fixedParameters.T_lat      = modelParameters[8];
+    predictionConfig.fixedParameters.juvp_s     = modelParameters[9];
+    predictionConfig.fixedParameters.T_inf      = modelParameters[10];
+    predictionConfig.fixedParameters.T_rec      = modelParameters[11];
+    predictionConfig.fixedParameters.T_sym      = modelParameters[12];
+    predictionConfig.fixedParameters.T_hos      = modelParameters[13];
+    predictionConfig.fixedParameters.K          = static_cast<int>(modelParameters[14]);
+    predictionConfig.fixedParameters.inf_asym   = modelParameters[15];
 
     return predictionConfig;
 }
@@ -324,7 +333,7 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
     std::vector<std::vector<double>> lines;
     char delimiter = ',';
     
-    lines = Utilities::read_csv<double>(filePath, delimiter);
+    lines = Utilities::read_csv<double>(filePath, delimiter, true);
 
     // Select line from input file and store result in another temporary vector
     if (set_selection >= static_cast<int>(lines.size())){
@@ -347,6 +356,37 @@ std::vector<double> ReadPosteriorParametersFromFile(const std::string& filePath,
     std::vector<double> parameter_sets(first, last);
 
     return parameter_sets;
+}
+
+std::vector<double> ReadPredictionParametersFromFile(const std::string& filePath, int index)
+{
+    // Temporary matrix to hold data from input file
+    std::vector<std::vector<double>> lines;
+    char delimiter = ',';
+    
+    lines = Utilities::read_csv<double>(filePath, delimiter, true);
+
+    // Select line from input file and store result in another temporary vector
+    if (index >= static_cast<int>(lines.size())){
+        std::stringstream SetSelectError;
+        SetSelectError << "Parameter set selection out of bounds! Please select between 0-" << (lines.size() - 1) << "..." << std::endl;
+        throw std::overflow_error(SetSelectError.str());
+    }
+    std::vector<double> line_select = lines[index];
+
+    // Skip the index column
+    auto first = line_select.cbegin() + 1;
+    auto last = line_select.cend();
+    
+    // There are 16 columns in the file: 8 posterior parameters + 8 fixed parameters
+    const int nPar = 16;
+    if ((last - first) != nPar) {
+        std::stringstream PosteriorFileFormatError;
+        PosteriorFileFormatError << "Please check formatting of posterior parameter input file, 16 parameter values are needed..." << std::endl;
+        throw std::runtime_error(PosteriorFileFormatError.str());
+    }
+
+    return std::vector<double>(first, last);
 }
 
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
@@ -463,17 +503,10 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
     output_full.close();
 }
 
-void LogFixedParameters(const CommonModelInputParameters& params, Utilities::logging_stream::Sptr log)
+void LogFixedParameters(const params& paramlist, Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Fixed parameter values]:\n";
-    (*log) << "    latent period (theta_l): " << params.paramlist.T_lat <<std::endl;
-    (*log) << "    pre-clinical period (theta_i): " << params.paramlist.T_inf <<std::endl;
-    (*log) << "    asymptomatic period (theta_r): " << params.paramlist.T_rec <<std::endl;
-    (*log) << "    symptomatic period (theta_s): " << params.paramlist.T_sym <<std::endl;
-    (*log) << "    hospitalisation stay (theta_h): " << params.paramlist.T_hos <<std::endl;
-    (*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << params.paramlist.juvp_s <<std::endl;
-    (*log) << "    bed capacity at hospital (K): " << params.paramlist.K <<std::endl;
-    (*log) << "    relative infectiousness of asymptomatic (u): " << params.paramlist.inf_asym <<std::endl;
+    OutputFixedParameters(log, paramlist);
 }
 
 void LogRandomiserSettings(const SupplementaryInputParameters& params, unsigned long randomiser_seed, 
@@ -509,6 +542,7 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
     (*log) << "    p_s: "               << config.posterior_parameters[5] << std::endl;
     (*log) << "    rrd: "               << config.posterior_parameters[6] << std::endl;
     (*log) << "    intro: "             << config.posterior_parameters[7] << std::endl;
+    OutputFixedParameters(log, config.fixedParameters);
 }
 
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
@@ -518,6 +552,18 @@ void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
     (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
     (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;
     (*log) << "    Uncommitted changes: " << (GitMetadata::AnyUncommittedChanges() ? "Yes" : "No") << std::endl;
+}
+
+void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& paramlist)
+{
+    (*log) << "    latent period (theta_l): " << paramlist.T_lat << std::endl;
+    (*log) << "    pre-adult probability of symptoms devt (p_s[0]): " << paramlist.juvp_s << std::endl;
+    (*log) << "    pre-clinical period (theta_i): " << paramlist.T_inf <<std::endl;
+    (*log) << "    asymptomatic period (theta_r): " << paramlist.T_rec <<std::endl;
+    (*log) << "    symptomatic period (theta_s): " << paramlist.T_sym <<std::endl;
+    (*log) << "    hospitalisation stay (theta_h): " << paramlist.T_hos <<std::endl;
+    (*log) << "    bed capacity at hospital (K): " << paramlist.K <<std::endl;
+    (*log) << "    relative infectiousness of asymptomatic (u): " << paramlist.inf_asym <<std::endl;
 }
 
 } // namespace IO

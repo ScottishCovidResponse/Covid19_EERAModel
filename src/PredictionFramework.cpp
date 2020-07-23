@@ -2,6 +2,7 @@
 #include "ModelCommon.h"
 #include "Observations.h"
 #include "IO.h"
+#include "Timer.h"
 
 namespace EERAModel {
 namespace Prediction {
@@ -20,14 +21,12 @@ PredictionFramework::PredictionFramework(
 
 void PredictionFramework::Run()
 {
-    clock_t startTime = clock();
+    SimpleTimer timer;
 
     Status status = model_->Run(config_.posterior_parameters, config_.seedlist,
         config_.day_shut, config_.n_sim_steps);
 
-    double time_taken = static_cast<double>(clock() - startTime)/static_cast<double>(CLOCKS_PER_SEC);
-
-    (*log_) << "\n <computation time> " << time_taken << " seconds.\n";
+    (*log_) << "\n <computation time> " << timer.elapsedTime() << " seconds.\n";
 
     std::vector<std::vector<int>> end_comps = Model::compartments_to_vector(status.ends);
 
