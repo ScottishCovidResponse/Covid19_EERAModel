@@ -1,19 +1,48 @@
-library(SCRCdataAPI)
+##############################################################################
+#                                                                            #
+#                        EERA Model Parameter Upload                         #
+#                                                                            #
+#   This script adds new entries into the data registry for the EERA model   #
+#   parameters and creates TOML files which should then be uploaded to the   #
+#   relevant storage platform (ScottishCovidResponse/DataRepository on       #
+#   GitHub at time of writing).                                              #
+#                                                                            #
+#   You will require an API token from the registry stored in:               #
+    token_file <- "token.txt"                                                #
+#                                                                            #
+#   This script is based on the upload scripts by Sonia Mitchell.            #
+#                                                                            #
+#   @author K. Zarebski                                                      #
+#   @date   last modified 2020-07-27                                         #
+    global_version <- "0.1.0"                                                #
+#                                                                            #
+##############################################################################
+
+library(SCRCdataAPI)    # Requires the latest SCRCdataAPI library
+
+# Start constructing address locations
+# two sets of data: 
+#   - EERA/fixed-parameters
+#   - EERA/prior-distributions
 
 namespace <- "EERA"
 prefix <- list(fixed="fixed-parameters", prior_dis="prior-distributions")
-global_version <- "0.1.0"
 
-key <- read.table("token.txt")
+key <- read.table(token_file)
+
+# Assemble remote storage location objects
 data_github_url <- "git@github.com:ScottishCovidResponse/DataRepository.git"
 productStorageRoot <- "DataRepository"
 storage_rootId <- new_storage_root(
   name = productStorageRoot,
   root = "https://raw.githubusercontent.com/ScottishCovidResponse/DataRepository/",
   key = key)
+
 namespaceId <- new_namespace(name = namespace,
                              key = key)
 
+# List of fixed parameters and their values, if a single parameter is updated
+# without changing the others the version number should also be set
 fixed <- list(
     list(name="K",         value=2000,   version=global_version),
     list(name="T_hos",     value=5,      version=global_version),
@@ -27,10 +56,14 @@ fixed <- list(
     list(name="total_hcw", value=112974, version=global_version)
 )
 
+# List of prior distributions and their parameters, if a single distribution is
+# updated without changing the others the version number should also be set
 prior_dis <- list(
     list(name="rrd", type="gamma", params=list(shape=1.0, scale=1.0), version=global_version)
 )
 
+# Iterate through fixed parameters creating TOML objects and adding them
+# as statements within the DataRegistry
 for(param in fixed)
 {
     name <- file.path(prefix$fixed, param$name)
@@ -52,6 +85,8 @@ for(param in fixed)
                     key = key)
 }
 
+# Iterate through prior distibutions creating TOML objects and adding them
+# as statements within the DataRegistry
 for(dis in prior_dis)
 {
     name <- file.path(prefix$prior_dis, dis$name)

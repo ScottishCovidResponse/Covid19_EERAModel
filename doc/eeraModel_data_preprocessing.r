@@ -31,7 +31,7 @@ scot_tot_pop = as.data.frame(list(`Name` = "Scotland",`Population` = sum(scot_po
   mutate_if(is.factor,as.character)
 scot_pop <- bind_rows(scot_pop,scot_tot_pop)
 scot_deaths <- read_csv(file = WATTY62DEATHS, col_types = cols()) 
-scot_deaths[scot_deaths == "x"] <- -999   
+scot_deaths[scot_deaths == "x"] <- -999
 scot_deaths <- scot_deaths %>% 
   rename(`Scotland`= `Grand Total`) %>%
   mutate(Date = lubridate::dmy(Date))
