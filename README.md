@@ -27,6 +27,8 @@ The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command l
 
 The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking) for encoding Git repository information in the project binary files. It was developed by Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
 
+The project makes use of an [INI file parser](https://www.codeproject.com/Articles/8342/CIniFile-Class-for-C-A-robust-cross-platform-INI-f) to read values from parameter files. It is used under the terms of the license [here](https://www.codeproject.com/info/cpol10.aspx).
+
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
 directory:
