@@ -2,6 +2,7 @@
 #include "ModelCommon.h"
 #include "Utilities.h"
 #include "Git.h"
+#include "Dependencies.h"
 
 #include <valarray>
 #include <fstream>
@@ -507,6 +508,15 @@ void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
     (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
     (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;
     (*log) << "    Uncommitted changes: " << (GitMetadata::AnyUncommittedChanges() ? "Yes" : "No") << std::endl;
+}
+
+void LogDependencyVersionInfo(Utilities::logging_stream::Sptr log)
+{
+    (*log) << "[Dependency Versioning]"    << std::endl;
+    (*log) << "    Compiler id: "    << DependencyVersions::CompilerId() << std::endl;
+    (*log) << "    Compiler version: "    << DependencyVersions::CompilerVersion() << std::endl;
+    (*log) << "    CMake version: "    << DependencyVersions::CMakeVersion() << std::endl;
+    (*log) << "    GSL version: " << DependencyVersions::GSLVersion() << std::endl;
 }
 
 void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& paramlist)
