@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include "ModelTypes.h"
+#include "IO-datapipeline.h"
 #include "IO.h"
 #include "Random.h"
 #include "ModelCommon.h"
@@ -24,6 +25,8 @@ int main(int argc, char** argv)
     arg_parser.logArguments(logger);
 
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
+
+    IO::IOdatapipeline datapipeline{params_addr};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);

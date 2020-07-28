@@ -344,6 +344,48 @@ std::vector<double> ReadPredictionParametersFromFile(const std::string& filePath
     return std::vector<double>(first, last);
 }
 
+bool ReadBoolFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath) 
+{
+	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+
+	char* endptr = nullptr;
+	bool Value = false;
+
+	/* Convert to upper case */
+	std::transform(SettingValue.begin(), SettingValue.end(), SettingValue.begin(), ::tolower);
+
+	if (SettingValue == "true" || SettingValue == "t")
+	{
+		Value = true;
+	}
+	else if (SettingValue == "false" || SettingValue == "f")
+	{
+		Value = false;
+	}
+	else
+	{
+		std::stringstream SettingParseError;
+		SettingParseError << std::endl;
+		SettingParseError << "Invalid value in Parameter File: " << filePath.c_str() <<  std::endl;
+		SettingParseError << "Category: " << SettingCategory.c_str() << std::endl;
+		SettingParseError << "Setting: " << SettingName.c_str() << std::endl;
+		SettingParseError << "Value: " << SettingValue.c_str() << std::endl;
+		throw std::runtime_error(SettingParseError.str());
+	}
+	return Value;
+}
+
+std::string ReadStringFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath) 
+{
+	return CIniFile::GetValue(SettingName, SettingCategory, filePath);
+}
+
+bool ExistsInFile(std::string SettingName, std::string SettingCategory, const std::string& filePath)
+{
+	return CIniFile::RecordExists(SettingName, SettingCategory, filePath);
+}
+
+
 void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
     const std::vector<particle>& particleList, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {

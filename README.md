@@ -115,6 +115,7 @@ This file contains general model parameters, in `.ini` format. Parameters are gr
 | ------------- |:-------------:|:-------------:|:-------------:|
 | Settings      | shb\_id           | Integer        | Identifier for selected health board (1-15)           |
 | Settings       | tau           | Float        |  Time step scale factor           |
+| Settings       | datapipeline_config | File pathname        | Location of data pipeline configuration yaml file                |
 | Seed settings       | seedmethod           | String        | Seeding method ("background" or "random")           |
 | Seed settings       | nseed           | Integer        | Population seeding number <br>(Random seeding only)           |
 | Seed settings       | hrp           | Integer        | High Risk Period in days <br>(Background seeding only)        |
@@ -125,6 +126,7 @@ This file contains general model parameters, in `.ini` format. Parameters are gr
 | Fit settings       | nSim          | Integer        | Maximum number of model runs to execute per inference step|
 | Fit settings       | kernelFactor          | Float        | Scale factor for inference parameter kernel window|
 | Tolerance settings       | Key1..10          | Float        | Tolerance factor for accepting inference particles|
+| Fixed parameters        | use_datapipeline   | Bool           | Use data pipeline for fixed parameters <br>(optional: default = false) |
 | Fixed parameters        | totN\_hcw          | Integer        | Total number of health care workers in Scotland|
 | Fixed parameters        | day\_shut          | Integer        | Time at which lockdown began <br>(days with respect to time series start)|
 | Fixed parameters        | T\_lat          | Float        | Mean latent period (days)|

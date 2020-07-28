@@ -178,6 +178,39 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
 }
 
 /**
+ * @brief Extract a Boolean value from an INI file
+ * 
+ * @param SettingName Name of value to retrieve
+ * @param SettingCategory Name of category in which the value is located in the INI file
+ * @param filePath Path to the INI file
+ * 
+ * @return Boolean value
+ */
+bool ReadBoolFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath);
+
+/**
+ * @brief Extract a String value from an INI file
+ * 
+ * @param SettingName Name of value to retrieve
+ * @param SettingCategory Name of category in which the value is located in the INI file
+ * @param filePath Path to the INI file
+ * 
+ * @return String value
+ */
+std::string ReadStringFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath);
+
+/**
+ * @brief Confirm the existence of value record in an INI file
+ * 
+ * @param SettingName Name of value to retrieve
+ * @param SettingCategory Name of category in which the value is located in the INI file
+ * @param filePath Path to the INI file
+ * 
+ * @return bool indicating presence or not
+ */
+bool ExistsInFile(std::string SettingName, std::string SettingCategory, const std::string& filePath);
+
+/**
  * @brief Log fixed parameters
  * 
  * Log the fixed parameters of a model

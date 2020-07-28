@@ -1,0 +1,30 @@
+data_directory: data
+access_log: access-{run_id}.yaml
+fail_on_hash_mismatch: True
+namespace: EERA
+read:
+  - where:
+      data_product: fixed-parameters/T_lat
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/juvp_s
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/T_inf
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/T_rec
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/T_sym
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/T_hos
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/K
+      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/inf_asym
+      version: 0.1.0
+
