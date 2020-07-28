@@ -1,0 +1,25 @@
+#include "Dependencies.h"
+
+namespace EERAModel {
+
+std::string DependencyVersions::CMakeVersion()
+{
+    return "@CMAKE_VERSION@";
+}
+
+std::string DependencyVersions::CompilerId()
+{
+    return "@CMAKE_CXX_COMPILER_ID@";
+}
+
+std::string DependencyVersions::CompilerVersion()
+{
+    return "@CMAKE_CXX_COMPILER_VERSION@";
+}
+
+std::string DependencyVersions::GSLVersion()
+{
+    return "@GSL_VERSION@";
+}
+
+} // namespace EERAModel

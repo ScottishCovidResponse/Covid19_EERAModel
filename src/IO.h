@@ -226,6 +226,13 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log);
 
 /**
+ * @brief Log versions of project dependencies
+ * 
+ * @param log Logger
+ */
+void LogDependencyVersionInfo(Utilities::logging_stream::Sptr log);
+
+/**
  * @brief Write formatted fixed parameters to an output logging stream
  * 
  * @param log Output logger
