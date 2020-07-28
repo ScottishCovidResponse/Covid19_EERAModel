@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <iostream>
 
 namespace EERAModel {
 
@@ -234,6 +236,167 @@ struct PredictionConfig
     int index;          /*! Index of selected parameters within posterior parameters file */
     std::vector<double> posterior_parameters;  /*! Set of model parameters */
     params fixedParameters; /*! Set of model fixed parameters */
+};
+
+class HealthBoardData
+{
+	public:
+		HealthBoardData(
+			const std::string& HealthBoardLabel,
+			const std::vector<std::vector<int>>& cases,
+			const std::vector<std::vector<int>>& deaths,
+			const std::vector<std::vector<double>>& age_pop,
+			const std::vector<std::vector<double>>& waifw_norm, 
+			const std::vector<std::vector<double>>& waifw_home, 
+			const std::vector<std::vector<double>>& waifw_sdist, 
+			const std::vector<std::vector<double>>& cfr_byage, 
+			const std::vector<std::vector<double>>& pf_byage
+		):
+			health_board_label_(HealthBoardLabel),
+			cases_(cases),
+			deaths_(deaths),
+			age_pop_(age_pop),
+			waifw_norm_(waifw_norm),
+			waifw_home_(waifw_home),
+			waifw_sdist_(waifw_sdist),
+			cfr_byage_(cfr_byage),
+			pf_byage_(pf_byage) {};
+
+		std::vector<int> DailyCases = cases_[HealthBoardMap_[health_board_label_]];
+		std::vector<int> DailyDeaths = deaths_[HealthBoardMap_[health_board_label_]];
+
+		unsigned int PopulationSize = cases_[HealthBoardMap_[health_board_label_]][0];
+		double PopulationProportion_Pre_20 = 
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_Pre_20"]][HealthBoardMap_[health_board_label_]];
+		double PopulationProportion_20_29 = 
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_20_29"]][HealthBoardMap_[health_board_label_]];
+		double PopulationProportion_30_39 =
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_30_39"]][HealthBoardMap_[health_board_label_]];
+		double PopulationProportion_40_49 =
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_40_49"]][HealthBoardMap_[health_board_label_]];;
+		double PopulationProportion_50_59 =
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_50_59"]][HealthBoardMap_[health_board_label_]];;
+		double PopulationProportion_60_69 =
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_60_69"]][HealthBoardMap_[health_board_label_]];;
+		double PopulationProportion_Post_70 =
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_Post_70"]][HealthBoardMap_[health_board_label_]];;
+		double PopulationProportion_HealthCareWorkers = 
+			PopulationSize*age_pop_[AgeGroupMap_["AgeGroup_HealthCareWorkers"]][HealthBoardMap_[health_board_label_]];;
+
+		double FullAgeContacts_ToFrom(const std::string& To, const std::string& From) {
+			return waifw_norm_[AgeGroupMap_[To]][AgeGroupMap_[From]];
+		}
+
+		double HomeAgeContacts_ToFrom(const std::string& To, const std::string& From) {
+			return waifw_home_[AgeGroupMap_[To]][AgeGroupMap_[From]];
+		}
+
+		double SDistAgeContacts_ToFrom(const std::string& To, const std::string& From) {
+			return waifw_sdist_[AgeGroupMap_[To]][AgeGroupMap_[From]];
+		}
+
+		double ProbabilityOfHospitalisation_Pre_20 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Pre_20"]][0];
+		double ProbabilityOfHospitalisation_20_29 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_20_29"]][0];
+		double ProbabilityOfHospitalisation_30_39 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_30_39"]][0];
+		double ProbabilityOfHospitalisation_40_49 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_40_49"]][0];
+		double ProbabilityOfHospitalisation_50_59 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_50_59"]][0];
+		double ProbabilityOfHospitalisation_60_69 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_60_69"]][0];
+		double ProbabilityOfHospitalisation_Post_70 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Post_70"]][0];
+		double ProbabilityOfHospitalisation_HealthCareWorkers =
+			cfr_byage_[AgeGroupMap_["AgeGroup_HealthCareWorkers"]][0];
+
+		double CaseFatalityRatio_Pre_20 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Pre_20"]][1];
+		double CaseFatalityRatio_20_29 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_20_29"]][1];
+		double CaseFatalityRatio_30_39 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_30_39"]][1];
+		double CaseFatalityRatio_40_49 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_40_49"]][1];
+		double CaseFatalityRatio_50_59 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_50_59"]][1];
+		double CaseFatalityRatio_60_69 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_60_69"]][1];
+		double CaseFatalityRatio_Post_70 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Post_70"]][1];
+		double CaseFatalityRatio_HealthCareWorkers =
+			cfr_byage_[AgeGroupMap_["AgeGroup_HealthCareWorkers"]][1];
+
+		double ProbabilityOfDeath_Pre_20 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Pre_20"]][2];
+		double ProbabilityOfDeath_20_29 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_20_29"]][2];
+		double ProbabilityOfDeath_30_39 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_30_39"]][2];
+		double ProbabilityOfDeath_40_49 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_40_49"]][2];
+		double ProbabilityOfDeath_50_59 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_50_59"]][2];
+		double ProbabilityOfDeath_60_69 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_60_69"]][2];
+		double ProbabilityOfDeath_Post_70 =
+			cfr_byage_[AgeGroupMap_["AgeGroup_Post_70"]][2];
+		double ProbabilityOfDeath_HealthCareWorkers =
+			cfr_byage_[AgeGroupMap_["AgeGroup_HealthCareWorkers"]][2];
+
+
+		double SusceptibilityProbability_Pre_20 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_Pre_20"]];
+		double SusceptibilityProbability_20_29 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_20_29"]];
+		double SusceptibilityProbability_30_39 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_30_39"]];
+		double SusceptibilityProbability_40_49 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_40_49"]];
+		double SusceptibilityProbability_50_59 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_50_59"]];
+		double SusceptibilityProbability_60_69 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_60_69"]];
+		double SusceptibilityProbability_Post_70 =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_Post_70"]];
+		double SusceptibilityProbability_HealthCareWorkers =
+			pf_byage_[HealthBoardMap_[health_board_label_]][AgeGroupMap_["AgeGroup_HealthCareWorkers"]];
+
+	private:
+		std::string health_board_label_;
+		std::vector<std::vector<int>> cases_;
+		std::vector<std::vector<int>> deaths_;
+		std::vector<std::vector<double>> age_pop_;
+		std::vector<std::vector<double>> waifw_norm_;
+		std::vector<std::vector<double>> waifw_home_;
+		std::vector<std::vector<double>> waifw_sdist_;
+		std::vector<std::vector<double>> cfr_byage_;
+		std::vector<std::vector<double>> pf_byage_;
+		std::map<std::string, int> HealthBoardMap_{{"Health Board 0", 0},
+												   {"Health Board 1", 1},
+												   {"Health Board 2", 2},
+												   {"Health Board 3", 3},
+												   {"Health Board 4", 4},
+												   {"Health Board 5", 5},
+												   {"Health Board 6", 6},
+												   {"Health Board 7", 7},
+												   {"Health Board 8", 8},
+												   {"Health Board 9", 9},
+												   {"Health Board 10", 10},
+												   {"Health Board 11", 11},
+												   {"Health Board 12", 12},
+												   {"Health Board 13", 13},
+												   {"Health Board 14", 14}};
+		std::map<std::string, int> AgeGroupMap_{{"AgeGroup_Pre_20", 0},
+												{"AgeGroup_20_29", 1},
+												{"AgeGroup_30_39", 2},
+												{"AgeGroup_40_49", 3},
+												{"AgeGroup_50_59", 4},
+												{"AgeGroup_60_69", 5},
+												{"AgeGroup_Post_70", 6},
+												{"AgeGroup_HealthCareWorkers", 7}};
 };
 
 } // namespace EERAModel
