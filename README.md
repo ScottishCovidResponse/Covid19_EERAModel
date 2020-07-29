@@ -82,6 +82,10 @@ This file contains general model parameters, in `.ini` format. Parameters are gr
 | ------------- |:-------------:|:-------------:|:-------------:|
 | Settings      | shb\_id           | Integer        | Identifier for selected health board (1-15)           |
 | Settings       | tau           | Float        |  Time step scale factor           |
+| Settings       | nHealthBoards | Int        |  Number of Health Boards (validation purposes)           |
+| Settings       | nAgeGroups | Int        |  Number of Age Groups (validation purposes)           |
+| Settings       | nCfrCategories | Int        | Number of Case State Categories (validation purposes)          |
+| Settings       | nCasesDays | Int        | Number of days that observations are recorded for (validation purposes)           |
 | Seed settings       | seedmethod           | String        | Seeding method ("background" or "random")           |
 | Seed settings       | nseed           | Integer        | Population seeding number <br>(Random seeding only)           |
 | Seed settings       | hrp           | Integer        | High Risk Period in days <br>(Background seeding only)        |

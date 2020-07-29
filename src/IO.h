@@ -38,10 +38,19 @@ private:
  * 
  * @param filePath Path to imported data
  * @param axisLength Length of axis to be checked
- * @param expectedLength Expeceted Length of axis to check against
+ * @param expectedLength Expected Length of axis to check against
  * @param axisID String holding axis identifier ("rows" or "columns")
  */
 void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue);
+
+/**
+ * @brief Import parameters used for validating observation data
+ * 
+ * @param configDir Directory containing INI file
+ * 
+ * @return Validation parameters
+ */
+ValidationParameters ImportValidationParameters(const std::string& configDir);
 
 /**
  * @brief Read supplementary parameters used for main.cpp.
@@ -183,6 +192,9 @@ ParseVariableType ReadNumberFromFile(std::string SettingName, std::string Settin
 	if (!Utilities::fileExists(filePath)) { throw IOException(filePath + ": File not found!"); }
 
 	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	if (SettingValue.empty()) { 
+		throw IOException("Variable: " + SettingName + " in Category: " + SettingCategory + " not found in File: " + filePath);
+	}
 
 	char* endptr = nullptr;
 	ParseVariableType Value;

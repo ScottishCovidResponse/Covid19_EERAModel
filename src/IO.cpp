@@ -22,7 +22,19 @@ void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axi
         throw IOException(IOMessage.str());
     }
 
-    return;
+}
+
+ValidationParameters ImportValidationParameters(const std::string& configDir)
+{
+    ValidationParameters parameters;
+    std::string filePath(configDir + "/parameters.ini");
+
+    parameters.nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", filePath);
+    parameters.nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", filePath);
+    parameters.nCfrCategories = ReadNumberFromFile<int>("nCfrCategories", "Settings", filePath);
+    parameters.nCasesDays = ReadNumberFromFile<int>("nCasesDays", "Settings", filePath);
+
+    return parameters;
 }
 
 seed ReadSeedSettings(const std::string& ParamsPath, Utilities::logging_stream::Sptr log)
@@ -202,8 +214,9 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
 
     const std::string settings_file = configDir + "/parameters.ini";
 
-    int nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", settings_file);
-    int nCasesDays = ReadNumberFromFile<int>("nCasesDays", "Settings", settings_file);
+    ValidationParameters validationParams = ImportValidationParameters(configDir);
+    int nHealthBoards = validationParams.nHealthBoards;
+    int nCasesDays = validationParams.nCasesDays;
 
     unsigned int cases_rows = observations.cases.size();
     unsigned int cases_cols = observations.cases[0].size();
@@ -235,10 +248,11 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     const std::string scot_frail_file = configDir + "/scot_frail.csv";
     const std::string settings_file = configDir + "/parameters.ini";
 
-    int nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", settings_file);
-    int nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", settings_file);
-    int nCfrCategories = ReadNumberFromFile<int>("nCfrCategories", "Settings", settings_file);
-    int nCasesDays = ReadNumberFromFile<int>("nCasesDays", "Settings", settings_file);
+    ValidationParameters validationParameters = ImportValidationParameters(configDir);
+    int nHealthBoards = validationParameters.nHealthBoards;
+    int nAgeGroups = validationParameters.nAgeGroups;
+    int nCfrCategories = validationParameters.nCfrCategories;
+    int nCasesDays = validationParameters.nCasesDays;
 
     //Uploading observed disease data
     //Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
