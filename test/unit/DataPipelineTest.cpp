@@ -31,4 +31,5 @@ TEST(TestIODatapipeline, CanReadFixedParameters)
     EXPECT_EQ(params.paramlist.T_hos, 5);
     EXPECT_EQ(params.paramlist.K, 2000);
     EXPECT_EQ(params.paramlist.inf_asym, 1.0);
+    EXPECT_EQ(params.totN_hcw, 112974);
 }

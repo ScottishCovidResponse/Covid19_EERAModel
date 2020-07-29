@@ -86,6 +86,7 @@ SupplementaryInputParameters ReadSupplementaryParameters(const std::string& Para
 
 CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 {
+    std::cout << "(Files): ReadFixedModelParameters\n";
     CommonModelInputParameters commonParameters;
 
     commonParameters.paramlist  = ReadFixedModelParameters(ParamsPath);

@@ -25,8 +25,23 @@ public:
     IOdatapipeline& operator=(const IOdatapipeline& other) = delete;
     IOdatapipeline& operator=(IOdatapipeline&& other) = delete;
 
-
+    /**
+     * @brief Constructor
+     * 
+     * Constructs an object suitable for interacting with the data pipeline local
+     * store. Note that a local python object as below must be active and remain in
+     * scope for the durection of the use of this class:
+     * 
+     *     pybind11::scoped_interpreter guard{};
+     * 
+     * This object establishes a python interpreter in the background and its
+     * destruction equally takes away that capability. The "guard" object need not
+     * be visible to any parts of the code using python.
+     * 
+     * @param params_file Pathname for a parameters ".ini" file
+     */
     IOdatapipeline(const string &params_file);
+
     ~IOdatapipeline() {}
 
     /**
@@ -35,9 +50,6 @@ public:
      * @return Common model input parameters
      */ 
     CommonModelInputParameters ReadCommonParameters();
-
-
-
 
 private:
     /**
@@ -72,16 +84,6 @@ private:
      */
     params ReadFixedModelParameters();
 };
-
-// /**
-//  * @brief Determine if data pipeline should be used for fixed parameters
-//  * 
-//  * @param filePath Path to the INI file
-//  * 
-//  * @return Boolean value, true, yes use data pipeline, false, no
-//  */
-// bool UseDatapipelineFixedParameters(const params& paramlist, Utilities::logging_stream::Sptr log);
-
 
 
 } // namespace IO
