@@ -238,103 +238,55 @@ struct PredictionConfig
     params fixedParameters; /*! Set of model fixed parameters */
 };
 
+enum AgeGroup {
+	Age_Pre_20 = 0,
+	Age_20_29 = 1,
+	Age_30_39 = 2,
+	Age_40_49 = 3,
+	Age_50_59 = 4,
+	Age_60_69 = 5,
+	Age_Post_70 = 6,
+	HealthCareWorkers = 7
+};
+
+enum CFRCategories {
+	ProbabilityOfHospitalisation = 0,
+	CaseFatalityRatio = 1,
+	ProbabilityOfDeath = 2
+};
+
 class HealthBoardData
 {
 	public:
+		int HealthBoardID;
+		std::string HealthBoardLabel;
+		std::vector<int> cases;
+		std::vector<int> deaths;
+		std::vector<double> age_structure;
+		std::vector<double> pf_byage;
+
 		HealthBoardData(
-			const std::string& HealthBoardLabel,
-			const std::vector<std::vector<int>>& cases,
-			const std::vector<std::vector<int>>& deaths,
-			const std::vector<std::vector<double>>& age_pop,
-			const std::vector<std::vector<double>>& waifw_norm, 
-			const std::vector<std::vector<double>>& waifw_home, 
-			const std::vector<std::vector<double>>& waifw_sdist, 
-			const std::vector<std::vector<double>>& cfr_byage, 
-			const std::vector<std::vector<double>>& pf_byage
-		):
-			health_board_label_(HealthBoardLabel),
-			cases_(cases),
-			deaths_(deaths),
-			age_pop_(age_pop),
-			waifw_norm_(waifw_norm),
-			waifw_home_(waifw_home),
-			waifw_sdist_(waifw_sdist),
-			cfr_byage_(cfr_byage),
-			pf_byage_(pf_byage) {
-				HealthBoardMap_.insert(std::make_pair("Health Board 0", 0));
-				HealthBoardMap_.insert(std::make_pair("Health Board 1", 1));
-				HealthBoardMap_.insert(std::make_pair("Health Board 2", 2));
-				HealthBoardMap_.insert(std::make_pair("Health Board 3", 3));
-				HealthBoardMap_.insert(std::make_pair("Health Board 4", 4));
-				HealthBoardMap_.insert(std::make_pair("Health Board 5", 5));
-				HealthBoardMap_.insert(std::make_pair("Health Board 6", 6));
-				HealthBoardMap_.insert(std::make_pair("Health Board 7", 7));
-				HealthBoardMap_.insert(std::make_pair("Health Board 8", 8));
-				HealthBoardMap_.insert(std::make_pair("Health Board 9", 9));
-				HealthBoardMap_.insert(std::make_pair("Health Board 10", 10));
-				HealthBoardMap_.insert(std::make_pair("Health Board 11", 11));
-				HealthBoardMap_.insert(std::make_pair("Health Board 12", 12));
-				HealthBoardMap_.insert(std::make_pair("Health Board 13", 13));
-				HealthBoardMap_.insert(std::make_pair("Health Board 14", 14));
-
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_Pre_20", 0));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_20_29", 1));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_30_39", 2));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_40_49", 3));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_50_59", 4));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_60_69", 5));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_Post_70", 6));
-				AgeGroupMap_.insert(std::make_pair("AgeGroup_HealthCareWorkers", 7));
-
-				for (std::map<std::string, int>::iterator i = AgeGroupMap_.begin(); i != AgeGroupMap_.end(); ++i) 
-				{
-					PopulationProportion[i->second] = PopulationSize*age_pop_[i->second][HealthBoardMap_[health_board_label_]];
-					ProbabilityOfHospitalisation[i->second] = cfr_byage_[i->second][0];
-					CaseFatalityRatio[i->second] = cfr_byage_[i->second][1];
-					ProbabilityOfDeath[i->second] = cfr_byage_[i->second][2];
-					SusceptibilityProbability[i->second] = pf_byage_[HealthBoardMap_[health_board_label_]][i->second];
-				}
-			};
-
-		std::vector<int> DailyCases = cases_[HealthBoardMap_[health_board_label_]];
-		std::vector<int> DailyDeaths = deaths_[HealthBoardMap_[health_board_label_]];
-
-		int PopulationSize = cases_[HealthBoardMap_[health_board_label_]][0];
-
-		std::vector<double> PopulationProportion = std::vector<double>(AgeGroupMap_.size(), 0.0);
-
-		double FullAgeContacts_ToFrom(const std::string& To, const std::string& From) {
-			return waifw_norm_[AgeGroupMap_[To]][AgeGroupMap_[From]];
+			const int& HealthBoardID_in,
+			const std::vector<std::vector<int>>& cases_in,
+			const std::vector<std::vector<int>>& deaths_in
+		) {
+			HealthBoardID = HealthBoardID_in;
+			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
+			cases = cases_in[HealthBoardID];
+			deaths = deaths_in[HealthBoardID];
 		}
-
-		double HomeAgeContacts_ToFrom(const std::string& To, const std::string& From) {
-			return waifw_home_[AgeGroupMap_[To]][AgeGroupMap_[From]];
+		HealthBoardData(
+			const int& HealthBoardID_in,
+			const std::vector<std::vector<int>>& cases_in,
+			const std::vector<std::vector<double>>& age_structure_in,
+			const std::vector<std::vector<double>>& pf_byage_in
+		) {
+			HealthBoardID = HealthBoardID_in;
+			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
+			cases = cases_in[HealthBoardID];
+			age_structure = age_structure_in[HealthBoardID - 1];
+			pf_byage = pf_byage_in[HealthBoardID - 1];
 		}
-
-		double SDistAgeContacts_ToFrom(const std::string& To, const std::string& From) {
-			return waifw_sdist_[AgeGroupMap_[To]][AgeGroupMap_[From]];
-		}
-
-		std::vector<double> ProbabilityOfHospitalisation = std::vector<double>(AgeGroupMap_.size(), 0.0);
-
-		std::vector<double> CaseFatalityRatio = std::vector<double>(AgeGroupMap_.size(), 0.0);
-
-		std::vector<double> ProbabilityOfDeath = std::vector<double>(AgeGroupMap_.size(), 0.0);
-
-		std::vector<double> SusceptibilityProbability = std::vector<double>(AgeGroupMap_.size(), 0.0);
-
-	private:
-		std::string health_board_label_;
-		std::vector<std::vector<int>> cases_;
-		std::vector<std::vector<int>> deaths_;
-		std::vector<std::vector<double>> age_pop_;
-		std::vector<std::vector<double>> waifw_norm_;
-		std::vector<std::vector<double>> waifw_home_;
-		std::vector<std::vector<double>> waifw_sdist_;
-		std::vector<std::vector<double>> cfr_byage_;
-		std::vector<std::vector<double>> pf_byage_;
-		std::map<std::string, int> HealthBoardMap_;
-		std::map<std::string, int> AgeGroupMap_;
 };
 
 } // namespace EERAModel

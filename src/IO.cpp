@@ -246,9 +246,9 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
 
     //Uploading population per age group
-    //columns are for each individual Health Borad
-    //last column is for Scotland
-    //rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+    //rows are for each individual Health Board
+    //last row is for Scotland
+    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
     (*log) << "\t- " << scot_ages_file << std::endl;
     observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
 
@@ -274,7 +274,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 
     //Upload frailty probability p_f by age group
     //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-    //rows are for each individual Health Borad
+    //rows are for each individual Health Board
     //last row is for Scotland
     (*log) << "\t- " << scot_frail_file << std::endl;
     observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
