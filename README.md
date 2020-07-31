@@ -249,6 +249,7 @@ The regression tests can be run automatically by running the script `scripts/Run
 ```
 $ ./scripts/RunRegressionTests 4 9
 ```
+The default option uses local data to perform the run. The addition of a "-d" flag will switch the regression test to use the data pipeline locally stored test data instead.
 
 **Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 
