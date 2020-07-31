@@ -13,19 +13,30 @@
 namespace EERAModel {
 namespace IO {
 
-class IOException: public std::exception
+void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue, const std::string& axisID)
 {
-public:
-    IOException(const std::string& message) : message_(message) {}
-    
-    const char* what() const throw() 
-    {
-        return message_.c_str();
+    if (axisLength != expectedValue) {
+        std::stringstream IOMessage;
+        IOMessage << "Error in : " << filePath <<
+        "\n Number of " << axisID << ": " << axisLength <<
+        "\n Expected number of " << axisID << ": " << expectedValue << std::endl;
+        throw IOException(IOMessage.str());
     }
 
-private:
-    std::string message_;
-};
+}
+
+ValidationParameters ImportValidationParameters(const std::string& configDir)
+{
+    ValidationParameters parameters;
+    std::string filePath(configDir + "/parameters.ini");
+
+    parameters.nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", filePath);
+    parameters.nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", filePath);
+    parameters.nCfrCategories = ReadNumberFromFile<int>("nCfrCategories", "Settings", filePath);
+    parameters.nCasesDays = ReadNumberFromFile<int>("nCasesDays", "Settings", filePath);
+
+    return parameters;
+}
 
 seed ReadSeedSettings(const std::string& ParamsPath, Utilities::logging_stream::Sptr log)
 {
@@ -99,7 +110,6 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log) 
 {
     std::string ParamsPath(configDir + "/parameters.ini");
-    if (!Utilities::fileExists(ParamsPath)) throw IOException(ParamsPath + ": File not found!");;
 
     InferenceConfig inferenceConfig;
     
@@ -150,7 +160,6 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
 PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log)
 {
     std::string filePath(configDir + "/parameters.ini");
-    if (!Utilities::fileExists(filePath)) throw IOException(filePath + ": File not found!");
 
     PredictionConfig predictionConfig;
     
@@ -165,7 +174,6 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     predictionConfig.index = index;
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
-    if (!Utilities::fileExists(parametersFile)) throw IOException(parametersFile + ": File not found!");
     
     // The posterior parameters are columns 0 to 7; the fixed parameters are columns 8 to 15
     std::vector<double> modelParameters = ReadPredictionParametersFromFile(parametersFile, predictionConfig.index);
@@ -189,10 +197,7 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
     (*log) << "Observations For Inference Config:" << std::endl;
 
     const std::string scot_data_file = configDir + "/scot_data.csv";
-    if (!Utilities::fileExists(scot_data_file)) throw IOException(scot_data_file + ": File not found!");
-    
     const std::string scot_deaths_file = configDir + "/scot_deaths.csv";
-    if (!Utilities::fileExists(scot_deaths_file)) throw IOException(scot_deaths_file + ": File not found!");
 
     //Uploading observed disease data
     //Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
@@ -208,6 +213,24 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
     (*log) << "\t- " << scot_deaths_file << std::endl;
     observations.deaths = Utilities::read_csv<int>(scot_deaths_file, ',');
 
+    const std::string settings_file = configDir + "/parameters.ini";
+
+    ValidationParameters validationParams = ImportValidationParameters(configDir);
+    int nHealthBoards = validationParams.nHealthBoards;
+    int nCasesDays = validationParams.nCasesDays;
+
+    unsigned int cases_rows = observations.cases.size();
+    unsigned int cases_cols = observations.cases[0].size();
+
+    ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
+    ImportConsistencyCheck(scot_data_file, cases_cols, nCasesDays, "columns");
+
+    unsigned int deaths_rows = observations.deaths.size();
+    unsigned int deaths_cols = observations.deaths[0].size();
+
+    ImportConsistencyCheck(scot_deaths_file, deaths_rows, (nHealthBoards + 1), "rows");
+    ImportConsistencyCheck(scot_deaths_file, deaths_cols, nCasesDays, "columns");
+
     return observations;
 }
 
@@ -218,26 +241,19 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "Observations For Models:" << std::endl;
 
     const std::string scot_data_file = configDir + "/scot_data.csv";
-    if (!Utilities::fileExists(scot_data_file)) throw IOException(scot_data_file + ": File not found!");
-    
     const std::string scot_ages_file = configDir + "/scot_age.csv";
-    if (!Utilities::fileExists(scot_ages_file)) throw IOException(scot_ages_file + ": File not found!");
-
     const std::string waifw_norm_file = configDir + "/waifw_norm.csv";
-    if (!Utilities::fileExists(waifw_norm_file)) throw IOException(waifw_norm_file + ": File not found!");
-
     const std::string waifw_home_file = configDir + "/waifw_home.csv";
-    if (!Utilities::fileExists(waifw_home_file)) throw IOException(waifw_home_file + ": File not found!");
-
     const std::string waifw_sdist_file = configDir + "/waifw_sdist.csv";
-    if (!Utilities::fileExists(waifw_sdist_file)) throw IOException(waifw_sdist_file + ": File not found!");
-
     const std::string cfr_byage_file = configDir + "/cfr_byage.csv";
-    if (!Utilities::fileExists(cfr_byage_file)) throw IOException(cfr_byage_file + ": File not found!");
-
     const std::string scot_frail_file = configDir + "/scot_frail.csv";
-    if (!Utilities::fileExists(scot_frail_file)) throw IOException(scot_frail_file + ": File not found!");
+    const std::string settings_file = configDir + "/parameters.ini";
 
+    ValidationParameters validationParameters = ImportValidationParameters(configDir);
+    int nHealthBoards = validationParameters.nHealthBoards;
+    int nAgeGroups = validationParameters.nAgeGroups;
+    int nCfrCategories = validationParameters.nCfrCategories;
+    int nCasesDays = validationParameters.nCasesDays;
 
     //Uploading observed disease data
     //Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
@@ -246,6 +262,12 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << scot_data_file << std::endl;
     observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
 
+    unsigned int cases_rows = observations.cases.size();
+    unsigned int cases_cols = observations.cases[0].size();
+
+    ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
+    ImportConsistencyCheck(scot_data_file, cases_cols, nCasesDays, "columns");
+
     //Uploading population per age group
     //columns are for each individual Health Borad
     //last column is for Scotland
@@ -253,17 +275,42 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << scot_ages_file << std::endl;
     observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
 
+    unsigned int age_pop_rows = observations.age_pop.size();
+    unsigned int age_pop_cols = observations.age_pop[0].size();
+
+    ImportConsistencyCheck(scot_ages_file, age_pop_rows, nHealthBoards, "rows");
+    ImportConsistencyCheck(scot_ages_file, age_pop_cols, (nAgeGroups - 1), "columns");
+
+
     //mean number of daily contacts per age group (overall)	
     (*log) << "\t- " << waifw_norm_file << std::endl;
     observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file, ',');
+
+    unsigned int waifw_norm_rows = observations.waifw_norm.size();
+    unsigned int waifw_norm_cols = observations.waifw_norm[0].size();
+
+    ImportConsistencyCheck(waifw_norm_file, waifw_norm_rows, nAgeGroups, "rows");
+    ImportConsistencyCheck(waifw_norm_file, waifw_norm_cols, nAgeGroups, "columns");
 
     //mean number of daily contacts per age group (home only)
     (*log) << "\t- " << waifw_home_file << std::endl;
     observations.waifw_home = Utilities::read_csv<double>(waifw_home_file, ',');
 
+    unsigned int waifw_home_rows = observations.waifw_home.size();
+    unsigned int waifw_home_cols = observations.waifw_home[0].size();
+
+    ImportConsistencyCheck(waifw_home_file, waifw_home_rows, nAgeGroups, "rows");
+    ImportConsistencyCheck(waifw_home_file, waifw_home_cols, nAgeGroups, "columns");
+
     //mean number of daily contacts per age group (not school, not work)
     (*log) << "\t- " << waifw_sdist_file << std::endl;
     observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file, ',');
+
+    unsigned int waifw_sdist_rows = observations.waifw_sdist.size();
+    unsigned int waifw_sdist_cols = observations.waifw_sdist[0].size();
+    
+    ImportConsistencyCheck(waifw_sdist_file, waifw_sdist_rows, nAgeGroups, "rows");
+    ImportConsistencyCheck(waifw_sdist_file, waifw_sdist_cols, nAgeGroups, "columns");
 
     //Upload cfr by age group
     //col0: p_h: probability of hospitalisation
@@ -273,12 +320,24 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << cfr_byage_file << std::endl;
     observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
 
+    unsigned int cfr_rows = observations.cfr_byage.size();
+    unsigned int cfr_cols = observations.cfr_byage[0].size();
+
+    ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
+    ImportConsistencyCheck(cfr_byage_file, cfr_cols, nCfrCategories, "columns");
+
     //Upload frailty probability p_f by age group
     //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
     //rows are for each individual Health Borad
     //last row is for Scotland
     (*log) << "\t- " << scot_frail_file << std::endl;
     observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
+
+    unsigned int pf_pop_rows = observations.pf_pop.size();
+    unsigned int pf_pop_cols = observations.pf_pop[0].size();
+
+    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
+    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
     return observations;
 }
