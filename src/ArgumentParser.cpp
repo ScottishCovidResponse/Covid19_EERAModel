@@ -29,11 +29,13 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
                                         true, "", &allowedModes);
         TCLAP::ValueArg<std::string> dataLocArg("l", "local", "Location of local data repository", 
                                         false, "", "string");
+        TCLAP::ValueArg<std::string> dpConfigArg("c", "dpconfig", "yaml file used for the data download", false, _args.datapipeline_path, "string");
         TCLAP::ValueArg<std::string> outputDirArg("d", "outdir", "Output directory of data files", false, _args.output_dir, "string");
         cmd.add( modeArg );
         cmd.add( dataLocArg );
         cmd.add( structureArg );
         cmd.add( indexArg );
+        cmd.add( dpConfigArg );
         cmd.add( outputDirArg );
         cmd.parse( argc, argv);
 
@@ -50,6 +52,9 @@ ArgumentParser::ArgumentParser(int argc, const char* const * argv)
             _args.mode = ModelModeId::INFERENCE;
         else
             _args.mode = ModelModeId::PREDICTION;
+
+        if (! dpConfigArg.getValue().empty())
+            _args.datapipeline_path = dpConfigArg.getValue();
 
         _args.isLocal = dataLocArg.getValue().empty();
         _args.local_location = (!dataLocArg.getValue().empty()) ? dataLocArg.getValue() : std::string(ROOT_DIR);
@@ -90,6 +95,7 @@ void ArgumentParser::logArguments(Utilities::logging_stream::Sptr log)
     {
         (*log) << "Default" << std::endl;
     }
+    (*log) << "\t" << "Data pipeline config file: " << _args.datapipeline_path << std::endl;
     (*log) << "\t" << "Output Directory: " << _args.output_dir << std::endl;
     (*log) << "\t" << "Forward prediction parameter set index: " << _args.parameter_set_index << std::endl;
 }

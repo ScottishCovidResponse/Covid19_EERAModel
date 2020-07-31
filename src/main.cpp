@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
     pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    IO::IOdatapipeline datapipeline{params_addr};
+    IO::IOdatapipeline datapipeline{params_addr, arg_parser.getArgs().datapipeline_path};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);

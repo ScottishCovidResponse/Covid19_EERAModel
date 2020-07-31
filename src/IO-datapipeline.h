@@ -29,18 +29,13 @@ public:
      * @brief Constructor
      * 
      * Constructs an object suitable for interacting with the data pipeline local
-     * store. Note that a local python object as below must be active and remain in
-     * scope for the durection of the use of this class:
+     * store. Note that a local python object "pybind11::scoped_interpreter guard{};"
+     * must be active and remain in scope for the durection of the use of this class.
      * 
-     *     pybind11::scoped_interpreter guard{};
-     * 
-     * This object establishes a python interpreter in the background and its
-     * destruction equally takes away that capability. The "guard" object need not
-     * be visible to any parts of the code using python.
-     * 
-     * @param params_file Pathname for a parameters ".ini" file
+     * @param params_path Pathname for a parameters ".ini" file
+     * @param dpconfig_path Pathname for a data pipeline configuration yaml file (empty string disables data pipeline)
      */
-    IOdatapipeline(const string &params_file);
+    IOdatapipeline(string params_path, string dpconfig_path = "");
 
     ~IOdatapipeline() {}
 

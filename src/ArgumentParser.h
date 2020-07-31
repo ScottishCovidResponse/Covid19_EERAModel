@@ -21,6 +21,7 @@ struct Arguments
     std::string local_location=std::string(ROOT_DIR);
     ModelStructureId structure = ModelStructureId::ORIGINAL;
     ModelModeId mode = ModelModeId::INFERENCE;
+    std::string datapipeline_path = "";
     std::string output_dir = std::string(ROOT_DIR)+"/outputs";
     int parameter_set_index;
 };

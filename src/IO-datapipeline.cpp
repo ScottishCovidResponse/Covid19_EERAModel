@@ -13,25 +13,21 @@
 namespace EERAModel {
 namespace IO {
 
-IOdatapipeline::IOdatapipeline(const string &path)
+IOdatapipeline::IOdatapipeline(string params_path, string dpconfig_path)
 {
-    ParamsPath = path;
+    ParamsPath = params_path;
     datapipelineActive = false;
 
-    if (ExistsInFile("datapipeline_config", "Settings", ParamsPath))
+    if (dpconfig_path != "")
     {
-        /* The config yaml file is assumed to have a relative path compared to the paramaters ini */ 
-        string configPath = ReadStringFromFile("datapipeline_config", "Settings", ParamsPath);
-        configPath = Utilities::appendPath(Utilities::dirname(ParamsPath), configPath);
-
-        const char *uri = "https://whatever"; // No idea what this is for...
-        const char *git_sha = "git_sha"; // Or this...
+        const char *uri = "https://whatever"; // I'm guessing this is the repo for the model
+        const char *git_sha = "git_sha"; // And this the version ID, need to find these both
 
         std::cout << "ParamsPath: " << ParamsPath << "\n";
-        std::cout << "ConfigPath: " << configPath << "\n";
+        std::cout << "ConfigPath: " << dpconfig_path << "\n";
 
         // If something goes wrong in the opening of the data pipeline an exception will get thrown
-        dp.reset(new DataPipeline(configPath, uri, git_sha));
+        dp.reset(new DataPipeline(dpconfig_path, uri, git_sha));
         datapipelineActive = true;
     }
 }
@@ -40,14 +36,8 @@ CommonModelInputParameters IOdatapipeline::ReadCommonParameters()
 {
     CommonModelInputParameters commonParameters;
 
-    if (ExistsInFile("use_datapipeline", "Fixed parameters", ParamsPath) &&
-        ReadBoolFromFile("use_datapipeline", "Fixed parameters", ParamsPath))
+    if (datapipelineActive)
     {
-        if (!datapipelineActive)
-        {
-            throw std::runtime_error("use_datapipeline requested, but config file not specified");
-        }
-
         commonParameters.paramlist  = ReadFixedModelParameters();
         commonParameters.totN_hcw   = dp->read_estimate("fixed-parameters/total_hcw", "total_hcw");
     }

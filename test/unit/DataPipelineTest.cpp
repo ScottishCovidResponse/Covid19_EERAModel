@@ -15,12 +15,12 @@ namespace {
 
 TEST(TestIODatapipeline, ExpectThrowForBadPath)
 {
-    EXPECT_ANY_THROW(IO::IOdatapipeline idp{"NoValidPath.ini"};);
+    EXPECT_ANY_THROW(IO::IOdatapipeline idp2("../test/datapipeline/parameters.ini", "NoValidPath.yaml"););
 }
 
 TEST(TestIODatapipeline, CanReadFixedParameters)
 {
-    IO::IOdatapipeline idp{"../test/datapipeline/parameters.ini"};
+    IO::IOdatapipeline idp("../test/datapipeline/parameters.ini", "../test/datapipeline/config.yaml");
     CommonModelInputParameters params = idp.ReadCommonParameters();
 
     EXPECT_EQ(params.paramlist.T_lat, 4);

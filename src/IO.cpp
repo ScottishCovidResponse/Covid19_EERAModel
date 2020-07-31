@@ -353,13 +353,13 @@ bool ReadBoolFromFile(std::string SettingName, std::string SettingCategory, cons
 	bool Value = false;
 
 	/* Convert to upper case */
-	std::transform(SettingValue.begin(), SettingValue.end(), SettingValue.begin(), ::tolower);
+    SettingValue = Utilities::toUpper(SettingValue);
 
-	if (SettingValue == "true" || SettingValue == "t")
+	if (SettingValue == "TRUE" || SettingValue == "T" || SettingValue == "1")
 	{
 		Value = true;
 	}
-	else if (SettingValue == "false" || SettingValue == "f")
+	else if (SettingValue == "FALSE" || SettingValue == "F" || SettingValue == "0")
 	{
 		Value = false;
 	}
