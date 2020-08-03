@@ -1,2 +1,13 @@
 build
-OUTPUTS
+outputs/*.txt
+.vscode
+data/*.csv
+data/parameters.ini
+outputs/logs/
+data/*.dat
+doxygen
+site/*
+index.html
+src/tclap/
+.DS_Store
+

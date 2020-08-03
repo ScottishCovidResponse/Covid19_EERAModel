@@ -6,8 +6,18 @@ ExternalProject_Add(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   UPDATE_COMMAND ""
+  GIT_TAG release-1.10.0
   INSTALL_COMMAND ""
 )
+
+# assume built-in pthreads on MacOS
+IF(APPLE)
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
 
 ExternalProject_Get_Property(googletest source_dir)
 set(GTEST_INCLUDE_DIRS ${source_dir}/googletest/include)
