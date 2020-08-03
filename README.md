@@ -3,6 +3,11 @@
 
 Simple COVID-19 simulation model with ABC-smc inference
 
+## Branches and releases
+The most recently released code is always located on the `master` branch. The `dev` is the main development branch, containing the most recently developed pre-release features. 
+
+Releases are versioned using the [semantic versioning](www.semver.org) scheme. Releases are tagged with the release number, in the form MAJOR.MINOR.PATCH.
+
 ## Project structure
  * `data/` Working input data directory: used to store inputs to a model run
  * `doc/` Documentation associated with the model
