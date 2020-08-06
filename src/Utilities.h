@@ -245,5 +245,27 @@ std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimite
  */
 std::string toUpper(std::string str);
 
+/**
+ * @brief Extract directory name from file path
+ * 
+ * @param path the file path
+ * 
+ * @return string with the extracted directory
+ */
+std::string dirname(std::string path);
+
+/**
+ * @brief Append a second path to a supplied directory path
+ * 
+ * Calculates combined path. For example:
+ *     "dirpath" + "path/file" = "dirpath/path/file"
+ * 
+ * @param dirpath A directory path (can be relative)
+ * @param path The path to append
+ * 
+ * @return string with the extracted directory
+ */
+std::string appendPath(std::string dirpath, std::string path);
+
 } // namespace Utilities
 } // namespace EERAModel

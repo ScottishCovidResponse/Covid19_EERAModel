@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include "ModelTypes.h"
+#include "IO-datapipeline.h"
 #include "IO.h"
 #include "Random.h"
 #include "ModelCommon.h"
@@ -25,6 +26,9 @@ int main(int argc, char** argv)
 
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
+    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    IO::IOdatapipeline datapipeline{params_addr, arg_parser.getArgs().datapipeline_path};
+
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
 
@@ -41,7 +45,9 @@ int main(int argc, char** argv)
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
     // Import common parameters for all models
-    CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
+
+    CommonModelInputParameters commonParameters = datapipeline.ReadCommonParameters();
+    // CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
     // Import model observational data
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");

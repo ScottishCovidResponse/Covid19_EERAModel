@@ -61,3 +61,19 @@ TEST(TestUtilities, TestSumSq)
 
     EXPECT_EQ(expected_sum_sq, sse_calc(vector_sim, vector_obs));
 }
+
+TEST(TestUtilities, TestDirname)
+{
+    EXPECT_EQ(dirname("dir1/myfile.txt"), "dir1");
+    EXPECT_EQ(dirname("dir1/dir2/myfile.txt"), "dir1/dir2");
+    EXPECT_EQ(dirname("/myfile.txt"), "/");
+    EXPECT_EQ(dirname("myfile.txt"), ".");
+}
+
+TEST(TestUtilities, TestAppendPath)
+{
+    EXPECT_EQ(appendPath("dir1/dir2", "/a/myfile.txt"), "/a/myfile.txt");
+    EXPECT_EQ(appendPath("dir1/dir2", "myfile.txt"), "dir1/dir2/myfile.txt");
+    EXPECT_EQ(appendPath("/", "myfile.txt"), "/myfile.txt");
+    EXPECT_EQ(appendPath("", "path/myfile.txt"), "path/myfile.txt");
+}

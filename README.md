@@ -76,7 +76,8 @@ Following build, the model executable is `build/bin/Covid19EERAModel`. Its usage
 
 $ Covid19EERAModel  -m <inference|prediction>]
                     -s <original|irish|irish2>
-                    [-i <integer>] 
+                    [-i <integer>]
+                    [-c <string>]
                     [-d <string>]
                     [-l <string>] [--]
                     [--version] [-h]
@@ -85,6 +86,9 @@ $ Covid19EERAModel  -m <inference|prediction>]
 The two mandatory options are "-s" for the model structure, and "-m" for the run mode. Omission of
 either of these options will cause the run to terminate with an error message. The index option 
 specifies the parameter set that will be used in prediction mode: it is unused in inference mode.
+
+"-c" is an optional flag that provides the path of the configuration "yaml" file used for downloading
+a local copy of data pipeline data for the model's use.
 
 At the present time, the `-d` and `-l` options are unused by the code and can be omitted.
 
@@ -245,6 +249,7 @@ The regression tests can be run automatically by running the script `scripts/Run
 ```
 $ ./scripts/RunRegressionTests 4 9
 ```
+The default option uses local data to perform the run. The addition of a "-d" flag will switch the regression test to use the data pipeline locally stored test data instead.
 
 **Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 

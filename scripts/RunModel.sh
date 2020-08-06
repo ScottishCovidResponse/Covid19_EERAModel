@@ -11,7 +11,7 @@ EXEPATH=$1
 OUTPUT_DIR=$2
 FLAGS=${@:3}
 
-if [[ $# -le 2 || $# -gt 6 ]]; then
+if [[ $# -le 2 || $# -gt 8 ]]; then
   echo "ERROR: Invalid ($#) number of arguments"
   usage
   exit 1
