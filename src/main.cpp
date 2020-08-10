@@ -21,6 +21,7 @@ int main(int argc, char** argv)
 
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
     IO::LogGitVersionInfo(logger);
+    IO::LogDependencyVersionInfo(logger);
     arg_parser.logArguments(logger);
 
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";

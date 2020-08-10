@@ -84,8 +84,6 @@ set(_state_variable_names
     GIT_AUTHOR_NAME
     GIT_AUTHOR_EMAIL
     GIT_COMMIT_DATE_ISO8601
-    GIT_COMMIT_SUBJECT
-    GIT_COMMIT_BODY
     GIT_TAG
     # >>>
     # 1. Add the name of the additional git variable you're interested in monitoring
@@ -154,29 +152,6 @@ function(GetGitState _working_dir)
     RunGitCommand(show -s "--format=%ci" ${object})
     if(exit_code EQUAL 0)
         set(ENV{GIT_COMMIT_DATE_ISO8601} "${output}")
-    endif()
-
-    RunGitCommand(show -s "--format=%s" ${object})
-    if(exit_code EQUAL 0)
-        set(ENV{GIT_COMMIT_SUBJECT} "${output}")
-    endif()
-
-    RunGitCommand(show -s "--format=%b" ${object})
-    if(exit_code EQUAL 0)
-        if(output)
-            # Escape line breaks in the commit message.
-            string(REPLACE "\r\n" "\\r\\n\\\r\n" safe ${output})
-            if(safe STREQUAL output)
-                # Didn't have windows lines - try unix lines.
-                string(REPLACE "\n" "\\n\\\n" safe ${output})
-            endif()
-        else()
-            # There was no commit body - set the safe string to empty.
-            set(safe "")
-        endif()
-        set(ENV{GIT_COMMIT_BODY} "\"${safe}\"")
-    else()
-        set(ENV{GIT_COMMIT_BODY} "\"\"") # empty string.
     endif()
 
     RunGitCommand(describe --dirty --tags)

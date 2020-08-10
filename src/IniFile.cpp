@@ -1,4 +1,6 @@
 #include "IniFile.h"
+#include "Utilities.h"
+#include "IO.h"
 
 CIniFile::CIniFile() = default;
 
@@ -206,6 +208,8 @@ std::vector<CIniFile::Record> CIniFile::GetRecord(std::string& KeyName, std::str
 
 std::string CIniFile::GetValue(std::string& KeyName, std::string& SectionName, const std::string& FileName)
 {
+	if (!EERAModel::Utilities::fileExists(FileName)) { throw EERAModel::IO::IOException(FileName + ": File not found!"); }
+
 	std::vector<Record> content = GetRecord(KeyName, SectionName, FileName);		// Get the Record
 
 	if(!content.empty()) {													// Make sure there is a value to return

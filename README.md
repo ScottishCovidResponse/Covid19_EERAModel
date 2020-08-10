@@ -3,6 +3,11 @@
 
 Simple COVID-19 simulation model with ABC-smc inference
 
+## Branches and releases
+The most recently released code is always located on the `master` branch. The `dev` is the main development branch, containing the most recently developed pre-release features. 
+
+Releases are versioned using the [semantic versioning](www.semver.org) scheme. Releases are tagged with the release number, in the form MAJOR.MINOR.PATCH.
+
 ## Project structure
  * `data/` Working input data directory: used to store inputs to a model run
  * `doc/` Documentation associated with the model
@@ -26,6 +31,8 @@ The project uses [Google Test](https://github.com/google/googletest) as its unit
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is downloaded and built automatically as part of the project build process. It is not required to be installed on the host system.
 
 The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking) for encoding Git repository information in the project binary files. It was developed by Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
+
+The project makes use of an [INI file parser](https://www.codeproject.com/Articles/8342/CIniFile-Class-for-C-A-robust-cross-platform-INI-f) to read values from parameter files. It is used under the terms of the license [here](https://www.codeproject.com/info/cpol10.aspx).
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
@@ -82,6 +89,10 @@ This file contains general model parameters, in `.ini` format. Parameters are gr
 | ------------- |:-------------:|:-------------:|:-------------:|
 | Settings      | shb\_id           | Integer        | Identifier for selected health board (1-15)           |
 | Settings       | tau           | Float        |  Time step scale factor           |
+| Settings       | nHealthBoards | Int        |  Number of Health Boards (validation purposes)           |
+| Settings       | nAgeGroups | Int        |  Number of Age Groups (validation purposes)           |
+| Settings       | nCfrCategories | Int        | Number of Case State Categories (validation purposes)          |
+| Settings       | nCasesDays | Int        | Number of days that observations are recorded for (validation purposes)           |
 | Seed settings       | seedmethod           | String        | Seeding method ("background" or "random")           |
 | Seed settings       | nseed           | Integer        | Population seeding number <br>(Random seeding only)           |
 | Seed settings       | hrp           | Integer        | High Risk Period in days <br>(Background seeding only)        |
