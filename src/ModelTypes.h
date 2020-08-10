@@ -177,6 +177,7 @@ struct CommonModelInputParameters
 	params paramlist;
 	int herd_id;
 	int totN_hcw;
+	int day_shut;
 };
 
 /**

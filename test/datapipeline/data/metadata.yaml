@@ -1,4 +1,12 @@
 - accessibility: 0
+  component: day_shut
+  data_product: fixed-parameters/day_shut
+  extension: toml
+  filename: fixed-parameters/day_shut/0.1.0/0.1.0.toml
+  namespace: EERA
+  verified_hash: fcac799da35e8df982aa0a4804a38b6b46ddaed0
+  version: 0.1.0
+- accessibility: 0
   component: total_hcw
   data_product: fixed-parameters/total_hcw
   extension: toml

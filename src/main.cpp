@@ -24,10 +24,15 @@ int main(int argc, char** argv)
     IO::LogGitVersionInfo(logger);
     arg_parser.logArguments(logger);
 
+    // Parameters ini file location
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
+    // Model Observational data location
+    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
+
     pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    IO::IOdatapipeline datapipeline{params_addr, arg_parser.getArgs().datapipeline_path};
+    IO::IOdatapipeline datapipeline{
+        params_addr, modelConfigDir, logger, arg_parser.getArgs().datapipeline_path};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
@@ -45,12 +50,10 @@ int main(int argc, char** argv)
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
     // Import common parameters for all models
-
     CommonModelInputParameters commonParameters = datapipeline.ReadCommonParameters();
     // CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
     // Import model observational data
-    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
     ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
     // Log the disease seed settings
@@ -77,7 +80,7 @@ int main(int argc, char** argv)
         std::string configDir(std::string(ROOT_DIR) + "/data");
         int index = arg_parser.parameterSetIndex();
 
-        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger);
+        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger, commonParameters);
         IO::LogPredictionConfig(predictionConfig, logger);
 
         // Update the model with the fixed parameters from the prediction configuration
@@ -91,7 +94,7 @@ int main(int argc, char** argv)
     else
     {
         std::string configDir(std::string(ROOT_DIR) + "/data");
-        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger);
+        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger, commonParameters);
 
         IO::LogFixedParameters(commonParameters.paramlist, logger);
 

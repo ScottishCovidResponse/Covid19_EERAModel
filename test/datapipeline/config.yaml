@@ -5,37 +5,66 @@ namespace: EERA
 read:
   - where:
       data_product: fixed-parameters/T_lat
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/juvp_s
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/T_inf
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/T_rec
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/T_sym
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/T_hos
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/K
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/inf_asym
+      namespace: EERA
     use:
       version: 0.1.0
   - where:
       data_product: fixed-parameters/total_hcw
+      namespace: EERA
     use:
       version: 0.1.0
+  - where:
+      data_product: fixed-parameters/day_shut
+      namespace: EERA
+    use:
+      version: 0.1.0
+  - where:
+      data_product: case-fatality-ratios/by_age/data_for_scotland
+      namespace: EERA
+  - where:
+      data_product: prior-distributions/rrd
+      namespace: EERA
+  - where:
+      data_product: population-data/data_for_scotland
+      namespace: EERA
+  - where:
+      data_product: posterior-parameters/data_for_scotland
+      namespace: EERA
+  - where:
+      data_product: contact-data/who_acquired_infection_from_whom
+      namespace: EERA

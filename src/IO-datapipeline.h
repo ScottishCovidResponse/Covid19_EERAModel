@@ -33,9 +33,11 @@ public:
      * must be active and remain in scope for the durection of the use of this class.
      * 
      * @param params_path Pathname for a parameters ".ini" file
+     * @param model_config Pathname for a directory containing model configuration data
+     * @param log_stream An output stream to use for logging diagnostic messages
      * @param dpconfig_path Pathname for a data pipeline configuration yaml file (empty string disables data pipeline)
      */
-    IOdatapipeline(string params_path, string dpconfig_path = "");
+    IOdatapipeline(string params_path, string model_config, Utilities::logging_stream::Sptr log_stream, string dpconfig_path = "");
 
     ~IOdatapipeline() {}
 
@@ -45,6 +47,14 @@ public:
      * @return Common model input parameters
      */ 
     CommonModelInputParameters ReadCommonParameters();
+
+    /**
+     * @brief Read model observation data used by all model types
+     * 
+     * @return Observation data
+     */ 
+    ObservationsForModels ReadModelObservations();
+
 
 private:
     /**
@@ -58,6 +68,18 @@ private:
      * @brief The path of the specified parameter ".ini" file
      */
     std::string ParamsPath;
+
+    /**
+     * @private
+     * @brief The path of the model data configspecified parameter ".ini" file
+     */
+    std::string ModelConfigDir;
+
+    /**
+     * @private
+     * @brief A stream to use for logging diagnostic messages
+     */
+    Utilities::logging_stream::Sptr log;
 
     /**
      * @private

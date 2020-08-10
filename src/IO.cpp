@@ -12,20 +12,6 @@
 namespace EERAModel {
 namespace IO {
 
-class IOException: public std::exception
-{
-public:
-    IOException(const std::string& message) : message_(message) {}
-    
-    const char* what() const throw() 
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
-};
-
 seed ReadSeedSettings(const std::string& ParamsPath, Utilities::logging_stream::Sptr log)
 {
     seed seedSettings;
@@ -96,7 +82,7 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
     return commonParameters;
 }
 
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log) 
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters) 
 {
     std::string ParamsPath(configDir + "/parameters.ini");
     if (!Utilities::fileExists(ParamsPath)) throw IOException(ParamsPath + ": File not found!");;
@@ -104,10 +90,10 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     InferenceConfig inferenceConfig;
     
     inferenceConfig.seedlist = ReadSeedSettings(ParamsPath, log);
-    inferenceConfig.paramlist = ReadFixedModelParameters(ParamsPath);
-
-    inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
-    inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", ParamsPath);
+    //inferenceConfig.paramlist = ReadFixedModelParameters(ParamsPath);
+    inferenceConfig.paramlist = commonParameters.paramlist;
+    inferenceConfig.herd_id = commonParameters.herd_id;
+    inferenceConfig.day_shut = commonParameters.day_shut;
     inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
 
     inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", ParamsPath);
@@ -147,7 +133,7 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     return inferenceConfig;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log)
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters)
 {
     std::string filePath(configDir + "/parameters.ini");
     if (!Utilities::fileExists(filePath)) throw IOException(filePath + ": File not found!");
@@ -156,7 +142,7 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     
     predictionConfig.seedlist = ReadSeedSettings(filePath, log);
 
-    predictionConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
+    predictionConfig.day_shut = commonParameters.day_shut;
 
     std::string sectionId("Prediction Configuration");    
     predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",

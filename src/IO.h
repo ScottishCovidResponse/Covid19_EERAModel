@@ -19,6 +19,20 @@ namespace EERAModel {
  */
 namespace IO {
 
+class IOException: public std::exception
+{
+public:
+    IOException(const std::string& message) : message_(message) {}
+    
+    const char* what() const throw() 
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
 /**
  * @brief Read supplementary parameters used for main.cpp.
  * 
@@ -47,7 +61,7 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
  * 
  * @return Inference parameters
  */
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
 
 /**
  * @brief Read prediction framework configuration from input files
@@ -58,7 +72,7 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
 
 /**
  * @brief Read model posterior parameters from a CSV file
