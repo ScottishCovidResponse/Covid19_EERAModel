@@ -8,12 +8,12 @@
 #   GitHub at time of writing).                                              #
 #                                                                            #
 #   You will require an API token from the registry stored in:               #
-    token_file <- "token.txt"                                                #
+    token_file <- file.path("data", "upload_scripts", "token.txt")           #
 #                                                                            #
 #   This script is based on the upload scripts by Sonia Mitchell.            #
 #                                                                            #
 #   @author K. Zarebski                                                      #
-#   @date   last modified 2020-07-27                                         #
+#   @date   last modified 2020-08-10                                         #
     global_version <- "0.1.0"                                                #
 #                                                                            #
 ##############################################################################
@@ -27,6 +27,11 @@ library(SCRCdataAPI)    # Requires the latest SCRCdataAPI library
 
 namespace <- "EERA"
 prefix <- list(fixed="fixed-parameters", prior_dis="prior-distributions")
+
+if(!file.exists(token_file))
+{
+    stop(paste("Failed to retrieve a data registry token file from", token_file))
+}
 
 key <- read.table(token_file)
 
@@ -59,7 +64,14 @@ fixed <- list(
 # List of prior distributions and their parameters, if a single distribution is
 # updated without changing the others the version number should also be set
 prior_dis <- list(
-    list(name="rrd", type="gamma", params=list(shape=1.0, scale=1.0), version=global_version)
+    list(name="rrd", type="gamma", params=list(k=1.0, theta=1.0), version=global_version),
+    list(name="pinf", type="beta", params=list(alpha=3.0, beta=9.0), version=global_version),
+    list(name="phcw", type="beta", params=list(alpha=3.0, beta=3.0), version=global_version),
+    list(name="ps", type="beta", params=list(alpha=9.0, beta=3.0), version=global_version),
+    list(name="q", type="beta", params=list(alpha=3.0, beta=3.0), version=global_version),
+    list(name="lambda", type="uniform", params=list(a=1e-9, b=1e-6), version=global_version),
+    list(name="d", type="beta", params=list(alpha=3.0, beta=3.0), version=global_version),
+    list(name="chcw", type="poisson", params=list(lambda=42), version=global_version)
 )
 
 # Iterate through fixed parameters creating TOML objects and adding them
@@ -74,13 +86,12 @@ for(param in fixed)
     create_estimate(filename = filename,
         path = file.path("data-raw", path),
         parameters = as.list(setNames(param$value, component_name)))
-
     upload_data_product(storage_root_id = storage_rootId,
                     name = name,
                     component_name = component_name,
                     processed_path = file.path("data-raw", path, filename),
                     product_path = file.path(path, filename),
-                   version = param$version,
+                    version = param$version,
                     namespace_id = namespaceId,
                     key = key)
 }

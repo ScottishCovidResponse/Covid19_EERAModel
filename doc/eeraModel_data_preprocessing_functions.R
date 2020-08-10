@@ -3,6 +3,12 @@
 #======================
 do.write = F
 
+# Check that the current directory is repository
+
+if(!file.exists(file.path(getwd(), "data", "contact_matrices_152_countries")))
+{
+  stop("This script must be run from the root of the EERA Model repository.")
+}
 
 # ----------------------------------
 # FUNCTIONS
@@ -326,23 +332,25 @@ if(do.write) write.table(scot_death,paste0("./data/scot_deaths_",upto,".csv"),co
 
 # create the age mixing matrices
 
-polymoduk_norm=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_all_locations_2.xlsx",
+matrix_data_dir <- file.path(getwd(), "data", "contact_matrices_152_countries")
+
+polymoduk_norm=read_xlsx(file.path(matrix_data_dir, "MUestimates_all_locations_2.xlsx"),
                     sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
                                                                           "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))
   
-polymoduk_home=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_home_2.xlsx",
+polymoduk_home=read_xlsx(file.path(matrix_data_dir, "MUestimates_home_2.xlsx"),
                     sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
                                                                           "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))
 
-polymoduk_other=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_other_locations_2.xlsx",
+polymoduk_other=read_xlsx(file.path(matrix_data_dir, "MUestimates_other_locations_2.xlsx"),
                     sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
                                                                           "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))
 
-polymoduk_work=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_work_2.xlsx",
+polymoduk_work=read_xlsx(file.path(matrix_data_dir, "MUestimates_work_2.xlsx"),
                           sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
                                                                                 "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))
 
-polymoduk_school=read_xlsx("/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/contact_matrices_152_countries/MUestimates_school_2.xlsx",
+polymoduk_school=read_xlsx(file.path(matrix_data_dir, "MUestimates_school_2.xlsx"),
                           sheet="United Kingdom of Great Britain",col_names = c("00-04","05-09","10-14","15-19","20-24","25-29","30-34","35-39",
                                                                                 "40-44","45-49","50-54","55-59","60-64","65-69","70-74","75+"))
 
@@ -363,21 +371,21 @@ if(do.write) write.table(waifw_sdist,"./data/waifw_sdist.csv",col.names = F,row.
 
 # create the data with demographic data (age structure)
 
-census_age = read_csv(file ="/Users/tporphyr/Documents/PROJECTS/COVID-19/Covid19_EERAModel/data/HealthBoard_census/DC1117SC.csv",
+census_age = read_csv(file =file.path(getwd(), "data", "HealthBoard_census", "DC1117SC.csv"),
          skip=5 , col_names = c("Health_Board","age","All people","Males","Females"), col_types = cols())
 
 order_name = create_history(tidy_case_data(case_df),tidy_pop_data(pop_df), upto = upto)$name
 
 scot_age <- create_age_pop(census_df = census_age, order_name)
 
-if(do.write) write.table(scot_age, "./data/scot_age.csv",col.names = F,row.names = F,sep=",")
+if(do.write) write.table(scot_age, file.path(getwd(), "data", "scot_age.csv"),col.names = F,row.names = F,sep=",")
 
 # create the data with age-structured parameters
 
 p_h=c(0.143,	0.1141,	0.117,	0.102,	0.125,	0.2,	0.303,	0.114525) #https://www.ecdc.europa.eu/sites/default/files/documents/RRA-seventh-update-Outbreak-of-coronavirus-disease-COVID-19.pdf
 cfr=c(0.001,	0.002,	0.002	,0.004,	0.013,	0.036,	0.114,	0.00525) #https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2020.25.12.2000256. NOTE: case defined as infected individuals (either symptomatic or asymptomatic)
 
-if(do.write) write.table(create_age_epiparaam(p_h, cfr) , "./data/cfr_byage.csv",col.names = F,row.names = F,sep=",")
+if(do.write) write.table(create_age_epiparaam(p_h, cfr) , file.path(getwd(), "data", "cfr_byage.csv"), col.names = F,row.names = F,sep=",")
 
 
 
