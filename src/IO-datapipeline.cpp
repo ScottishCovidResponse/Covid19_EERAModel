@@ -28,11 +28,14 @@ IOdatapipeline::IOdatapipeline(string params_path, string model_config, Utilitie
 
     if (dpconfig_path != "")
     {
-        const char *uri = "https://whatever"; // I'm guessing this is the repo for the model
-        const char *git_sha = "git_sha"; // And this the version ID, need to find these both
+        std::string uri = GitMetadata::URL(); // "https://whatever"; I'm guessing this is the repo for the model
+        std::string git_sha = GitMetadata::CommitSHA1(); // And this the version ID, need to find these both
+
+        std::cout << "URI: " << uri << "\n";
+        std::cout << "SHA: " << git_sha << "\n";
 
         // If something goes wrong in the opening of the data pipeline an exception will get thrown
-        dp.reset(new DataPipeline(dpconfig_path, uri, git_sha));
+        dp.reset(new DataPipeline(dpconfig_path, uri.c_str(), git_sha.c_str()));
         datapipelineActive = true;
     }
 }
@@ -146,15 +149,7 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
 
         //mean number of daily contacts per age group (overall)	
-        (*log) << "\t- " << waifw_norm_file << std::endl;
-        //contact-data/who_acquired_infection_from_whom/data_for_scotland norm
-        Array<double> cases = dp->read_array("contact-data/who_acquired_infection_from_whom/data_for_scotland", "norm");
-        std::vector<int> cases_size = cases.size();
-        std::cout << "cases.size() = " << cases_size << "\n";
-        std::cout << "    (0,0)=" << cases(0,0) << " (1,0)=" << cases(1,0) << "\n";
-        std::cout << "    (0,1)=" << cases(0,1) << " (1,1)=" << cases(1,1) << "\n";
-
-        observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file, ',');
+        dparray_to_csv("contact-data/who_acquired_infection_from_whom", "norm", &observations.waifw_norm);
 
         //mean number of daily contacts per age group (home only)
         (*log) << "\t- " << waifw_home_file << std::endl;
@@ -185,6 +180,43 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         return observations;
 
     }
+}
+
+void IOdatapipeline::dparray_to_csv(
+    const std::string& data_product, const std::string& component, std::vector<std::vector<double>> *result) {
+
+    (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+
+    Array<double> input = dp->read_array(data_product, component);
+    std::vector<int> array_sizes = input.size();
+
+    if (array_sizes.size() != 2) {
+        // Should complain about this... and probably should check the dimensions as matching what is expected... if that matters.
+    }
+
+    result->resize(0);
+
+    for (int j = 0; j < array_sizes[1]; ++j) {
+        // Construct a new element of isize size
+        result->emplace_back(array_sizes[0]);
+        auto& row = result->back();
+
+        // Copy the data row
+        for (int i = 0; i < array_sizes[0]; ++i) {
+            row[i] = input(i, j);
+        }
+    }
+
+    // Some checking
+    std::cout << "Original: \"" << data_product << "\" \"" << component << "\"\n";
+    std::cout << "    size() = " << array_sizes << "\n";
+    std::cout << "    (0,0)=" << input(0,0) << " (1,0)=" << input(1,0) << "\n";
+    std::cout << "    (0,1)=" << input(0,1) << " (1,1)=" << input(1,1) << "\n";
+
+    std::cout << "VoV:\n";
+    std::cout << "    size() = [" << result->size() << ", " << (*result)[0].size() << "]\n";
+    std::cout << "    (0,0)=" << (*result)[0][0] << " (1,0)=" << (*result)[0][1] << "\n";
+    std::cout << "    (0,1)=" << (*result)[1][0] << " (1,1)=" << (*result)[1][1] << "\n";
 }
 
 } // namespace IO

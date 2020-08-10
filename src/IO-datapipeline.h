@@ -100,6 +100,15 @@ private:
      * @return Parameters data structure
      */
     params ReadFixedModelParameters();
+
+    /**
+     * @brief Read a 2D array from the data pipeline and copy the contents into a vector of vectors
+     * 
+     * @param data_product The data pipeline data product to load
+     * @param component The component within the data product
+     * @param result A pointer to the vector of vectors for the result
+     */
+    void dparray_to_csv(const std::string& data_product, const std::string& component, std::vector<std::vector<double>> *result);
 };
 
 

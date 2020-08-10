@@ -54,7 +54,8 @@ int main(int argc, char** argv)
     // CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
     // Import model observational data
-    ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
+    ObservationsForModels modelObservations = datapipeline.ReadModelObservations();
+    // ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
     // Log the disease seed settings
     IO::LogSeedSettings(supplementaryParameters.seedlist, logger);

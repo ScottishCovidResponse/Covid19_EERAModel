@@ -90,6 +90,7 @@ set(_state_variable_names
     # >>>
     # 1. Add the name of the additional git variable you're interested in monitoring
     #    to this list.
+    GIT_REMOTE_ORIGIN_URL
 )
 
 
@@ -190,7 +191,10 @@ function(GetGitState _working_dir)
     #    "execute_process()" command. Be sure to set them in
     #    the environment using the same variable name you added
     #    to the "_state_variable_names" list.
-
+    RunGitCommand(config --get remote.origin.url)
+    if(exit_code EQUAL 0)
+        set(ENV{GIT_REMOTE_ORIGIN_URL} "${output}")
+    endif()
 endfunction()
 
 
