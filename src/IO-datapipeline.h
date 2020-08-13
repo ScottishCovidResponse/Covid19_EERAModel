@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "array.hh"
+#include "table.hh"
 #include "datapipeline.hh"
 
 namespace EERAModel {
@@ -159,16 +160,42 @@ private:
         }
 
         // Some checking
-        std::cout << "Original: \"" << data_product << "\" \"" << component << "\"\n";
-        std::cout << "    size() = [" << array_sizes[0] << ", " << array_sizes[1] << "]\n";
-        std::cout << "    (0,0)=" << input(0,0) << " (1,0)=" << input(1,0) << "\n";
-        std::cout << "    (0,1)=" << input(0,1) << " (1,1)=" << input(1,1) << "\n";
+        // std::cout << "Original: \"" << data_product << "\" \"" << component << "\"\n";
+        // std::cout << "    size() = [" << array_sizes[0] << ", " << array_sizes[1] << "]\n";
+        // std::cout << "    (0,0)=" << input(0,0) << " (1,0)=" << input(1,0) << "\n";
+        // std::cout << "    (0,1)=" << input(0,1) << " (1,1)=" << input(1,1) << "\n";
 
-        std::cout << "VoV:\n";
-        std::cout << "    size() = [" << (*result)[0].size() << ", " << result->size() << "]\n";
-        std::cout << "    (0,0)=" << (*result)[0][0] << " (1,0)=" << (*result)[0][1] << "\n";
-        std::cout << "    (0,1)=" << (*result)[1][0] << " (1,1)=" << (*result)[1][1] << "\n";
+        // std::cout << "VoV:\n";
+        // std::cout << "    size() = [" << (*result)[0].size() << ", " << result->size() << "]\n";
+        // std::cout << "    (0,0)=" << (*result)[0][0] << " (1,0)=" << (*result)[0][1] << "\n";
+        // std::cout << "    (0,1)=" << (*result)[1][0] << " (1,1)=" << (*result)[1][1] << "\n";
     }
+
+    template <class T>
+    void dptable_to_csv(
+        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result) {
+
+        (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+
+        Table input = dp->read_table(data_product, component);
+
+        std::cout << input.to_string() << "\n";
+
+        std::vector<string> columns = input.get_column_names();
+        std::size_t col_size = input.get_column_size();
+
+        result->resize(0);
+        result->resize(col_size);
+
+        for (const auto& column : columns) {
+            std::vector<T>& column_values = input.get_column<T>(column);
+
+            for (std::size_t e = 0; e < col_size; ++e) {
+                (*result)[e].push_back(column_values[e]);
+            }
+        }
+    }
+
 };
 
 

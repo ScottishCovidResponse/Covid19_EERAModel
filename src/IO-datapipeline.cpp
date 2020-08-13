@@ -89,7 +89,7 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         ObservationsForModels observations;
 
         (*log) << "Observations For Models:" << std::endl;
-        
+
         const std::string cfr_byage_file = ModelConfigDir + "/cfr_byage.csv";
         if (!Utilities::fileExists(cfr_byage_file)) throw IOException(cfr_byage_file + ": File not found!");
 
@@ -102,8 +102,7 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         //rows from 1 are indivudual health board
         //last row is for all of scotland
         dparray_to_csv<int>("population-data/data_for_scotland", "data", &observations.cases);
-        auto cases = Utilities::read_csv<int>(scot_data_file, ',');
-        // observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+        // auto cases = Utilities::read_csv<int>(scot_data_file, ',');
 
         // TODO: this is indexed by herd_id, and the data file has a titles row that the data pipeline doesn't
         // so need to do something about that. Fix this properly, but for now...
@@ -145,9 +144,12 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         //col1: cfr: case fatality ratio
         //col2: p_d: probability of death, given hospitalisation
         //rows are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-        (*log) << "\t- " << cfr_byage_file << std::endl;
-        // case-fatality-ratios/by_age/data_for_scotland ? (just a copy of contact-data file currently)
-        observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
+        // prob_hosp_and_cfr/data_for_scotland cfr_byage
+        dptable_to_csv<double>("prob_hosp_and_cfr/data_for_scotland", "cfr_byage", &observations.cfr_byage);
+        //observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
+
+        //std::cout << observations.cfr_byage << "\n\n";
+        //std::cout << cfr_byage << "\n";
 
         //Upload frailty probability p_f by age group
         //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW

@@ -103,3 +103,28 @@ TEST(AnArgumentParser, RecognisesParameterSetIndex)
 
     EXPECT_EQ(parse.getArgs().parameter_set_index, 2);
 }
+
+TEST(AnArgumentParser, CheckAbsenseOfDataPipeline)
+{    
+    const char* _test_args[] = {"exe", "-m", "inference", "-s", "original"};
+
+    ArgumentParser parse(5, _test_args);
+
+    EXPECT_EQ(parse.getArgs().datapipeline_path, "");
+}
+
+TEST(AnArgumentParser, RecognisesRequestForDataPipeline)
+{    
+    const char* _test_args[] = {"exe", "-m", "inference", "-s", "original", "-c", "my_config.yaml"};
+
+    ArgumentParser parse(7, _test_args);
+
+    EXPECT_EQ(parse.getArgs().datapipeline_path, "my_config.yaml");
+}
+
+TEST(AnArgumentParser, TerminatesIfNoDataPipelinePath)
+{
+    const char* _test_args_default[] = {"exe", "-c"};
+
+    EXPECT_EXIT( ArgumentParser(2, _test_args_default), ExitedWithCode(1), "");
+}

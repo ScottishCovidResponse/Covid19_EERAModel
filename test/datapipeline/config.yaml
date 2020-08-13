@@ -45,11 +45,11 @@ read:
     use:
       version: 0.1.0
   - where:
-      data_product: case-fatality-ratios/by_age/data_for_scotland
+      data_product: prob_hosp_and_cfr/data_for_scotland
   - where:
       data_product: population-data/data_for_scotland
   - where:
-      data_product: posterior-parameters/data_for_scotland
+      data_product: posterior_parameters/data_for_scotland
   - where:
       data_product: contact-data/who_acquired_infection_from_whom
   - where:
