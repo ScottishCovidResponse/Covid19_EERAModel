@@ -5,11 +5,35 @@
 #include "Utilities.h"
 #include <sstream>
 #include <string>
+#include <vector>
 
+#include "array.hh"
 #include "datapipeline.hh"
 
 namespace EERAModel {
 namespace IO {
+
+namespace {
+    template <class T>
+    std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+        os << "(" << v.size() << ") [";
+        for (auto &ve : v) {
+            os << " " << ve;
+        }
+        os << " ]";
+        return os;
+    }
+
+    template <class T>
+    std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<T>>& v) {
+        os << "(" << v.size() << ") [\n";
+        for (auto &ve : v) {
+            os << "  " << ve << "\n";
+        }
+        os << "]";
+        return os;
+    }
+}
 
 /**
  * @class IOdatapipeline
@@ -108,7 +132,43 @@ private:
      * @param component The component within the data product
      * @param result A pointer to the vector of vectors for the result
      */
-    void dparray_to_csv(const std::string& data_product, const std::string& component, std::vector<std::vector<double>> *result);
+    template <class T>
+    void dparray_to_csv(
+        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result) {
+
+        (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+
+        Array<double> input = dp->read_array(data_product, component);
+        std::vector<int> array_sizes = input.size();
+
+        if (array_sizes.size() != 2) {
+            // Should complain about this... and probably should check the dimensions as matching what is expected... if that matters.
+        }
+
+        result->resize(0);
+
+        for (int j = 0; j < array_sizes[1]; ++j) {
+            // Construct a new element of isize size
+            result->emplace_back(array_sizes[0]);
+            auto& row = result->back();
+
+            // Copy the data row
+            for (int i = 0; i < array_sizes[0]; ++i) {
+                row[i] = static_cast<T> (input(i, j));
+            }
+        }
+
+        // Some checking
+        std::cout << "Original: \"" << data_product << "\" \"" << component << "\"\n";
+        std::cout << "    size() = [" << array_sizes[0] << ", " << array_sizes[1] << "]\n";
+        std::cout << "    (0,0)=" << input(0,0) << " (1,0)=" << input(1,0) << "\n";
+        std::cout << "    (0,1)=" << input(0,1) << " (1,1)=" << input(1,1) << "\n";
+
+        std::cout << "VoV:\n";
+        std::cout << "    size() = [" << (*result)[0].size() << ", " << result->size() << "]\n";
+        std::cout << "    (0,0)=" << (*result)[0][0] << " (1,0)=" << (*result)[0][1] << "\n";
+        std::cout << "    (0,1)=" << (*result)[1][0] << " (1,1)=" << (*result)[1][1] << "\n";
+    }
 };
 
 

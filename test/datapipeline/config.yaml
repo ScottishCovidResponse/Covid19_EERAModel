@@ -47,10 +47,24 @@ read:
   - where:
       data_product: case-fatality-ratios/by_age/data_for_scotland
   - where:
-      data_product: prior-distributions/rrd
-  - where:
       data_product: population-data/data_for_scotland
   - where:
       data_product: posterior-parameters/data_for_scotland
   - where:
       data_product: contact-data/who_acquired_infection_from_whom
+  - where:
+      data_product: prior-distributions/pinf
+  - where:
+      data_product: prior-distributions/ps
+  - where:
+      data_product: prior-distributions/q
+  - where:
+      data_product: prior-distributions/lambda
+  - where:
+      data_product: prior-distributions/chcw
+  - where:
+      data_product: prior-distributions/d
+  - where:
+      data_product: prior-distributions/phcw
+  - where:
+      data_product: prior-distributions/rrd
