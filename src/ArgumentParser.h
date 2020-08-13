@@ -5,82 +5,80 @@
 #include <tclap/CmdLine.h>
 #include <tclap/Constraint.h>
 
-#include "Utilities.h"
 #include "ModelTypes.h"
+#include "Utilities.h"
 
 #ifndef VERSION
 #error Macro VERSION must be defined!
 #endif
 
-
 namespace EERAModel {
 
-struct Arguments
-{
-    bool isLocal = false;
-    std::string local_location=std::string(ROOT_DIR);
-    ModelStructureId structure = ModelStructureId::ORIGINAL;
-    ModelModeId mode = ModelModeId::INFERENCE;
-    std::string output_dir = std::string(ROOT_DIR)+"/outputs";
-    int parameter_set_index;
+struct Arguments {
+  bool isLocal = false;
+  std::string local_location = std::string(ROOT_DIR);
+  ModelStructureId structure = ModelStructureId::ORIGINAL;
+  ModelModeId mode = ModelModeId::INFERENCE;
+  std::string output_dir = std::string(ROOT_DIR) + "/outputs";
+  int parameter_set_index;
 };
 
 /**
  * @brief Class for parsing model command line arguments
- * 
+ *
  * This class uses the TCLAP library to process command line arguments
  * relating to model structure, execution mode and input locations
  */
-class ArgumentParser
-{
-    private:
-        Arguments _args;
-        std::vector<std::string> raw_args_;
-    public:
-        /**
-         * @brief Constructor
-         * 
-         * Terminates the application and prints an error message if parsing of command line
-         * arguments fails.
-         * 
-         * @param argc Count of command line arguments
-         * @param argv Command line arguments
-         */
-        ArgumentParser(int argc, const char* const * argv);
+class ArgumentParser {
+private:
+  Arguments _args;
+  std::vector<std::string> raw_args_;
 
-        /**
-         * @brief Log argument values to output
-         * 
-         * Send printout of all argument values to the specified
-         * logging stream
-         * 
-         * @param logging_stream shared pointer to model logging stream
-         */
-        void logArguments(Utilities::logging_stream::Sptr log);
+public:
+  /**
+   * @brief Constructor
+   *
+   * Terminates the application and prints an error message if parsing of
+   * command line arguments fails.
+   *
+   * @param argc Count of command line arguments
+   * @param argv Command line arguments
+   */
+  ArgumentParser(int argc, const char *const *argv);
 
-        /**
-         * @brief Append specified options to input parameters
-         * 
-         * Specifies options for structure, mode and input location
-         * these overwrite values specified within a parameter file.
-         * 
-         * @param input_params model input parameter object to update
-         */
-        void AppendOptions(SupplementaryInputParameters& input_params);
+  /**
+   * @brief Log argument values to output
+   *
+   * Send printout of all argument values to the specified
+   * logging stream
+   *
+   * @param logging_stream shared pointer to model logging stream
+   */
+  void logArguments(Utilities::logging_stream::Sptr log);
 
-        bool runLocal() const {return _args.isLocal;}
-        
-        std::string localSourceDir() const {return _args.local_location;}
+  /**
+   * @brief Append specified options to input parameters
+   *
+   * Specifies options for structure, mode and input location
+   * these overwrite values specified within a parameter file.
+   *
+   * @param input_params model input parameter object to update
+   */
+  void AppendOptions(SupplementaryInputParameters &input_params);
 
-        ModelModeId runMode() const {return _args.mode;}
+  bool runLocal() const { return _args.isLocal; }
 
-        ModelStructureId modelStructure() const {return _args.structure;}
+  std::string localSourceDir() const { return _args.local_location; }
 
-        std::string outputDir() const {return _args.output_dir;}
+  ModelModeId runMode() const { return _args.mode; }
 
-        int parameterSetIndex() const { return _args.parameter_set_index; }
+  ModelStructureId modelStructure() const { return _args.structure; }
 
-        Arguments getArgs() const {return _args;}
+  std::string outputDir() const { return _args.output_dir; }
+
+  int parameterSetIndex() const { return _args.parameter_set_index; }
+
+  Arguments getArgs() const { return _args; }
 };
 
 } // namespace EERAModel
