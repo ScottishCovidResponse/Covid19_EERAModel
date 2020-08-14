@@ -174,7 +174,12 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     predictionConfig.index = index;
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
-    
+    if (!Utilities::fileExists(parametersFile)) {
+        std::stringstream error_message;
+        error_message << "Cannot locate posterior parameters file at " << parametersFile << std::endl;
+        throw std::runtime_error(error_message.str());
+    }
+
     // The posterior parameters are columns 0 to 7; the fixed parameters are columns 8 to 15
     std::vector<double> modelParameters = ReadPredictionParametersFromFile(parametersFile, predictionConfig.index);
     predictionConfig.posterior_parameters = std::vector<double>(modelParameters.begin(), modelParameters.begin() + 8);

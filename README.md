@@ -217,12 +217,20 @@ and a reference set of output data files. A regression test consists of:
 * Running the model executable `./build/bin/Covid19EERAModel`
 * Compare the model outputs in `outputs` with the reference outputs in `test/regression/runN/outputs`
 
-There are two sets of regression tests: one set which use the original model structure, and another set which use the Irish epidemiological structure. The former are regression tests 1-6; the latter are tests 7-12.
+There are multiple sets of regression tests, which exercise different model structures in both inference and forward prediction modes. The table below lists the configuration of each test:
+
+| Test numbers        | Model           | Mode|
+| ------------- |:-------------:|:-------------:|
+| 1 - 6      | Original | Inference |
+| 7 - 12      | Irish | Inference |
+| 13 - 18      | Original | Forward Prediction |
+| 19 - 24      | Irish | Forward Prediction |
 
 The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` from the top-level roject directory. Each test will be run consecutively, and on completion the script will provide a summary of successes and failures. The script takes the first and last tests to run as arguments i.e. to run tests 4 through 9, execute the command:
 ```
 $ ./scripts/RunRegressionTests 4 9
 ```
+The regression test script automatically configures each run in line with the table above: the user does not need to do this.
 
 **Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 
