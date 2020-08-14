@@ -40,31 +40,29 @@ std::vector<double> InferenceParameterGenerator::GenerateInitial()
 
 std::vector<double> InferenceParameterGenerator::GenerateWeighted(
     const std::vector<double>& existingSet,
-    const std::vector<double>& vlimitKernel,
-    const std::vector<double>& vect_Max,
-    const std::vector<double>& vect_Min) 
+    const std::vector<KernelWindow>& kernelWindows) 
 {
     std::vector<double> parameterSet(Model::ModelParameters::NPARAMS);
     
     for (unsigned int i = 0; i < Model::ModelParameters::NPARAMS; ++i) 
     {
         parameterSet[i] = PerturbParameter(
-            existingSet[i], vlimitKernel[i], vect_Max[i], vect_Min[i]
+            existingSet[i], kernelWindows[i]
         );
     }
 
     return parameterSet;
 }
 
-double InferenceParameterGenerator::PerturbParameter(double oldParam, double kernel, double max, double min)
+double InferenceParameterGenerator::PerturbParameter(double oldParam, const KernelWindow& window)
 {
     double parameter;
     
     do
     {
-        parameter = oldParam + kernel * rng_->Flat(-1, 1);
+        parameter = oldParam + window.kernel * rng_->Flat(-1, 1);
     } 
-    while (parameter <= min || parameter >= max);
+    while (parameter <= window.min || parameter >= window.max);
     
     return parameter;
 }

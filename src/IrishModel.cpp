@@ -106,7 +106,7 @@ void IrishModel::GenerateDiseasedPopulation(std::vector<Compartments>& poparray,
 
 }
 
-Status IrishModel::Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) {
+Status IrishModel::Run(std::vector<double> parameter_set, const seed& seedlist, int day_shut, int n_sim_steps) {
 	Status status = {{0}, {0}, {0}, {}, {}};
 
 	const int n_agegroup = ageGroupData_.waifw_norm.size();

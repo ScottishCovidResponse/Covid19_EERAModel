@@ -36,7 +36,7 @@ public:
      * 
      * Interface to model-specific implementation
      */
-    virtual Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut, int n_sim_steps) = 0;
+    virtual Status Run(std::vector<double> parameter_set, const seed& seedlist, int day_shut, int n_sim_steps) = 0;
 
     /**
      * @brief Set the fixed parameters in the model
