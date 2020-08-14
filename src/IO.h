@@ -19,6 +19,39 @@ namespace EERAModel {
  */
 namespace IO {
 
+class IOException: public std::exception
+{
+public:
+    IOException(const std::string& message) : message_(message) {}
+    
+    const char* what() const throw() 
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+/**
+ * @brief Perform consistency checks on imported data from filePath.
+ * 
+ * @param filePath Path to imported data
+ * @param axisLength Length of axis to be checked
+ * @param expectedLength Expected Length of axis to check against
+ * @param axisID String holding axis identifier ("rows" or "columns")
+ */
+void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue);
+
+/**
+ * @brief Import parameters used for validating observation data
+ * 
+ * @param configDir Directory containing INI file
+ * 
+ * @return Validation parameters
+ */
+ValidationParameters ImportValidationParameters(const std::string& configDir);
+
 /**
  * @brief Read supplementary parameters used for main.cpp.
  * 
@@ -156,7 +189,12 @@ void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_c
 template <typename ParseVariableType>
 ParseVariableType ReadNumberFromFile(std::string SettingName, std::string SettingCategory, const std::string& filePath) 
 {
+	if (!Utilities::fileExists(filePath)) { throw IOException(filePath + ": File not found!"); }
+
 	std::string SettingValue = CIniFile::GetValue(SettingName, SettingCategory, filePath);
+	if (SettingValue.empty()) { 
+		throw IOException("Variable: " + SettingName + " in Category: " + SettingCategory + " not found in File: " + filePath);
+	}
 
 	char* endptr = nullptr;
 	ParseVariableType Value;
@@ -257,6 +295,13 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
  * @param log Logger
  */
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log);
+
+/**
+ * @brief Log versions of project dependencies
+ * 
+ * @param log Logger
+ */
+void LogDependencyVersionInfo(Utilities::logging_stream::Sptr log);
 
 /**
  * @brief Write formatted fixed parameters to an output logging stream

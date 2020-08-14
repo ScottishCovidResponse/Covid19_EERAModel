@@ -34,7 +34,7 @@ public:
      * 
      * @return Status of model after run
      */
-    Status Run(std::vector<double> parameter_set, seed& seedlist, int day_shut,
+    Status Run(std::vector<double> parameter_set, const seed& seedlist, int day_shut,
         int n_sim_steps) override;
     
     /**

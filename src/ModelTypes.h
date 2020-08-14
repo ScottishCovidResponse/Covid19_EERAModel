@@ -69,6 +69,16 @@ enum class ModelModeId
 };
 
 /**
+ * @brief Parameters used for validation of observation data
+ */
+struct ValidationParameters {
+	int nHealthBoards;
+	int nAgeGroups;
+	int nCfrCategories;
+	int nCasesDays;
+};
+
+/**
  * @brief Observations for Inference framework
  */
 struct ObservationsForInference {
@@ -160,8 +170,19 @@ struct InfectionState
 };
 
 /**
- * @brief Supplementary input parameters used by main.cpp
+ * @class KernelWindow
+ * @brief Struct representing the kernel window for a given inference parameter
  */
+struct KernelWindow 
+{
+    double kernel;
+    double max;
+    double min; 
+}; 
+
+/**
+* @brief Supplementary input parameters used by main.cpp
+*/
 struct SupplementaryInputParameters
 {
 	seed seedlist;
