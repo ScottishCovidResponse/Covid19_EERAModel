@@ -82,6 +82,14 @@ public:
      */ 
     ObservationsForModels ReadModelObservations();
 
+    /**
+     * @brief Read Inference config data
+     * 
+     * @param commonParameters Common parameters, could've been read using ReadCommonParameters above
+     * 
+     * @return Inference configuration
+     */ 
+    InferenceConfig ReadInferenceConfig(const CommonModelInputParameters& commonParameters);
 
 private:
     /**
@@ -198,6 +206,9 @@ private:
         }
     }
 
+    void dpdistribution(
+        const std::string& data_product, const std::string& component,
+        std::string p1, double *a, std::string p2 = "", double *b = nullptr);
 };
 
 

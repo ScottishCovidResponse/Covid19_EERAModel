@@ -105,7 +105,12 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         // Also, ComputeNumberOfHCWInRegion in ModelCommon.cpp, was using row 0 in a calculation
         // - not now.
 
-        observations.cases.insert(observations.cases.begin(), std::vector<int>());
+        observations.cases.insert(observations.cases.begin(), std::vector<int>(observations.cases[1].size()));
+
+        int v = -1;
+        for (auto& el : observations.cases[0]) {
+            el = v++;
+        }
 
         //Uploading population per age group
         //columns are for each individual Health Borad
@@ -164,9 +169,70 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         // Not available currently
         observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
         return observations;
-
     }
 }
+
+void IOdatapipeline::dpdistribution(
+    const std::string& data_product, const std::string& component,
+    std::string p1, double *a, std::string p2, double *b)
+{
+    (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+
+    Distribution input = dp->read_distribution(data_product, component);
+    *a = input.getParameter(p1.c_str());
+    if (b) *b = input.getParameter(p2.c_str());
+}
+
+InferenceConfig IOdatapipeline::ReadInferenceConfig(const CommonModelInputParameters& commonParameters) 
+{
+    InferenceConfig inferenceConfig;
+
+    if (!datapipelineActive)
+    {
+        return IO::ReadInferenceConfig(ModelConfigDir, log, commonParameters);
+    }
+    else
+    {
+        IO::ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);
+
+        dpdistribution(
+            "prior-distributions/pinf", "pinf",
+            "alpha", &inferenceConfig.prior_pinf_shape1, "beta", &inferenceConfig.prior_pinf_shape2);
+
+        dpdistribution(
+            "prior-distributions/phcw", "phcw",
+            "alpha", &inferenceConfig.prior_phcw_shape1, "beta", &inferenceConfig.prior_phcw_shape2);
+
+        dpdistribution(
+            "prior-distributions/chcw", "chcw",
+            "lambda", &inferenceConfig.prior_chcw_mean);
+
+        dpdistribution(
+            "prior-distributions/d", "d",
+            "alpha", &inferenceConfig.prior_d_shape1, "beta", &inferenceConfig.prior_d_shape2);
+
+        dpdistribution(
+            "prior-distributions/q", "q",
+            "alpha", &inferenceConfig.prior_q_shape1, "beta", &inferenceConfig.prior_q_shape2);
+
+        dpdistribution(
+            "prior-distributions/lambda", "lambda",
+            "a", &inferenceConfig.prior_lambda_shape1, "b", &inferenceConfig.prior_lambda_shape2);
+        
+        dpdistribution(
+            "prior-distributions/ps", "ps",
+            "alpha", &inferenceConfig.prior_ps_shape1, "beta", &inferenceConfig.prior_ps_shape2);
+
+        dpdistribution(
+            "prior-distributions/rrd", "rrd",
+            "k", &inferenceConfig.prior_rrd_shape1, "theta", &inferenceConfig.prior_rrd_shape2);
+
+        inferenceConfig.observations = ReadInferenceObservations(ModelConfigDir, log);
+
+        return inferenceConfig;
+    }
+}
+
 
 } // namespace IO
 } // namespace EERAModel

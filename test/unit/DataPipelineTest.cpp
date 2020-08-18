@@ -67,18 +67,21 @@ namespace {
 
     void compare_double_eq(
         const std::vector<std::vector<double>>& a, const std::vector<std::vector<double>>& b,
-        bool check_sizes = true)
+        int firstj = -1, int endi = -1)
     {
-        if (check_sizes)
-            EXPECT_EQ(a.size(), b.size());
-
+        EXPECT_EQ(a.size(), b.size());
         std::size_t sz1 = std::min(a.size(), b.size());
 
-        for (int j = 0; j < sz1; ++j) {
-            if (check_sizes)
-                EXPECT_EQ(a[j].size(), b[j].size());
+        if (firstj < 0) firstj = 0;
 
+        for (int j = firstj; j < sz1; ++j) {
             std::size_t sz2 = std::min(a[j].size(), b[j].size());
+
+            if (endi < 0) {
+                EXPECT_EQ(a[j].size(), b[j].size());
+            } else {
+                EXPECT_EQ(sz2, endi);
+            }
 
             for (int i = 0; i < sz2; ++i) {
                 EXPECT_DOUBLE_EQ(a[j][i], b[j][i]);
@@ -104,9 +107,40 @@ TEST(TestIODatapipeline, CanReadModelData)
     ObservationsForModels rg_params = IO::ReadModelObservations(configDir, logger);
 
     EXPECT_EQ(dp_params.cases, rg_params.cases);
-    compare_double_eq(dp_params.age_pop, rg_params.age_pop);
+    compare_double_eq(dp_params.age_pop, rg_params.age_pop, 1);
     compare_double_eq(dp_params.waifw_norm, rg_params.waifw_norm);
     compare_double_eq(dp_params.waifw_home, rg_params.waifw_home);
     compare_double_eq(dp_params.waifw_sdist, rg_params.waifw_sdist);
-    compare_double_eq(dp_params.cfr_byage, rg_params.cfr_byage, false);
+    compare_double_eq(dp_params.cfr_byage, rg_params.cfr_byage, -1, 3);
+}
+
+TEST(TestIODatapipeline, CanReadInferenceConfig)
+{
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+
+    // Load data from data pipeline store
+    IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
+    CommonModelInputParameters common_params = idp.ReadCommonParameters();
+    InferenceConfig dp_infconfig = idp.ReadInferenceConfig(common_params);
+
+    EXPECT_EQ(dp_infconfig.prior_pinf_shape1, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_pinf_shape2, 9.0);
+    EXPECT_EQ(dp_infconfig.prior_phcw_shape1, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_phcw_shape2, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_chcw_mean, 42);
+    EXPECT_EQ(dp_infconfig.prior_d_shape1, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_d_shape2, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_q_shape1, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_q_shape2, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_ps_shape1, 9.0);
+    EXPECT_EQ(dp_infconfig.prior_ps_shape2, 3.0);
+    EXPECT_EQ(dp_infconfig.prior_rrd_shape1, 1.0);
+    EXPECT_EQ(dp_infconfig.prior_rrd_shape2, 1.0);
+    EXPECT_EQ(dp_infconfig.prior_lambda_shape1, 1e-9);
+    EXPECT_EQ(dp_infconfig.prior_lambda_shape2, 1e-6);
 }

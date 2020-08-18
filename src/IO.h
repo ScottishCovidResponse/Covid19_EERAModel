@@ -77,10 +77,23 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
  * 
  * @param configDir Directory containing the configuration and data files
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Inference parameters
  */
 InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the inference mode
+ * 
+ * @param ParamsPath Location of the parameters .ini file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param inferenceConfig Destination to place local inference config
+ */
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig);
 
 /**
  * @brief Read prediction framework configuration from input files

@@ -108,18 +108,40 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
     return commonParameters;
 }
 
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig)
+{
+    inferenceConfig->seedlist = ReadSeedSettings(ParamsPath, log);
+    //inferenceConfig->paramlist = ReadFixedModelParameters(ParamsPath);
+    inferenceConfig->paramlist = commonParameters.paramlist;
+    inferenceConfig->herd_id = commonParameters.herd_id;
+    inferenceConfig->day_shut = commonParameters.day_shut;
+    inferenceConfig->tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
+
+    inferenceConfig->nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
+    inferenceConfig->kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
+    inferenceConfig->nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
+    inferenceConfig->nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
+
+    for (int ii = 1; ii <= inferenceConfig->nsteps; ii++) {
+        inferenceConfig->toleranceLimit.push_back(0.0);
+    }
+
+    for (int ii = 0; ii < inferenceConfig->nsteps; ii++) {
+        std::stringstream KeyName;
+        KeyName << "Key" << (ii + 1);
+        inferenceConfig->toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
+    }
+}
+
 InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters) 
 {
     std::string ParamsPath(configDir + "/parameters.ini");
 
     InferenceConfig inferenceConfig;
     
-    inferenceConfig.seedlist = ReadSeedSettings(ParamsPath, log);
-    //inferenceConfig.paramlist = ReadFixedModelParameters(ParamsPath);
-    inferenceConfig.paramlist = commonParameters.paramlist;
-    inferenceConfig.herd_id = commonParameters.herd_id;
-    inferenceConfig.day_shut = commonParameters.day_shut;
-    inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
+    ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);    
 
     inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", ParamsPath);
@@ -137,21 +159,6 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     inferenceConfig.prior_ps_shape2 = ReadNumberFromFile<double>("prior_ps_shape2", "Priors settings", ParamsPath);
     inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", ParamsPath);
-
-    inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
-    inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
-    inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
-    inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
-
-    for (int ii = 1; ii <= inferenceConfig.nsteps; ii++) {
-        inferenceConfig.toleranceLimit.push_back(0.0);
-    }
-
-    for (int ii = 0; ii < inferenceConfig.nsteps; ii++) {
-        std::stringstream KeyName;
-        KeyName << "Key" << (ii + 1);
-        inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
-    }
 
     inferenceConfig.observations = ReadInferenceObservations(configDir, log);
 
