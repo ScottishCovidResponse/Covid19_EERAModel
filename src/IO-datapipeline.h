@@ -17,6 +17,8 @@ namespace IO {
 namespace {
     template <class T>
     std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+        std::cout << std::scientific << std::setprecision(17);
+
         os << "(" << v.size() << ") [";
         for (auto &ve : v) {
             os << " " << ve;
@@ -179,7 +181,7 @@ private:
 
         Table input = dp->read_table(data_product, component);
 
-        std::cout << input.to_string() << "\n";
+        // std::cout << input.to_string() << "\n";
 
         std::vector<string> columns = input.get_column_names();
         std::size_t col_size = input.get_column_size();

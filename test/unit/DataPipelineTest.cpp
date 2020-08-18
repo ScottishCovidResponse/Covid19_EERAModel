@@ -44,7 +44,8 @@ TEST(TestIODatapipeline, CanReadFixedParameters)
 
 namespace {
     template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+    std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+    {
         os << "(" << v.size() << ") [";
         for (auto &ve : v) {
             os << " " << ve;
@@ -54,7 +55,8 @@ namespace {
     }
 
     template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<T>>& v) {
+    std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<T>>& v)
+    {
         os << "(" << v.size() << ") [\n";
         for (auto &ve : v) {
             os << "  " << ve << "\n";
@@ -63,12 +65,19 @@ namespace {
         return os;
     }
 
-    void compare_double_eq(const std::vector<std::vector<double>>& a, const std::vector<std::vector<double>>& b) {
-        EXPECT_EQ(a.size(), b.size());
+    void compare_double_eq(
+        const std::vector<std::vector<double>>& a, const std::vector<std::vector<double>>& b,
+        bool check_sizes = true)
+    {
+        if (check_sizes)
+            EXPECT_EQ(a.size(), b.size());
+
         std::size_t sz1 = std::min(a.size(), b.size());
 
         for (int j = 0; j < sz1; ++j) {
-            EXPECT_EQ(a[j].size(), b[j].size());
+            if (check_sizes)
+                EXPECT_EQ(a[j].size(), b[j].size());
+
             std::size_t sz2 = std::min(a[j].size(), b[j].size());
 
             for (int i = 0; i < sz2; ++i) {
@@ -99,5 +108,5 @@ TEST(TestIODatapipeline, CanReadModelData)
     compare_double_eq(dp_params.waifw_norm, rg_params.waifw_norm);
     compare_double_eq(dp_params.waifw_home, rg_params.waifw_home);
     compare_double_eq(dp_params.waifw_sdist, rg_params.waifw_sdist);
-    compare_double_eq(dp_params.cfr_byage, rg_params.cfr_byage);
+    compare_double_eq(dp_params.cfr_byage, rg_params.cfr_byage, false);
 }
