@@ -68,7 +68,7 @@ jobs:
         
     - name: Run regression tests
       run: |
-        ./scripts/RunRegressionTests.sh 1 12
+        ./scripts/RunRegressionTests.sh 1 24
         if [ $? -eq 0 ]; then
           echo "Regression tests completed successfully"
           exit 0

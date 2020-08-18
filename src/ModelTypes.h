@@ -71,6 +71,16 @@ enum class ModelModeId
 };
 
 /**
+ * @brief Parameters used for validation of observation data
+ */
+struct ValidationParameters {
+	int nHealthBoards;
+	int nAgeGroups;
+	int nCfrCategories;
+	int nCasesDays;
+};
+
+/**
  * @brief Observations for Inference framework
  */
 struct ObservationsForInference {

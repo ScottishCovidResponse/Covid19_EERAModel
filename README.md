@@ -3,6 +3,11 @@
 
 Simple COVID-19 simulation model with ABC-smc inference
 
+## Branches and releases
+The most recently released code is always located on the `master` branch. The `dev` is the main development branch, containing the most recently developed pre-release features. 
+
+Releases are versioned using the [semantic versioning](www.semver.org) scheme. Releases are tagged with the release number, in the form MAJOR.MINOR.PATCH.
+
 ## Project structure
  * `data/` Working input data directory: used to store inputs to a model run
  * `doc/` Documentation associated with the model
@@ -26,6 +31,8 @@ The project uses [Google Test](https://github.com/google/googletest) as its unit
 The project uses [TCLAP](http://tclap.sourceforge.net/) for parsing of command line arguments. It is downloaded and built automatically as part of the project build process. It is not required to be installed on the host system.
 
 The project makes use of a [CMake-based version-tracking tool](https://github.com/andrew-hardin/cmake-git-version-tracking) for encoding Git repository information in the project binary files. It was developed by Andrew Hardin (https://github.com/andrew-hardin), and is licensed uder an MIT license.
+
+The project makes use of an [INI file parser](https://www.codeproject.com/Articles/8342/CIniFile-Class-for-C-A-robust-cross-platform-INI-f) to read values from parameter files. It is used under the terms of the license [here](https://www.codeproject.com/info/cpol10.aspx).
 
 ## Build
 The build follows the normal CMake procedure. To do an out-of-source build, from the root project
@@ -82,6 +89,10 @@ This file contains general model parameters, in `.ini` format. Parameters are gr
 | ------------- |:-------------:|:-------------:|:-------------:|
 | Settings      | shb\_id           | Integer        | Identifier for selected health board (1-15)           |
 | Settings       | tau           | Float        |  Time step scale factor           |
+| Settings       | nHealthBoards | Int        |  Number of Health Boards (validation purposes)           |
+| Settings       | nAgeGroups | Int        |  Number of Age Groups (validation purposes)           |
+| Settings       | nCfrCategories | Int        | Number of Case State Categories (validation purposes)          |
+| Settings       | nCasesDays | Int        | Number of days that observations are recorded for (validation purposes)           |
 | Seed settings       | seedmethod           | String        | Seeding method ("background" or "random")           |
 | Seed settings       | nseed           | Integer        | Population seeding number <br>(Random seeding only)           |
 | Seed settings       | hrp           | Integer        | High Risk Period in days <br>(Background seeding only)        |
@@ -206,12 +217,20 @@ and a reference set of output data files. A regression test consists of:
 * Running the model executable `./build/bin/Covid19EERAModel`
 * Compare the model outputs in `outputs` with the reference outputs in `test/regression/runN/outputs`
 
-There are two sets of regression tests: one set which use the original model structure, and another set which use the Irish epidemiological structure. The former are regression tests 1-6; the latter are tests 7-12.
+There are multiple sets of regression tests, which exercise different model structures in both inference and forward prediction modes. The table below lists the configuration of each test:
+
+| Test numbers        | Model           | Mode|
+| ------------- |:-------------:|:-------------:|
+| 1 - 6      | Original | Inference |
+| 7 - 12      | Irish | Inference |
+| 13 - 18      | Original | Forward Prediction |
+| 19 - 24      | Irish | Forward Prediction |
 
 The regression tests can be run automatically by running the script `scripts/RunRegressionTests.sh` from the top-level roject directory. Each test will be run consecutively, and on completion the script will provide a summary of successes and failures. The script takes the first and last tests to run as arguments i.e. to run tests 4 through 9, execute the command:
 ```
 $ ./scripts/RunRegressionTests 4 9
 ```
+The regression test script automatically configures each run in line with the table above: the user does not need to do this.
 
 **Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 
