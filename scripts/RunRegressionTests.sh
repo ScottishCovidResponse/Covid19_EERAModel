@@ -56,20 +56,29 @@ for i in $(seq $FIRST $LAST) ; do
   echo ""
   echo "***************** Running regression test #$i *****************"
 
-  if [[ $i -ge 1 ]] && [[ $i -le 6 ]]; then
+  # Tests 1-6 and 13-18 are against the original model
+  if ([[ $i -ge 1 ]] && [[ $i -le 6 ]]) || ([[ $i -ge 13 ]] && [[ $i -le 18 ]]); then
     STRUCT_FLAG=$( echo "-s original" )
+  # Tests 7-12 and 18-24 are against the irish model
   else
     STRUCT_FLAG=$( echo "-s irish" )
   fi
 
-  MODE_FLAG=$( echo "-m inference" )
-  PIPELINE_FLAG=""
+  # Tests 1-12 are inference mode
+  if [[ $i -ge 1 ]] && [[ $i -le 12 ]]; then
+    MODE_FLAG=$( echo "-m inference" )
+  # Tests 13-24 are prediction mode
+  else 
+    MODE_FLAG=$( echo "-m prediction" )
+  fi
 
+  PIPELINE_FLAG=""
   if [[ $USEDATAPIPELINE -eq 1 ]]; then
     PIPELINE_FLAG="-c $PIPELINE_CONFIG"
   fi
 
   FLAGS=$( echo "$STRUCT_FLAG $MODE_FLAG $PIPELINE_FLAG" )
+
   regression_test_dir=$REGRESSION_DIR/run$i
   
   $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data

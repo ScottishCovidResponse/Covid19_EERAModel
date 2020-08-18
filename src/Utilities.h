@@ -180,7 +180,7 @@ std::vector<std::vector<T>> read_csv(const std::string& inputfile, char delimite
 {
 	std::vector<std::vector<T> > data;
 	std::ifstream infile(inputfile.c_str());
-	if (infile.fail())  { std::cout << "Input file not found" << std::endl; return data; }
+	if (infile.fail())  { std::cout << "Input file: " << inputfile.c_str() << " not found" << std::endl; return data; }
 	std::string line;
 	std::vector<T> record;
 	

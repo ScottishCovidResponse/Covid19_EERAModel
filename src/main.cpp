@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
     IO::LogGitVersionInfo(logger);
+    IO::LogDependencyVersionInfo(logger);
     arg_parser.logArguments(logger);
 
     // Parameters ini file location
