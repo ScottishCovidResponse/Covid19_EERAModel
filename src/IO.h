@@ -41,16 +41,16 @@ private:
  * @param expectedLength Expected Length of axis to check against
  * @param axisID String holding axis identifier ("rows" or "columns")
  */
-void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue);
+void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue, const std::string& axisID);
 
 /**
  * @brief Import parameters used for validating observation data
  * 
- * @param configDir Directory containing INI file
+ * @param filePath File path to parameters INI file
  * 
  * @return Validation parameters
  */
-ValidationParameters ImportValidationParameters(const std::string& configDir);
+ValidationParameters ImportValidationParameters(const std::string& filePath);
 
 /**
  * @brief Read supplementary parameters used for main.cpp.

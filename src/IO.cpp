@@ -25,10 +25,9 @@ void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axi
 
 }
 
-ValidationParameters ImportValidationParameters(const std::string& configDir)
+ValidationParameters ImportValidationParameters(const std::string& filePath)
 {
     ValidationParameters parameters;
-    std::string filePath(configDir + "/parameters.ini");
 
     parameters.nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", filePath);
     parameters.nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", filePath);
@@ -98,7 +97,6 @@ SupplementaryInputParameters ReadSupplementaryParameters(const std::string& Para
 
 CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 {
-    std::cout << "(Files): ReadFixedModelParameters\n";
     CommonModelInputParameters commonParameters;
 
     commonParameters.paramlist  = ReadFixedModelParameters(ParamsPath);
@@ -228,7 +226,7 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
 
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParams = ImportValidationParameters(configDir);
+    ValidationParameters validationParams = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParams.nHealthBoards;
     int nCasesDays = validationParams.nCasesDays;
 
@@ -251,8 +249,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 {
     ObservationsForModels observations;
 
-    (*log) << "Observations For Models:" << std::endl;
-
     const std::string scot_data_file = configDir + "/scot_data.csv";
     const std::string scot_ages_file = configDir + "/scot_age.csv";
     const std::string waifw_norm_file = configDir + "/waifw_norm.csv";
@@ -262,7 +258,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     const std::string scot_frail_file = configDir + "/scot_frail.csv";
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParameters = ImportValidationParameters(configDir);
+    ValidationParameters validationParameters = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParameters.nHealthBoards;
     int nAgeGroups = validationParameters.nAgeGroups;
     int nCfrCategories = validationParameters.nCfrCategories;

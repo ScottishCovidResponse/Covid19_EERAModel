@@ -50,9 +50,13 @@ int main(int argc, char** argv)
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
+    (*logger) << "[Common Parameters]:" << std::endl;
+
     // Import common parameters for all models
     CommonModelInputParameters commonParameters = datapipeline.ReadCommonParameters();
     // CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
+
+    (*logger) << "[Model Observations]:" << std::endl;
 
     // Import model observational data
     ObservationsForModels modelObservations = datapipeline.ReadModelObservations();
@@ -95,8 +99,8 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::string configDir(std::string(ROOT_DIR) + "/data");
-        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger, commonParameters);
+        // std::string configDir(std::string(ROOT_DIR) + "/data");
+        InferenceConfig inferenceConfig = datapipeline.ReadInferenceConfig(commonParameters, modelObservations);
 
         IO::LogFixedParameters(commonParameters.paramlist, logger);
 

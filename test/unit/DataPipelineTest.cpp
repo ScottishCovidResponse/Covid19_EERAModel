@@ -65,8 +65,19 @@ namespace {
         return os;
     }
 
-    void compare_double_eq(
-        const std::vector<std::vector<double>>& a, const std::vector<std::vector<double>>& b,
+    void compare_eq(int a, int b)
+    { 
+        EXPECT_EQ(a, b);
+    }
+
+    void compare_eq(double a, double b)
+    { 
+        EXPECT_DOUBLE_EQ(a, b);
+    }
+
+    template <class T>
+    void compare_eq(
+        const std::vector<std::vector<T>>& a, const std::vector<std::vector<T>>& b,
         int firstj = -1, int endi = -1)
     {
         EXPECT_EQ(a.size(), b.size());
@@ -84,7 +95,7 @@ namespace {
             }
 
             for (int i = 0; i < sz2; ++i) {
-                EXPECT_DOUBLE_EQ(a[j][i], b[j][i]);
+                compare_eq(a[j][i], b[j][i]);
             }
         }
     }
@@ -106,12 +117,12 @@ TEST(TestIODatapipeline, CanReadModelData)
     // Load data from regression test 1
     ObservationsForModels rg_params = IO::ReadModelObservations(configDir, logger);
 
-    EXPECT_EQ(dp_params.cases, rg_params.cases);
-    compare_double_eq(dp_params.age_pop, rg_params.age_pop, 1);
-    compare_double_eq(dp_params.waifw_norm, rg_params.waifw_norm);
-    compare_double_eq(dp_params.waifw_home, rg_params.waifw_home);
-    compare_double_eq(dp_params.waifw_sdist, rg_params.waifw_sdist);
-    compare_double_eq(dp_params.cfr_byage, rg_params.cfr_byage, -1, 3);
+    compare_eq<int>(dp_params.cases, rg_params.cases, 1);
+    compare_eq<double>(dp_params.age_pop, rg_params.age_pop);
+    compare_eq<double>(dp_params.waifw_norm, rg_params.waifw_norm);
+    compare_eq<double>(dp_params.waifw_home, rg_params.waifw_home);
+    compare_eq<double>(dp_params.waifw_sdist, rg_params.waifw_sdist);
+    compare_eq<double>(dp_params.cfr_byage, rg_params.cfr_byage, -1, 3);
 }
 
 TEST(TestIODatapipeline, CanReadInferenceConfig)
@@ -126,7 +137,8 @@ TEST(TestIODatapipeline, CanReadInferenceConfig)
     // Load data from data pipeline store
     IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
     CommonModelInputParameters common_params = idp.ReadCommonParameters();
-    InferenceConfig dp_infconfig = idp.ReadInferenceConfig(common_params);
+    ObservationsForModels model_obs = idp.ReadModelObservations();
+    InferenceConfig dp_infconfig = idp.ReadInferenceConfig(common_params, model_obs);
 
     EXPECT_EQ(dp_infconfig.prior_pinf_shape1, 3.0);
     EXPECT_EQ(dp_infconfig.prior_pinf_shape2, 9.0);
@@ -143,4 +155,10 @@ TEST(TestIODatapipeline, CanReadInferenceConfig)
     EXPECT_EQ(dp_infconfig.prior_rrd_shape2, 1.0);
     EXPECT_EQ(dp_infconfig.prior_lambda_shape1, 1e-9);
     EXPECT_EQ(dp_infconfig.prior_lambda_shape2, 1e-6);
+
+    // Load from local data
+    InferenceConfig rg_infconfig = IO::ReadInferenceConfig(configDir, logger, common_params);
+
+    compare_eq<int>(dp_infconfig.observations.cases, rg_infconfig.observations.cases, 1);
+    compare_eq<int>(dp_infconfig.observations.deaths, rg_infconfig.observations.deaths, 1);
 }

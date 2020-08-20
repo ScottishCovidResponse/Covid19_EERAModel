@@ -86,10 +86,12 @@ public:
      * @brief Read Inference config data
      * 
      * @param commonParameters Common parameters, could've been read using ReadCommonParameters above
+     * @param modelObservations Model Observations, could've been read using ReadModelObservations above
      * 
      * @return Inference configuration
      */ 
-    InferenceConfig ReadInferenceConfig(const CommonModelInputParameters& commonParameters);
+    InferenceConfig ReadInferenceConfig(
+        const CommonModelInputParameters& commonParameters, const ObservationsForModels& modelObservations);
 
 private:
     /**
@@ -137,16 +139,39 @@ private:
     params ReadFixedModelParameters();
 
     /**
+     * @brief Read the inference observations
+     * 
+     * @return Inference observations data structure
+     */
+    ObservationsForInference ReadInferenceObservations(const ObservationsForModels& modelObservations);
+
+    /**
+     * @brief Perform consistency checks on imported data from filePath.
+     * 
+     * @param data_product The data pipeline data product to load
+     * @param component The component within the data product
+     * @param axisLength Length of axis to be checked
+     * @param expectedLength Expected Length of axis to check against
+     * @param axisID String holding axis identifier ("rows" or "columns")
+     */
+    void ImportConsistencyCheck(
+        const std::string& data_product, const std::string& component,
+        const unsigned int axisLength, const unsigned int expectedValue, const std::string& axisID);
+
+    /**
      * @brief Read a 2D array from the data pipeline and copy the contents into a vector of vectors
      * 
      * @param data_product The data pipeline data product to load
      * @param component The component within the data product
      * @param result A pointer to the vector of vectors for the result
+     * @param expected_rows if >=0, the number of rows expected in the data
+     * @param expected_columns, if >=0, the number of columns expected in the data
      */
     template <class T>
     void dparray_to_csv(
-        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result) {
-
+        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result,
+        int expected_rows = -1, int expected_columns = -1)
+    {
         (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
         Array<double> input = dp->read_array(data_product, component);
@@ -154,6 +179,14 @@ private:
 
         if (array_sizes.size() != 2) {
             // Should complain about this... and probably should check the dimensions as matching what is expected... if that matters.
+        }
+
+        if (expected_rows >= 0) {
+            ImportConsistencyCheck(data_product, component, array_sizes[1], expected_rows, "rows");
+        }
+
+        if (expected_columns >= 0) {
+            ImportConsistencyCheck(data_product, component, array_sizes[0], expected_columns, "columns");
         }
 
         result->resize(0);
@@ -181,10 +214,20 @@ private:
         // std::cout << "    (0,1)=" << (*result)[1][0] << " (1,1)=" << (*result)[1][1] << "\n";
     }
 
+    /**
+     * @brief Read a table from the data pipeline and copy the contents into a vector of vectors
+     * 
+     * @param data_product The data pipeline data product to load
+     * @param component The component within the data product
+     * @param result A pointer to the vector of vectors for the result
+     * @param expected_rows if >=0, the number of rows expected in the data
+     * @param expected_columns, if >=0, the number of columns expected in the data
+     */
     template <class T>
     void dptable_to_csv(
-        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result) {
-
+        const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result,
+        int expected_rows = -1, int expected_columns = -1)
+    {
         (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
         Table input = dp->read_table(data_product, component);
@@ -193,6 +236,14 @@ private:
 
         std::vector<string> columns = input.get_column_names();
         std::size_t col_size = input.get_column_size();
+
+        if (expected_rows >= 0) {
+            ImportConsistencyCheck(data_product, component, col_size, expected_rows, "rows");
+        }
+
+        if (expected_columns >= 0) {
+            ImportConsistencyCheck(data_product, component, columns.size(), expected_columns, "columns");
+        }
 
         result->resize(0);
         result->resize(col_size);
