@@ -4,7 +4,7 @@ namespace EERAModel {
 namespace Model {
 
 OriginalModel::OriginalModel(const CommonModelInputParameters& commonParameters,
-    ObservationsForModels& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    HealthBoardData& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
     : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(
@@ -16,11 +16,11 @@ OriginalModel::OriginalModel(const CommonModelInputParameters& commonParameters,
             observations.waifw_home,
             observations.waifw_sdist,
             observations.cfr_byage,
-            observations.pf_pop[commonParameters.herd_id - 1]
+            observations.pf_byage
     };
     
     int regionalPopulation = GetPopulationOfRegion(
-        observations, commonParameters.herd_id
+        observations
     );
 
     int healthCareWorkers = ComputeNumberOfHCWInRegion(
@@ -28,7 +28,7 @@ OriginalModel::OriginalModel(const CommonModelInputParameters& commonParameters,
     );
     
     ageNums_ = ComputeAgeNums(
-        commonParameters.herd_id, regionalPopulation, healthCareWorkers, observations
+        regionalPopulation, healthCareWorkers, observations
     );
 
     (*log) << "[Model settings]" << std::endl;
@@ -147,7 +147,7 @@ Status OriginalModel::Run(std::vector<double> parameter_set, const seed& seedlis
                 GenerateInfectionSpread(poparray[age], infection_state.hospitalised,
                     fixedParameters_[age],parameter_fit[age],
                     ageGroupData_.cfr_byage[age], lambda[age]);
-
+            std::cout << age << "\t" << tt << "\t" << n_sim_steps << std::endl;
             infection_state.deaths += new_spread.deaths;
             infection_state.hospital_deaths += new_spread.hospital_deaths;
             infection_state.detected += new_spread.detected;

@@ -16,12 +16,12 @@ std::vector<params> BuildFixedParameters(unsigned int size, params parameters)
     return std::vector<params>(size, parameters);
 }
 
-std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const ObservationsForModels& obs) {
+std::vector<int> ComputeAgeNums(int Npop, int N_hcw, const HealthBoardData& obs) {
 	std::vector<int> agenums;
 	
 	// define age structure of the shb of interest. the -1 is to account for difference in number of
 	// rows between two datasets (age_pop does not have a row with column name)
-	const auto& agedist = obs.age_pop[shb_id - 1];
+	const auto& agedist = obs.age_structure;
 	
 	for (const auto& var : agedist) {
 		// modulate the population of non-hcw now to proportion in each age group recorded in 2011	
@@ -33,17 +33,17 @@ std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observati
 	return agenums;
 }
 
-int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
+int GetPopulationOfRegion(const HealthBoardData& obs)
 {
-	return obs.cases[region_id][0];
+	return obs.cases[0];
 }
 
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs)
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const HealthBoardData& obs)
 {
-    int scotlandPopulation = 0;
-	for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
-		scotlandPopulation += obs.cases[region][0];
-	}
+    int scotlandPopulation = obs.cases.back();
+	// for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+	// 	scotlandPopulation += obs.cases[region][0];
+	// }
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
 	
     return static_cast<int>(round(totalHCW * regionalProportion)); 

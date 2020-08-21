@@ -129,7 +129,7 @@ int accumulate_compartments(const Compartments& comp);
  * 
  * @return The population of the region
  */
-int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id);
+int GetPopulationOfRegion(const HealthBoardData& obs);
 
 /**
  * @brief Compute number of health care workers (HCW) in the region
@@ -141,7 +141,7 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id);
  * @param totalHCW Total number of HCWs in the country
  * @param obs Input observations
  */
-int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs);
+int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const HealthBoardData& obs);
 
 /**
  * @brief Compute the agenums 
@@ -152,7 +152,7 @@ int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const Obser
  * 
  * @return agenums
  */
-std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const ObservationsForModels& obs);
+std::vector<int> ComputeAgeNums(int Npop, int N_hcw, const HealthBoardData& obs);
 
 /**
  * @brief Build the fixed parameters data structure

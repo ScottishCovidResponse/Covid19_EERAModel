@@ -158,6 +158,77 @@ struct Status
 };
 
 /**
+ * @brief Enumerated type to access data with axis/axes corresponding to Age Groups.
+ */
+enum AgeGroup {
+	Age_Pre_20 = 0,
+	Age_20_29 = 1,
+	Age_30_39 = 2,
+	Age_40_49 = 3,
+	Age_50_59 = 4,
+	Age_60_69 = 5,
+	Age_Post_70 = 6,
+	HealthCareWorkers = 7
+};
+
+/**
+ * @brief Enumerated type to access data with axis/axes corresponding to 
+ * case fatality ratio identifiers
+ */
+enum CFRCategories {
+	ProbabilityOfHospitalisation = 0,
+	CaseFatalityRatio = 1,
+	ProbabilityOfDeath = 2
+};
+
+/**
+ * @brief Class that holds health board data.
+ * 		  The overloaded constructors allow name consistency between,
+ * 		  Health Board data needed for the Model and Inference framework.
+ */
+class HealthBoardData
+{
+	public:
+		int HealthBoardID;
+		std::string HealthBoardLabel;
+		std::vector<int> cases;
+		std::vector<int> deaths;
+		std::vector<double> age_structure;
+		std::vector<double> pf_byage;
+		std::vector<int> timeStamps;
+		std::vector<std::vector<double>> waifw_norm;
+		std::vector<std::vector<double>> waifw_home;
+		std::vector<std::vector<double>> waifw_sdist;
+		std::vector<std::vector<double>> cfr_byage;
+
+		HealthBoardData() {}
+
+		HealthBoardData(
+			const int& HealthBoardID_in,
+			const std::vector<std::vector<int>>& cases_in,
+			const std::vector<std::vector<int>>& deaths_in
+		) {
+			HealthBoardID = HealthBoardID_in;
+			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
+			cases = cases_in[HealthBoardID];
+			deaths = deaths_in[HealthBoardID];
+			timeStamps = cases_in[0];
+		}
+		HealthBoardData(
+			const int& HealthBoardID_in,
+			const std::vector<std::vector<int>>& cases_in,
+			const std::vector<std::vector<double>>& age_structure_in,
+			const std::vector<std::vector<double>>& pf_byage_in
+		) {
+			HealthBoardID = HealthBoardID_in;
+			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
+			cases = cases_in[HealthBoardID];
+			age_structure = age_structure_in[HealthBoardID - 1];
+			pf_byage = pf_byage_in[HealthBoardID - 1];
+		}
+};
+
+/**
  * @brief Structure containing population counters after infection
  * 
  * Contains counters for the number of newly detected (due to testing or hospitalisation) cases, deaths and hospitalisations
@@ -232,7 +303,7 @@ struct InferenceConfig
 	int nSim;
 	int nParticleLimit;
 	std::vector<double> toleranceLimit;
-	ObservationsForInference observations;
+	HealthBoardData observations;
 };
 
 /**
@@ -246,57 +317,6 @@ struct PredictionConfig
     int index;          /*! Index of selected parameters within posterior parameters file */
     std::vector<double> posterior_parameters;  /*! Set of model parameters */
     params fixedParameters; /*! Set of model fixed parameters */
-};
-
-enum AgeGroup {
-	Age_Pre_20 = 0,
-	Age_20_29 = 1,
-	Age_30_39 = 2,
-	Age_40_49 = 3,
-	Age_50_59 = 4,
-	Age_60_69 = 5,
-	Age_Post_70 = 6,
-	HealthCareWorkers = 7
-};
-
-enum CFRCategories {
-	ProbabilityOfHospitalisation = 0,
-	CaseFatalityRatio = 1,
-	ProbabilityOfDeath = 2
-};
-
-class HealthBoardData
-{
-	public:
-		int HealthBoardID;
-		std::string HealthBoardLabel;
-		std::vector<int> cases;
-		std::vector<int> deaths;
-		std::vector<double> age_structure;
-		std::vector<double> pf_byage;
-
-		HealthBoardData(
-			const int& HealthBoardID_in,
-			const std::vector<std::vector<int>>& cases_in,
-			const std::vector<std::vector<int>>& deaths_in
-		) {
-			HealthBoardID = HealthBoardID_in;
-			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
-			cases = cases_in[HealthBoardID];
-			deaths = deaths_in[HealthBoardID];
-		}
-		HealthBoardData(
-			const int& HealthBoardID_in,
-			const std::vector<std::vector<int>>& cases_in,
-			const std::vector<std::vector<double>>& age_structure_in,
-			const std::vector<std::vector<double>>& pf_byage_in
-		) {
-			HealthBoardID = HealthBoardID_in;
-			HealthBoardLabel = "Health Board " + std::to_string(HealthBoardID);
-			cases = cases_in[HealthBoardID];
-			age_structure = age_structure_in[HealthBoardID - 1];
-			pf_byage = pf_byage_in[HealthBoardID - 1];
-		}
 };
 
 } // namespace EERAModel

@@ -152,7 +152,7 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
         inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
     }
 
-    inferenceConfig.observations = ReadInferenceObservations(configDir, log);
+    inferenceConfig.observations = ReadInferenceObservations(configDir, log, inferenceConfig.herd_id);
 
     return inferenceConfig;
 }
@@ -195,10 +195,8 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     return predictionConfig;
 }
 
-ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
-{
-    ObservationsForInference observations;
-    
+HealthBoardData ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log, int herd_id)
+{    
     (*log) << "Observations For Inference Config:" << std::endl;
 
     const std::string scot_data_file = configDir + "/scot_data.csv";
@@ -209,39 +207,41 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
     //rows from 1 are indivudual health board
     //last row is for all of scotland
     (*log) << "\t- " << scot_data_file << std::endl;
-    observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+    std::vector<std::vector<int>> cases_in = Utilities::read_csv<int>(scot_data_file, ',');    
 
     //Uploading observed death data
     //Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
     //rows from 1 are indivudual health board
     //last row is for all of scotland
     (*log) << "\t- " << scot_deaths_file << std::endl;
-    observations.deaths = Utilities::read_csv<int>(scot_deaths_file, ',');
-
+    std::vector<std::vector<int>> deaths_in = Utilities::read_csv<int>(scot_deaths_file, ',');
+    
     const std::string settings_file = configDir + "/parameters.ini";
 
     ValidationParameters validationParams = ImportValidationParameters(configDir);
     int nHealthBoards = validationParams.nHealthBoards;
     int nCasesDays = validationParams.nCasesDays;
 
-    unsigned int cases_rows = observations.cases.size();
-    unsigned int cases_cols = observations.cases[0].size();
+    unsigned int cases_rows = cases_in.size();
+    unsigned int cases_cols = cases_in[0].size();
 
     ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
     ImportConsistencyCheck(scot_data_file, cases_cols, nCasesDays, "columns");
 
-    unsigned int deaths_rows = observations.deaths.size();
-    unsigned int deaths_cols = observations.deaths[0].size();
+    unsigned int deaths_rows = deaths_in.size();
+    unsigned int deaths_cols = deaths_in[0].size();
 
     ImportConsistencyCheck(scot_deaths_file, deaths_rows, (nHealthBoards + 1), "rows");
     ImportConsistencyCheck(scot_deaths_file, deaths_cols, nCasesDays, "columns");
 
+    HealthBoardData observations(herd_id, cases_in, deaths_in);
+
     return observations;
 }
 
-ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
+HealthBoardData ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log, int herd_id)
 {
-    ObservationsForModels observations;
+    // ObservationsForModels observations;
 
     (*log) << "Observations For Models:" << std::endl;
 
@@ -265,10 +265,11 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     //rows from 1 are indivudual health board
     //last row is for all of scotland
     (*log) << "\t- " << scot_data_file << std::endl;
-    observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+    // observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
+    std::vector<std::vector<int>> cases_in = Utilities::read_csv<int>(scot_data_file, ',');
 
-    unsigned int cases_rows = observations.cases.size();
-    unsigned int cases_cols = observations.cases[0].size();
+    unsigned int cases_rows = cases_in.size();
+    unsigned int cases_cols = cases_in[0].size();
 
     ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
     ImportConsistencyCheck(scot_data_file, cases_cols, nCasesDays, "columns");
@@ -278,14 +279,30 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     //last row is for Scotland
     //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
     (*log) << "\t- " << scot_ages_file << std::endl;
-    observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
+    // observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
+    std::vector<std::vector<double>> age_pop_in = Utilities::read_csv<double>(scot_ages_file, ',');
 
-    unsigned int age_pop_rows = observations.age_pop.size();
-    unsigned int age_pop_cols = observations.age_pop[0].size();
+    unsigned int age_pop_rows = age_pop_in.size();
+    unsigned int age_pop_cols = age_pop_in[0].size();
 
     ImportConsistencyCheck(scot_ages_file, age_pop_rows, nHealthBoards, "rows");
     ImportConsistencyCheck(scot_ages_file, age_pop_cols, (nAgeGroups - 1), "columns");
 
+    //Upload frailty probability p_f by age group
+    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
+    //rows are for each individual Health Board
+    //last row is for Scotland
+    (*log) << "\t- " << scot_frail_file << std::endl;
+    // observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
+    std::vector<std::vector<double>> pf_pop_in = Utilities::read_csv<double>(scot_frail_file, ',');
+
+    unsigned int pf_pop_rows = pf_pop_in.size();
+    unsigned int pf_pop_cols = pf_pop_in[0].size();
+
+    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
+    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
+
+    HealthBoardData observations(herd_id, cases_in, age_pop_in, pf_pop_in);
 
     //mean number of daily contacts per age group (overall)	
     (*log) << "\t- " << waifw_norm_file << std::endl;
@@ -330,19 +347,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 
     ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
     ImportConsistencyCheck(cfr_byage_file, cfr_cols, nCfrCategories, "columns");
-
-    //Upload frailty probability p_f by age group
-    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-    //rows are for each individual Health Board
-    //last row is for Scotland
-    (*log) << "\t- " << scot_frail_file << std::endl;
-    observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
-
-    unsigned int pf_pop_rows = observations.pf_pop.size();
-    unsigned int pf_pop_cols = observations.pf_pop[0].size();
-
-    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
-    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
     return observations;
 }

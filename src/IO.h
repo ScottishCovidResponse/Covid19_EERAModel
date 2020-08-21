@@ -121,7 +121,7 @@ std::vector<double> ReadPredictionParametersFromFile(const std::string& filePath
  * 
  * @return Observations needed for Inference framework
  */
-ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+HealthBoardData ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log, int herd_id);
 
 /**
  * @brief Read observations needed for all models
@@ -131,7 +131,7 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
  * 
  * @return Observations needed for all models
  */
-ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log);
+HealthBoardData ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log, int herd_id);
 
 /**
  * @brief Read seed settings from the parameters file

@@ -4,7 +4,7 @@ namespace EERAModel {
 namespace Model {
 
 IrishModel::IrishModel(const CommonModelInputParameters& commonParameters,
-    const ObservationsForModels& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
+    const HealthBoardData& observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) 
     : rng_(rng) {
     
     fixedParameters_ = BuildFixedParameters(
@@ -16,11 +16,11 @@ IrishModel::IrishModel(const CommonModelInputParameters& commonParameters,
             observations.waifw_home,
             observations.waifw_sdist,
             observations.cfr_byage,
-            observations.pf_pop[commonParameters.herd_id - 1]
+            observations.pf_byage
     };
     
     int regionalPopulation = GetPopulationOfRegion(
-        observations, commonParameters.herd_id
+        observations
     );
 
     int healthCareWorkers = ComputeNumberOfHCWInRegion(
@@ -28,7 +28,7 @@ IrishModel::IrishModel(const CommonModelInputParameters& commonParameters,
     );
     
     ageNums_ = ComputeAgeNums(
-        commonParameters.herd_id, regionalPopulation, healthCareWorkers, observations
+        regionalPopulation, healthCareWorkers, observations
     );
 
     (*log) << "[Model settings]" << std::endl;

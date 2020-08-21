@@ -70,9 +70,9 @@ void InferenceFramework::Run()
     SimpleTimer runTimer;
 
 	const int time_back = GetTimeOffSet(inferenceConfig_);
-	const std::vector<int>& regionalCases = inferenceConfig_.observations.cases[inferenceConfig_.herd_id];
-	const std::vector<int>& regionalDeaths = inferenceConfig_.observations.deaths[inferenceConfig_.herd_id];
-	const std::vector<int>& timeStamps = inferenceConfig_.observations.cases[0];
+	const std::vector<int>& regionalCases = inferenceConfig_.observations.cases;
+	const std::vector<int>& regionalDeaths = inferenceConfig_.observations.deaths;
+	const std::vector<int>& timeStamps = inferenceConfig_.observations.timeStamps;
 
 	const Observations::ObsSelect obs_selections = Observations::SelectObservations(
 		inferenceConfig_.day_shut, timeStamps, regionalCases,
