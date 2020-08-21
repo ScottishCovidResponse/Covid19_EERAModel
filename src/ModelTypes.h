@@ -190,6 +190,7 @@ class HealthBoardData
 {
 	public:
 		int HealthBoardID;
+		int totScotPopulation;
 		std::string HealthBoardLabel;
 		std::vector<int> cases;
 		std::vector<int> deaths;
@@ -225,6 +226,7 @@ class HealthBoardData
 			cases = cases_in[HealthBoardID];
 			age_structure = age_structure_in[HealthBoardID - 1];
 			pf_byage = pf_byage_in[HealthBoardID - 1];
+			totScotPopulation = cases_in[cases_in.size() - 1][0];
 		}
 };
 

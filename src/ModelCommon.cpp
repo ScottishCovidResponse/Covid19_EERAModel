@@ -40,7 +40,7 @@ int GetPopulationOfRegion(const HealthBoardData& obs)
 
 int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const HealthBoardData& obs)
 {
-    int scotlandPopulation = obs.cases.back();
+    int scotlandPopulation = obs.totScotPopulation;
 	// for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
 	// 	scotlandPopulation += obs.cases[region][0];
 	// }

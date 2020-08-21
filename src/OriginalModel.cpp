@@ -147,7 +147,6 @@ Status OriginalModel::Run(std::vector<double> parameter_set, const seed& seedlis
                 GenerateInfectionSpread(poparray[age], infection_state.hospitalised,
                     fixedParameters_[age],parameter_fit[age],
                     ageGroupData_.cfr_byage[age], lambda[age]);
-            std::cout << age << "\t" << tt << "\t" << n_sim_steps << std::endl;
             infection_state.deaths += new_spread.deaths;
             infection_state.hospital_deaths += new_spread.hospital_deaths;
             infection_state.detected += new_spread.detected;
