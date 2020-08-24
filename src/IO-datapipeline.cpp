@@ -204,14 +204,14 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
 InferenceConfig IOdatapipeline::ReadInferenceConfig(
     const CommonModelInputParameters& commonParameters, const ObservationsForModels& modelObservations) 
 {
-    InferenceConfig inferenceConfig;
-
     if (!datapipelineActive)
     {
         return IO::ReadInferenceConfig(ModelConfigDir, log, commonParameters);
     }
     else
     {
+        InferenceConfig inferenceConfig;
+
         IO::ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);
 
         dpdistribution(
@@ -280,6 +280,58 @@ ObservationsForInference IOdatapipeline::ReadInferenceObservations(const Observa
     observations.deaths.insert(observations.deaths.begin(), std::vector<int>(observations.deaths[0].size()));
 
     return observations;
+}
+
+PredictionConfig IOdatapipeline::ReadPredictionConfig(int index, const CommonModelInputParameters& commonParameters)
+{
+    if (!datapipelineActive)
+    {
+        return IO::ReadPredictionConfig(ModelConfigDir, index, log, commonParameters);
+    }
+    else
+    {
+        PredictionConfig predictionConfig;
+
+        IO::ReadLocalPredictionConfig(ParamsPath, index, log, commonParameters, &predictionConfig);
+
+        const char *posterior_product = "posterior_parameters/data_for_scotland";
+        const char *posterior_component = "posterior_parameters";
+
+        (*log) << "\t- (data pipeline) \"" << posterior_product << "\", \"" << posterior_component << "\"" << std::endl;
+
+        Table posterior_table = dp->read_table(posterior_product, posterior_component);
+
+        ImportConsistencyCheck(
+            posterior_product, posterior_component, posterior_table.get_column_names().size(), 17, "columns");
+
+        if (index >= posterior_table.get_column_size()) {
+            std::stringstream SetSelectError;
+            SetSelectError << "Parameter set selection out of bounds! Please select between 0-" << (posterior_table.get_column_size() - 1) << "..." << std::endl;
+            throw std::overflow_error(SetSelectError.str());
+        }
+
+        // The posterior parameters are columns 1 to 8
+        const char *posterior_colnames[] = { "p_inf", "p_hcw", "c_hcw", "d", "q", "p_s", "rrd", "intro" };
+
+        predictionConfig.posterior_parameters.resize(8);
+
+        for (int p = 0; p < 8; ++p) {
+            predictionConfig.posterior_parameters[p] = posterior_table.get_column<double>(posterior_colnames[p])[index];
+        }
+
+        // The fixed parameters are columns 9 to 16
+
+        predictionConfig.fixedParameters.T_lat      = posterior_table.get_column<int>("T_lat")[index];
+        predictionConfig.fixedParameters.juvp_s     = posterior_table.get_column<double>("juvp_s")[index];
+        predictionConfig.fixedParameters.T_inf      = posterior_table.get_column<double>("T_inf")[index];
+        predictionConfig.fixedParameters.T_rec      = posterior_table.get_column<int>("T_rec")[index];
+        predictionConfig.fixedParameters.T_sym      = posterior_table.get_column<int>("T_sym")[index];
+        predictionConfig.fixedParameters.T_hos      = posterior_table.get_column<int>("T_hos")[index];
+        predictionConfig.fixedParameters.K          = posterior_table.get_column<int>("K")[index];
+        predictionConfig.fixedParameters.inf_asym   = posterior_table.get_column<int>("inf_asym")[index];
+
+        return predictionConfig;
+    }
 }
 
 void IOdatapipeline::dpdistribution(

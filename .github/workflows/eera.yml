@@ -22,6 +22,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        name: ScottishCovidResponse/data_pipeline_api
+        path: data_pipeline_api
 
     - name: Install Dependencies ( Ubuntu )
       run: |
@@ -38,6 +41,15 @@ jobs:
     - name: Install Dependencies ( Mac OS X )
       run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
+
+    - name: Data pipeline Dependencies
+      run : |
+            sudo apt-get update && sudo apt-get install -y python3-setuptools python3-venv && sudo rm -rf /var/lib/apt/lists/*
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install wheel
+            pip install -r bindings/cpp/requirements.txt 
+      if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
       run: |
@@ -56,6 +68,15 @@ jobs:
         force: false
       if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
 
+    - name: Data pipeline API Compile
+      env:
+              CC: ${{ matrix.config.compiler }}
+              CXX: ${{ matrix.config.compilerpp }}
+      run : |
+            cd data_pipeline_api/bindings/cpp
+            make
+      if: matrix.os == 'ubuntu-20.04'
+
     - name: Compile
       env:
               CC: ${{ matrix.config.compiler }}
@@ -63,10 +84,12 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON
+        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON -DDATA_PIPELINE=../data_pipeline_api
         make 2>&1 | tee clang_tidy_build_results.log
         
     - name: Run regression tests
+      env:
+            PYTHONPATH: data_pipeline_api
       run: |
         ./scripts/RunRegressionTests.sh 1 24
         if [ $? -eq 0 ]; then
@@ -78,6 +101,8 @@ jobs:
         fi
 
     - name: Run unit tests
+      env:
+            PYTHONPATH: data_pipeline_api
       run: |
         ./build/bin/Covid19EERAModel-unit_tests
         if [ $? -eq 0 ]; then

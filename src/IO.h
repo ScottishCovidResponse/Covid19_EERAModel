@@ -101,10 +101,24 @@ void ReadLocalInferenceConfig(
  * @param configDir Directory containing the configuration and data files
  * @param index Index of the parameter set to select from the posterior parameters file
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Prediction configuration
  */
 PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the prediction mode
+ * 
+ * @param filePath Location of the parameters .ini file
+ * @param index Index of the parameter set to select from the posterior parameters file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param predictionConfig Destination to place local prediction config
+ */
+void ReadLocalPredictionConfig(
+    const std::string& filePath, int index, Utilities::logging_stream::Sptr log,
+    const CommonModelInputParameters& commonParameters, PredictionConfig *predictionConfig);
 
 /**
  * @brief Read model posterior parameters from a CSV file

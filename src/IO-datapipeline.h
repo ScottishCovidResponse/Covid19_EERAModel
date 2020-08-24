@@ -93,6 +93,16 @@ public:
     InferenceConfig ReadInferenceConfig(
         const CommonModelInputParameters& commonParameters, const ObservationsForModels& modelObservations);
 
+    /**
+     * @brief Read Prediction config data
+     * 
+     * @param index Index of the parameter set to select from the posterior parameters file
+     * @param commonParameters Common parameters, could've been read using ReadCommonParameters above
+     * 
+     * @return Prediction configuration
+     */ 
+    PredictionConfig ReadPredictionConfig(int index, const CommonModelInputParameters& commonParameters);
+
 private:
     /**
      * @private

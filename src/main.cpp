@@ -83,10 +83,10 @@ int main(int argc, char** argv)
     // Select the mode to run in - prediction or inference    
     if (ModelModeId::PREDICTION == supplementaryParameters.run_type)
     {
-        std::string configDir(std::string(ROOT_DIR) + "/data");
+        // std::string configDir(std::string(ROOT_DIR) + "/data");
         int index = arg_parser.parameterSetIndex();
 
-        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger, commonParameters);
+        PredictionConfig predictionConfig = datapipeline.ReadPredictionConfig(index, commonParameters);
         IO::LogPredictionConfig(predictionConfig, logger);
 
         // Update the model with the fixed parameters from the prediction configuration

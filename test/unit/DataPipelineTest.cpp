@@ -162,3 +162,35 @@ TEST(TestIODatapipeline, CanReadInferenceConfig)
     compare_eq<int>(dp_infconfig.observations.cases, rg_infconfig.observations.cases, 1);
     compare_eq<int>(dp_infconfig.observations.deaths, rg_infconfig.observations.deaths, 1);
 }
+
+TEST(TestIODatapipeline, CanReadPredictionConfig)
+{
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+
+    // Load data from data pipeline store
+    IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
+    CommonModelInputParameters common_params = idp.ReadCommonParameters();
+    PredictionConfig dp_predconfig = idp.ReadPredictionConfig(0, common_params);
+
+    EXPECT_EQ(dp_predconfig.posterior_parameters[0], 0.153532);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[1], 0.60916);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[2], 37.9059);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[3], 0.525139);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[4], 0.313957);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[5], 0.787278);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[6], 0.516736);
+    EXPECT_EQ(dp_predconfig.posterior_parameters[7], 8.50135E-07);
+    EXPECT_EQ(dp_predconfig.fixedParameters.T_lat, 4);
+    EXPECT_EQ(dp_predconfig.fixedParameters.juvp_s, 0.1);
+    EXPECT_EQ(dp_predconfig.fixedParameters.T_inf, 1.5);
+    EXPECT_EQ(dp_predconfig.fixedParameters.T_rec, 11);
+    EXPECT_EQ(dp_predconfig.fixedParameters.T_sym, 7);
+    EXPECT_EQ(dp_predconfig.fixedParameters.T_hos, 5);
+    EXPECT_EQ(dp_predconfig.fixedParameters.K, 2000);
+    EXPECT_EQ(dp_predconfig.fixedParameters.inf_asym, 1);
+}
