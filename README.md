@@ -152,7 +152,7 @@ CSV files containing the age mixing matrices for people (1) isolating at home, (
 #### posterior_parameters.csv
 CSV file containing batched parameter sets (fixed and inferrred parameters). This file is only used in **prediction mode**.  Its format is:
 ```
-Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro, T_lat, juvp_s, T_inf, T_rec, T_sym, T_hos, K, inf_asym
+Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,lambda, T_lat, juvp_s, T_inf, T_rec, T_sym, T_hos, K, inf_asym
 0,0.153532,0.60916,37.9059,0.525139,0.313957,0.787278,0.516736,8.50135E-07,4,0.1, 1.5,11,7,5,2000,1
 ...
 ```
