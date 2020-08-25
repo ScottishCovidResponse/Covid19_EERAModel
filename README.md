@@ -186,6 +186,71 @@ To run the model in inference mode, set the `-m` command line switch to inferenc
 $ .build/bin/Covid19EERAModel -m inference ...
 ```
 
+## Outputs
+For each run a set of three files is created summarising populations, parameter and simulation states.
+
+### End State File
+*Inference:* `output_abc-smc_ends_step*_shb*.txt`
+
+*Prediction:* `output_prediction_ends.txt`
+
+When running in either prediction or inference mode a file containing a table of is produced giving the populations of inviduals at the end of the model run for each combination of age group and epidemiological state, both of which are represented by their respective indices. The compartment indices are summarised below. In the case of inference mode this information is given for each step with the iteration ID.
+
+|**Index**|**Compartment**|**Description**|
+|----|----|----|
+| `S`   | 0  | Number of susceptible individuals (not infected).	|
+| `E`   | 1  | Number of infected individuals but not yet infectious (exposed).	|
+| `E_t` | 2  | Number of exposed individuals and tested positive.	|
+| `I_p` | 3  | Number of infected and infectious symptomatic individuals but at pre-clinical stage (show yet no symptoms).	|
+| `I_t` | 4  | Number of tested positive individuals that infectious.	|
+| `I1`  | 5  | Number of infected and infectious asymptomatic individuals: first stage.	|
+| `I2`  | 6  | Number of infected and infectious asymptomatic individuals: second stage. 	|
+| `I3`  | 7  | Number of infected and infectious asymptomatic individuals: third stage. 	|
+| `I4`  | 8  | Number of infected and infectious asymptomatic individuals: last stage. 	|
+| `I_s1`| 9  | Number of infected and infectious symptomatic individuals: first stage.	|
+| `I_s2`| 10 | Number of infected and infectious symptomatic individuals: second stage. 	|
+| `I_s3`| 11 | Number of infected and infectious symptomatic individuals: thrid stage.	|
+| `I_s4`| 12 | Number of infected and infectious symptomatic individuals: last stage. 	|
+| `H`   | 13 | Number of infected individuals that are hospitalised. 	|
+| `R`   | 14 | Number of infected individuals that are recovered from infection.  	|
+| `D`   | 15 | Number of dead individuals due to disease.|
+
+There are seven main age groups: Under 20, 20-29, 30-39, 40-49, 50-59, 60-69, 70+, with an additional group describing health care workers
+which are assumed to have behaviour similar to the average of groups between the age of 20 and 59.
+
+#### Simulation State File
+*Inference*: `output_abc-smc_simu_step*_shb*.txt`
+
+*Prediction*: `output_prediction_simu.txt`
+
+This file describes the trajectories of both daily incident cases and weekly incident deaths for the particles selected during the run. The data is presented as a table showing the simulation number, and the number of detected cases, hospital deaths and deaths. In the case of inference mode, this information is repeated for each run.
+
+#### Particles File (Inference only)
+
+*Inference*: `output_abc-smc_particles_step*_shb*.txts`
+
+This file contains the list of particles selected at each iteration, providing details on values of all statistics and the particles' weight:
+
+|**Particle**|**Description**|
+|----|----|
+| `nsse_cases` | Normalised sum of square error for the number of cases. |
+| `nsse_deaths` | Normalised sum of square error for the number of deaths. |
+| `p_inf` | Probability of Infection |
+| `p_hcw` | Probability of Infection (Healthcare Worker) |
+| `c_hcw` | Mean number of Healthcare Worker contacts per day |
+| `d` | Proportion of population observing social distancing |
+| `q` | Proportion of normal contact made by people self-isolating |
+| `p_s` | Age-dependent probability of developing symptoms |
+| `rrd` | Risk of death if not hospitalised |
+| `lambda` | Background transmission rate |
+
+
+#### Full Summary File (Prediction only)
+
+*Prediction*: `output_prediction_full.txt`
+
+This file is an amalgamation of all information. The first two lines act as markers for age group and compartments similar to the first and second columns of output_ends. The following lines describe the epidemiological state at each simulation step. The column indices 0-15 matching those indices within the End State File summarised in the relevant section table above.
+
 ## Logging
 The code logs a large amount of information in its log file. This file has a name of the form
 `run_dd-mm-yyyy_hh-mm-ss.log`, timestamped with the time at which the code was run, and is stored in
