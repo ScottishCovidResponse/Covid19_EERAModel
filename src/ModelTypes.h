@@ -238,9 +238,10 @@ struct InferenceConfig
  */
 struct PredictionConfig
 {
-	seed seedlist;
-	int day_shut;
+    seed seedlist;
+    int day_shut;
     int n_sim_steps;    /*! Number of steps over which to run the model */
+    int n_iterations;   /*! Number of model runs to perform */
     int index;          /*! Index of selected parameters within posterior parameters file */
     std::vector<double> posterior_parameters;  /*! Set of model parameters */
     params fixedParameters; /*! Set of model fixed parameters */

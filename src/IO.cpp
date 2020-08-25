@@ -170,6 +170,8 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     std::string sectionId("Prediction Configuration");    
     predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
         sectionId, filePath);
+    predictionConfig.n_iterations = ReadNumberFromFile<int>("n_iterations",
+        sectionId, filePath);
 
     predictionConfig.index = index;
 
@@ -552,6 +554,7 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Prediction Configuration]" << std::endl;
+    (*log) << "    n_iterations: "       << config.n_iterations << std::endl;
     (*log) << "    n_sim_steps: "       << config.n_sim_steps << std::endl;
     (*log) << "    parameter index: "   << config.index << std::endl;
     (*log) << "    p_inf: "             << config.posterior_parameters[0] << std::endl;
