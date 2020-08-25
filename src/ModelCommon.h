@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "Utilities.h"
 #include "Random.h"
 #include <vector>
 #include <memory>

@@ -224,13 +224,13 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
     int nHealthBoards = validationParams.nHealthBoards;
     int nCasesDays = validationParams.nCasesDays;
 
-    unsigned int cases_rows = observations.cases.size();
+    unsigned int cases_rows = Utilities::checkAndGetSize(observations.cases, "observations.cases");
     unsigned int cases_cols = observations.cases[0].size();
 
     ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
     ImportConsistencyCheck(scot_data_file, cases_cols, nCasesDays, "columns");
 
-    unsigned int deaths_rows = observations.deaths.size();
+    unsigned int deaths_rows = Utilities::checkAndGetSize(observations.deaths, "observations.deaths");
     unsigned int deaths_cols = observations.deaths[0].size();
 
     ImportConsistencyCheck(scot_deaths_file, deaths_rows, (nHealthBoards + 1), "rows");
@@ -267,7 +267,8 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << scot_data_file << std::endl;
     observations.cases = Utilities::read_csv<int>(scot_data_file, ',');
 
-    unsigned int cases_rows = observations.cases.size();
+    unsigned int cases_rows = Utilities::checkAndGetSize(observations.cases, "observations.cases");
+
     unsigned int cases_cols = observations.cases[0].size();
 
     ImportConsistencyCheck(scot_data_file, cases_rows, (nHealthBoards + 1), "rows");
@@ -280,7 +281,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << scot_ages_file << std::endl;
     observations.age_pop = Utilities::read_csv<double>(scot_ages_file, ',');
 
-    unsigned int age_pop_rows = observations.age_pop.size();
+    unsigned int age_pop_rows = Utilities::checkAndGetSize(observations.age_pop, "observations.age_pop");
     unsigned int age_pop_cols = observations.age_pop[0].size();
 
     ImportConsistencyCheck(scot_ages_file, age_pop_rows, nHealthBoards, "rows");
@@ -291,7 +292,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << waifw_norm_file << std::endl;
     observations.waifw_norm = Utilities::read_csv<double>(waifw_norm_file, ',');
 
-    unsigned int waifw_norm_rows = observations.waifw_norm.size();
+    unsigned int waifw_norm_rows = Utilities::checkAndGetSize(observations.waifw_norm, "observations.waifw_norm");
     unsigned int waifw_norm_cols = observations.waifw_norm[0].size();
 
     ImportConsistencyCheck(waifw_norm_file, waifw_norm_rows, nAgeGroups, "rows");
@@ -301,7 +302,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << waifw_home_file << std::endl;
     observations.waifw_home = Utilities::read_csv<double>(waifw_home_file, ',');
 
-    unsigned int waifw_home_rows = observations.waifw_home.size();
+    unsigned int waifw_home_rows = Utilities::checkAndGetSize(observations.waifw_home, "observations.waifw_home");
     unsigned int waifw_home_cols = observations.waifw_home[0].size();
 
     ImportConsistencyCheck(waifw_home_file, waifw_home_rows, nAgeGroups, "rows");
@@ -311,7 +312,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << waifw_sdist_file << std::endl;
     observations.waifw_sdist = Utilities::read_csv<double>(waifw_sdist_file, ',');
 
-    unsigned int waifw_sdist_rows = observations.waifw_sdist.size();
+    unsigned int waifw_sdist_rows = Utilities::checkAndGetSize(observations.waifw_sdist, "observations.waifw_sdist");
     unsigned int waifw_sdist_cols = observations.waifw_sdist[0].size();
     
     ImportConsistencyCheck(waifw_sdist_file, waifw_sdist_rows, nAgeGroups, "rows");
@@ -325,7 +326,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << cfr_byage_file << std::endl;
     observations.cfr_byage = Utilities::read_csv<double>(cfr_byage_file, ',');
 
-    unsigned int cfr_rows = observations.cfr_byage.size();
+    unsigned int cfr_rows = Utilities::checkAndGetSize(observations.cfr_byage, "observations.cfr_byage");
     unsigned int cfr_cols = observations.cfr_byage[0].size();
 
     ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
@@ -338,7 +339,7 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     (*log) << "\t- " << scot_frail_file << std::endl;
     observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
 
-    unsigned int pf_pop_rows = observations.pf_pop.size();
+    unsigned int pf_pop_rows = Utilities::checkAndGetSize(observations.pf_pop, "observations.pf_pop");
     unsigned int pf_pop_cols = observations.pf_pop[0].size();
 
     ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");

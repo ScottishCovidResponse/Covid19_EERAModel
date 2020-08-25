@@ -46,6 +46,7 @@ int main(int argc, char** argv)
 
     // Import model observational data
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
+
     ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
     // Log the disease seed settings

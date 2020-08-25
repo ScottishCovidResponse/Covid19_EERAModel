@@ -10,7 +10,9 @@ OriginalModel::OriginalModel(const CommonModelInputParameters& commonParameters,
     fixedParameters_ = BuildFixedParameters(
         observations.waifw_norm.size(), commonParameters.paramlist
     );
-        
+
+    Utilities::checkAndGetSize(observations.pf_pop, "observations.pf_pop");
+
     ageGroupData_ = AgeGroupData{
             observations.waifw_norm,
             observations.waifw_home,

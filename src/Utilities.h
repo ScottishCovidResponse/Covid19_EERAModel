@@ -110,6 +110,27 @@ std::vector<T> AccumulateEveryN(const std::vector<T>& data, unsigned int n)
     return _temp;
 }
 
+/**
+ * @brief Verifying container access
+ * 
+ * Determines if container is non-zero before attempting access
+ * if successful the size of the container is returned.
+ *
+ * @param container container object, e.g. STL vector
+ * 
+ * @return size of the container
+*/
+template<typename T>
+unsigned int checkAndGetSize(const T& container, std::string name="container")
+{
+	if(container.size() < 1)
+	{
+		throw std::out_of_range("Cannot access elements of '"+name+"' object which is size zero.");
+	}
+
+	return container.size();
+}
+
 /*! @brief  Logging Stream Class
     @details Class to send output to both cout and output log file
     @date   last modified 2020-05-18
