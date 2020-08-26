@@ -184,7 +184,7 @@ private:
     {
         (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
-        Array<double> input = dp->read_array(data_product, component);
+        Array<T> input = dp->read_array<T>(data_product, component);
         std::vector<int> array_sizes = input.size();
 
         if (array_sizes.size() != 2) {
@@ -208,7 +208,7 @@ private:
 
             // Copy the data row
             for (int i = 0; i < array_sizes[0]; ++i) {
-                row[i] = static_cast<T> (input(i, j));
+                row[i] = input(i, j);
             }
         }
 
