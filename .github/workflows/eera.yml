@@ -50,7 +50,7 @@ jobs:
             python3 -m venv .venv
             source .venv/bin/activate
             pip install wheel
-            pip install -r bindings/cpp/requirements.txt 
+            pip install -r data_pipeline_api/bindings/cpp/requirements.txt 
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
