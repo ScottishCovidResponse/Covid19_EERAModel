@@ -22,8 +22,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: actions/checkout@v2
       with:
-        name: ScottishCovidResponse/data_pipeline_api
+        repository: ScottishCovidResponse/data_pipeline_api
         path: data_pipeline_api
 
     - name: Install Dependencies ( Ubuntu )
