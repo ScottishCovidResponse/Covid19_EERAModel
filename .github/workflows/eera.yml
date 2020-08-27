@@ -89,7 +89,7 @@ jobs:
         source .venv/bin/activate
         mkdir build
         cd build
-        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON -DDATA_PIPELINE=../data_pipeline_api
+        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON -DDATA_PIPELINE=$GITHUB_WORKSPACE/data_pipeline_api
         make 2>&1 | tee clang_tidy_build_results.log
         
     - name: Run regression tests
