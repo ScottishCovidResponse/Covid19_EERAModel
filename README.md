@@ -205,33 +205,31 @@ For this model, the following elements are expected to be available via the data
 
 | Local item        | Data pipeline           |
 | ------------- |:-------------:|
-| parameters.ini, Fixed Parameters, T\_lat | "fixed-parameters/T\_lat", "T\_lat" |
-| parameters.ini, Fixed Parameters, juvp\_s | "fixed-parameters/juvp\_s", "juvp\_s" |
-| parameters.ini, Fixed Parameters, T\_inf | "fixed-parameters/T\_inf", "T\_inf" |
-| parameters.ini, Fixed Parameters, T\_rec | "fixed-parameters/T\_rec", "T\_rec" |
-| parameters.ini, Fixed Parameters, T\_sym | "fixed-parameters/T\_sym", "T\_sym" |
-| parameters.ini, Fixed Parameters, T\_hos | "fixed-parameters/T\_hos", "T\_hos" |
-| parameters.ini, Fixed Parameters, K | "fixed-parameters/K", "K" |
-| parameters.ini, Fixed Parameters, inf\_asym | "fixed-parameters/inf\_asym", "inf\_asym" |
-| parameters.ini, Fixed Parameters, totN\_hcw   | "fixed-parameters/total\_hcw", "total\_hcw" |
-| parameters.ini, Fixed Parameters, day\_shut | "fixed-parameters/day\_shut", "day\_shut" |
-| ------------- |:-------------:|
-| parameters.ini, Priors Settings, prior\_pinf\_shape1 | "prior-distributions/pinf", "pinf", "alpha" |
-| parameters.ini, Priors Settings, prior\_pinf\_shape2 | "prior-distributions/pinf", "pinf", "beta" |
-| parameters.ini, Priors Settings, prior\_phcw\_shape1 | "prior-distributions/phcw", "phcw", "alpha" |
-| parameters.ini, Priors Settings, prior\_phcw\_shape2 | "prior-distributions/phcw", "phcw", "beta" |
-| parameters.ini, Priors Settings, prior\_chcw\_mean | "prior-distributions/chcw", "chcw", "lambda" |
-| parameters.ini, Priors Settings, prior\_d\_shape1 | "prior-distributions/d", "d", "alpha" |
-| parameters.ini, Priors Settings, prior\_d\_shape2 | "prior-distributions/d", "d", "beta" |
-| parameters.ini, Priors Settings, prior\_q\_shape1 | "prior-distributions/q", "q", "alpha" |
-| parameters.ini, Priors Settings, prior\_q\_shape2 | "prior-distributions/q", "q", "beta" |
-| parameters.ini, Priors Settings, prior\_lambda\_shape1 | "prior-distributions/lambda", "lambda", "a" |
-| parameters.ini, Priors Settings, prior\_lambda\_shape2 | "prior-distributions/lambda", "lambda", "b" |
-| parameters.ini, Priors Settings, prior\_ps\_shape1 | "prior-distributions/ps", "ps", "alpha" |
-| parameters.ini, Priors Settings, prior\_ps\_shape2 | "prior-distributions/ps", "ps", "beta" |
-| parameters.ini, Priors Settings, prior\_rrd\_shape1 | "prior-distributions/rrd", "rrd", "k" |
-| parameters.ini, Priors Settings, prior\_rrd\_shape2 | "prior-distributions/rrd", "rrd", "theta" |
-| ------------- |:-------------:|
+| \[Fixed Parameters\], T\_lat | "fixed-parameters/T\_lat", "T\_lat" |
+| \[Fixed Parameters\], juvp\_s | "fixed-parameters/juvp\_s", "juvp\_s" |
+| \[Fixed Parameters\], T\_inf | "fixed-parameters/T\_inf", "T\_inf" |
+| \[Fixed Parameters\], T\_rec | "fixed-parameters/T\_rec", "T\_rec" |
+| \[Fixed Parameters\], T\_sym | "fixed-parameters/T\_sym", "T\_sym" |
+| \[Fixed Parameters\], T\_hos | "fixed-parameters/T\_hos", "T\_hos" |
+| \[Fixed Parameters\], K | "fixed-parameters/K", "K" |
+| \[Fixed Parameters\], inf\_asym | "fixed-parameters/inf\_asym", "inf\_asym" |
+| \[Fixed Parameters\], totN\_hcw   | "fixed-parameters/total\_hcw", "total\_hcw" |
+| \[Fixed Parameters\], day\_shut | "fixed-parameters/day\_shut", "day\_shut" |
+| \[Priors Settings\], prior\_pinf\_shape1 | "prior-distributions/pinf", "pinf", "alpha" |
+| \[Priors Settings\], prior\_pinf\_shape2 | "prior-distributions/pinf", "pinf", "beta" |
+| \[Priors Settings\], prior\_phcw\_shape1 | "prior-distributions/phcw", "phcw", "alpha" |
+| \[Priors Settings\], prior\_phcw\_shape2 | "prior-distributions/phcw", "phcw", "beta" |
+| \[Priors Settings\], prior\_chcw\_mean | "prior-distributions/chcw", "chcw", "lambda" |
+| \[Priors Settings\], prior\_d\_shape1 | "prior-distributions/d", "d", "alpha" |
+| \[Priors Settings\], prior\_d\_shape2 | "prior-distributions/d", "d", "beta" |
+| \[Priors Settings\], prior\_q\_shape1 | "prior-distributions/q", "q", "alpha" |
+| \[Priors Settings\], prior\_q\_shape2 | "prior-distributions/q", "q", "beta" |
+| \[Priors Settings\], prior\_lambda\_shape1 | "prior-distributions/lambda", "lambda", "a" |
+| \[Priors Settings\], prior\_lambda\_shape2 | "prior-distributions/lambda", "lambda", "b" |
+| \[Priors Settings\], prior\_ps\_shape1 | "prior-distributions/ps", "ps", "alpha" |
+| \[Priors Settings\], prior\_ps\_shape2 | "prior-distributions/ps", "ps", "beta" |
+| \[Priors Settings\], prior\_rrd\_shape1 | "prior-distributions/rrd", "rrd", "k" |
+| \[Priors Settings\], prior\_rrd\_shape2 | "prior-distributions/rrd", "rrd", "theta" |
 | scot\_data.csv       | "population-data/data\_for\_scotland", "data" |
 | scot\_age.csv        | "population-data/data\_for\_scotland", "age" |
 | scot\_deaths.csv     | "population-data/data\_for\_scotland", "deaths" |
@@ -241,12 +239,16 @@ For this model, the following elements are expected to be available via the data
 | cfr\_byage.csv       | "prob\_hosp\_and\_cfr/data\_for\_scotland", "cfr\_byage" |
 | posterior\_parameters.csv | "posterior\_parameters/data\_for\_scotland", "posterior\_parameters" |
 
-Once the data has been successfully downloaded the model may be run as specified above but with the addition of the `-c` option indicating to use the data pipeline for the above elements instead of local files. For example:
+Once the data has been successfully downloaded the model may be run as specified above but with the addition of the `-c` option indicating to use the data pipeline for the above elements instead of local files.
 
+This requires visibility of the `data_pipeline_api` for Python. If it has been installed via `pip` or `conda` this will already be the case, if the API has been cloned only then `PYTHONPATH` needs amending for this:
 ```
-Covid19EERAModel -s original -m inference -c <path>/config.yaml
+$ export PYTHONPATH=<clone path>/data_pipeline_api:$PYTHONPATH
 ```
-
+The command is then:
+```
+$ build/bin/Covid19EERAModel -s original -m inference -c <path>/config.yaml
+```
 Once completed, results should be uploaded, which is TBD.
 
 ### Prediction mode
@@ -323,6 +325,17 @@ $ ./scripts/RunRegressionTests 4 9
 The regression test script automatically configures each run in line with the table above: the user does not need to do this.
 
 The default option uses local data to perform the run. The addition of a "-d" flag will switch the regression test to use the data pipeline locally stored test data instead.
+
+This requires visibility of the `data_pipeline_api` for Python. If it has been installed via `pip` or `conda` this will already be the case, if the API has been clone only then `PYTHONPATH` needs amending for this:
+
+```
+$ export PYTHONPATH=<clone path>/data_pipeline_api:$PYTHONPATH
+```
+Then run as follows:
+
+```
+$ ./scripts/RunRegressionTests 4 9 -d
+```
 
 **Note:** The regression tests are an aid to refactoring with confidence: they should not be considered confirmation of the code's correctness. The reference outputs are updated periodically based on changes in the core model logic.
 

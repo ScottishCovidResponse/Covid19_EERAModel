@@ -74,9 +74,10 @@ jobs:
       env:
               CC: ${{ matrix.config.compiler }}
               CXX: ${{ matrix.config.compilerpp }}
+              CXXFLAGS: -I.venv/include
       run : |
             cd data_pipeline_api/bindings/cpp
-            cmake -H. -Bbuild
+            cmake -H. -Bbuild -D
             cmake --build build
       if: matrix.os == 'ubuntu-20.04'
 
