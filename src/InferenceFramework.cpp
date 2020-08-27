@@ -218,7 +218,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, int n_sim_step
 	outvec.simu_outs = status.simulation;
 	outvec.hospital_death_outs = status.hospital_deaths;
 	outvec.death_outs = status.deaths;
-	outvec.end_comps = Model::compartments_to_vector(status.ends);
+	outvec.end_comps = status.ends;
 }
 
 double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& previousParticles,

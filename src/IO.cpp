@@ -430,16 +430,11 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
     output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
     
     //add the column names for each output list of the compartment values of the last day of the chosen simulations
-    output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value" << std::endl;		
+    WriteInferenceEndsHeader(output_ends);	
 
     // outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
     for (int kk = 0; kk < Nparticle; ++kk) {
-        output_step << particleList[kk].iter << ", " << particleList[kk].nsse_cases <<  ", " << particleList[kk].nsse_deaths <<  ", " ;
-
-        for (int var = 0; var < nPar; ++var) {
-            output_step << particleList[kk].parameter_set[var] << ", ";
-        }
-        output_step	<< particleList[kk].weight<< '\n';
+        WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
         
         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
             output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " \
@@ -447,9 +442,7 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
         }
         
         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
-            for (unsigned int var = 0; var < particleList[kk].end_comps[0].size(); ++var) {
-                output_ends << particleList[kk].iter << ", " << age << ", " << var << ", " <<  particleList[kk].end_comps[age][var] << '\n';
-            }
+            WriteInferenceEndsRow(output_ends, particleList[kk].iter, age, particleList[kk].end_comps[age]);
         }
     }
     
@@ -499,6 +492,12 @@ void WritePredictionFullHeader(std::ostream& os)
         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
 }
 
+void WriteInferenceEndsHeader(std::ostream& os)
+{
+    os << "iter, age_group, S, E, E_t, I_p, I_t,"
+        " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+}
+
 void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
 {
     os << iter          << ", ";
@@ -520,6 +519,44 @@ void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, 
     os << comp.H        << ", ";
     os << comp.R        << ", ";
     os << comp.D        << std::endl;
+}
+
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
+{
+    os << iter          << ", ";
+    os << age_group     << ", ";
+    os << comp.S        << ", ";
+    os << comp.E        << ", ";
+    os << comp.E_t      << ", ";
+    os << comp.I_p      << ", ";
+    os << comp.I_t      << ", ";
+    os << comp.I1       << ", ";
+    os << comp.I2       << ", ";
+    os << comp.I3       << ", ";
+    os << comp.I4       << ", ";
+    os << comp.I_s1     << ", ";
+    os << comp.I_s2     << ", ";
+    os << comp.I_s3     << ", ";
+    os << comp.I_s4     << ", ";
+    os << comp.H        << ", ";
+    os << comp.R        << ", ";
+    os << comp.D        << std::endl;
+}
+
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
+{
+    os << iter                                                     << ", ";
+    os << particle.nsse_cases                                      << ", ";
+    os << particle.nsse_deaths                                     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PINF]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::CHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::D]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::Q]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PS]       << ", ";
+    os << particle.parameter_set[Model::ModelParameters::RRD]      << ", ";
+    os << particle.parameter_set[Model::ModelParameters::LAMBDA]   << ", ";
+    os << particle.weight                                          << std::endl;
 }
 
 void WritePredictionSimuHeader(std::ostream& os)
