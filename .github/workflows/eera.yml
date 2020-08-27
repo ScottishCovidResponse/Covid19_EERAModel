@@ -46,11 +46,9 @@ jobs:
 
     - name: Data pipeline Dependencies
       run : |
-            sudo apt-get update && sudo apt-get install -y python3-setuptools python3-venv && sudo rm -rf /var/lib/apt/lists/*
-            python3 -m venv .venv
-            source .venv/bin/activate
-            pip install wheel
-            pip install -r data_pipeline_api/bindings/cpp/requirements.txt 
+            apt update && apt install -y locales python3 python3-pip cmake git
+            locale-gen en_GB.UTF-8
+            pip3 install -r data_pipeline_api/bindings/cpp/requirements.txt 
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
@@ -74,11 +72,9 @@ jobs:
       env:
               CC: ${{ matrix.config.compiler }}
               CXX: ${{ matrix.config.compilerpp }}
-              CXXFLAGS: -I.venv/include
       run : |
-            cd data_pipeline_api/bindings/cpp
-            cmake -H. -Bbuild
-            cmake --build build
+            cmake -Hbindings/cpp -Bbindings/cpp/build
+            cmake --build bindings/cpp/build
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Compile
