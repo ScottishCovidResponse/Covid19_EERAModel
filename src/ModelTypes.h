@@ -6,6 +6,31 @@
 namespace EERAModel {
 
 /**
+ * @brief Structure containing counters for different population categories
+ * 
+ * Integers to count the number of people within the different compartments within the model 
+ */
+struct Compartments
+{
+	int S = 0;    	/*!< Number of susceptible individuals (not infected). */	
+	int E = 0;		/*!< Number of infected individuals but not yet infectious (exposed). */	
+	int E_t = 0;	/*!< Number of exposed individuals and tested positive. */	
+	int I_p = 0;	/*!< Number of infected and infectious symptomatic individuals but at pre-clinical stage (show yet no symptoms). */	
+	int I_t = 0;	/*!< Number of tested positive individuals that infectious. */	
+	int I1 = 0;		/*!< Number of infected and infectious asymptomatic individuals: first stage. */	
+	int I2 = 0;		/*!< Number of infected and infectious asymptomatic individuals: second stage.  */	
+	int I3 = 0;		/*!< Number of infected and infectious asymptomatic individuals: third stage.  */	
+	int I4 = 0;		/*!< Number of infected and infectious asymptomatic individuals: last stage.  */	
+	int I_s1 = 0;	/*!< Number of infected and infectious symptomatic individuals: first stage. */	
+	int I_s2 = 0;	/*!< Number of infected and infectious symptomatic individuals: second stage.  */	
+	int I_s3 = 0;	/*!< Number of infected and infectious symptomatic individuals: thrid stage. */	
+	int I_s4 = 0;	/*!< Number of infected and infectious symptomatic individuals: last stage.  */	
+	int H = 0;		/*!< Number of infected individuals that are hospitalised.  */	
+	int R = 0;		/*!< Number of infected individuals that are recovered from infection.   */	
+	int D = 0;		/*!< Number of dead individuals due to disease. */	
+};
+
+/**
  * @brief Structure for particles generated during inference
  */
 struct particle {
@@ -17,7 +42,7 @@ struct particle {
 	std::vector<int> simu_outs;
 	std::vector<int> hospital_death_outs;
 	std::vector<int> death_outs;
-	std::vector< std::vector<int> > end_comps;
+	std::vector< Compartments > end_comps;
 };
 
 /**
@@ -112,31 +137,6 @@ struct AgeGroupData
 	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts between age groups (not school, not work). */
 	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
 	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
-};
-
-/**
- * @brief Structure containing counters for different population categories
- * 
- * Integers to count the number of people within the different compartments within the model 
- */
-struct Compartments
-{
-	int S = 0;    	/*!< Number of susceptible individuals (not infected). */	
-	int E = 0;		/*!< Number of infected individuals but not yet infectious (exposed). */	
-	int E_t = 0;	/*!< Number of exposed individuals and tested positive. */	
-	int I_p = 0;	/*!< Number of infected and infectious symptomatic individuals but at pre-clinical stage (show yet no symptoms). */	
-	int I_t = 0;	/*!< Number of tested positive individuals that infectious. */	
-	int I1 = 0;		/*!< Number of infected and infectious asymptomatic individuals: first stage. */	
-	int I2 = 0;		/*!< Number of infected and infectious asymptomatic individuals: second stage.  */	
-	int I3 = 0;		/*!< Number of infected and infectious asymptomatic individuals: third stage.  */	
-	int I4 = 0;		/*!< Number of infected and infectious asymptomatic individuals: last stage.  */	
-	int I_s1 = 0;	/*!< Number of infected and infectious symptomatic individuals: first stage. */	
-	int I_s2 = 0;	/*!< Number of infected and infectious symptomatic individuals: second stage.  */	
-	int I_s3 = 0;	/*!< Number of infected and infectious symptomatic individuals: thrid stage. */	
-	int I_s4 = 0;	/*!< Number of infected and infectious symptomatic individuals: last stage.  */	
-	int H = 0;		/*!< Number of infected individuals that are hospitalised.  */	
-	int R = 0;		/*!< Number of infected individuals that are recovered from infection.   */	
-	int D = 0;		/*!< Number of dead individuals due to disease. */	
 };
 
 /**
