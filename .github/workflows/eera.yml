@@ -76,7 +76,8 @@ jobs:
               CXX: ${{ matrix.config.compilerpp }}
       run : |
             cd data_pipeline_api/bindings/cpp
-            make
+            cmake -H. -Bbuild
+            cmake --build build
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Compile

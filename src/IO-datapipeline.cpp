@@ -108,15 +108,7 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         // TODO: this is indexed by herd_id, and the data file has a titles row that the data pipeline doesn't
         // so need to do something about that. Fix this properly, but for now...
 
-        // Also, ComputeNumberOfHCWInRegion in ModelCommon.cpp, was using row 0 in a calculation
-        // - not now.
-
         observations.cases.insert(observations.cases.begin(), std::vector<int>(observations.cases[0].size()));
-
-        // int v = -1;
-        // for (auto& el : observations.cases[0]) {
-        //     el = v++;
-        // }
 
         //Uploading population per age group
         //columns are for each individual Health Borad
@@ -151,21 +143,7 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
         // and really the parameters.ini should be set for the data pipeline if used.
         dptable_to_csv<double>(
             "prob_hosp_and_cfr/data_for_scotland", "cfr_byage", &observations.cfr_byage,
-            nAgeGroups, -1 /* nCfrCategories - 1 */ ); // nCfrCatergories - 1 as data not checked as data pipeline and 
-
-        // The above didn't match against the csv file enough to cause failure of the
-        // inference regression tests. The reletive difference is small:
-        //
-        //     maxdiff=5.90171186774425625e-16
-        //
-        // And looks mostly like the numbers were printed for the csv with too few
-        // digits to capture the exact FP value.
-        //
-        // In the resulting regression tests, some changes look small - 1 off in the
-        // last place - but then the files become very different, some rows and some not
-        // and values quite different. No idea what the output means, so don't know
-        // if that matters or not. May be try to figure out the meaning of the
-        // output and viz it.
+            nAgeGroups, -1 /* nCfrCategories - 1 */ );
 
         // TODO: THIS IS A BODGE TO MAKE THE REGRESSION TESTS PASS. DON'T USE THIS!
         // Fix third column. 
@@ -176,26 +154,6 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
             str << observations.cfr_byage[i][2];
             observations.cfr_byage[i][2] = atof(str.str().c_str());
         }
-
-        // std::cout << observations.cfr_byage << "\n\n";
-        // std::cout << cfr_byage << "\n";
-
-        const std::string scot_frail_file = ModelConfigDir + "/scot_frail.csv";
-        if (!Utilities::fileExists(scot_frail_file)) throw IOException(scot_frail_file + ": File not found!");
-
-        //Upload frailty probability p_f by age group
-        //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-        //rows are for each individual Health Borad
-        //last row is for Scotland
-        (*log) << "\t- " << scot_frail_file << std::endl;
-        // Not available currently
-        observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
-
-        unsigned int pf_pop_rows = observations.pf_pop.size();
-        unsigned int pf_pop_cols = observations.pf_pop[0].size();
-
-        IO::ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
-        IO::ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
         return observations;
     }

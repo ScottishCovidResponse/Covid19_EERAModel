@@ -6,44 +6,24 @@ run_metadata:
 read:
   - where:
       data_product: fixed-parameters/T_lat
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/juvp_s
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_inf
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_rec
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_sym
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_hos
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/K
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/inf_asym
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/total_hcw
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/day_shut
-    use:
-      version: 0.1.0
   - where:
       data_product: prob_hosp_and_cfr/data_for_scotland
   - where:

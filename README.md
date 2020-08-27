@@ -110,7 +110,6 @@ The model requires a number of input files to run, in addition to the command li
 | scot_age.csv | Proportion of health board populations in each age group      | All |
 | scot_data.csv | Timeseries of observed disease cases, by health board      | Inference only|
 | scot_deaths.csv | Timeseries of observed disease deaths, by health board      | Inference only |
-| scot_frail.csv | Probability of frailty, by age group      | All |
 | waifw_home.csv | Age Mixing Matrix (Home)| All |
 | waifw_norm.csv | Age Mixing Matrix (All contact included)| All |
 | waifw_sdist.csv |  Age Mixing Matrix (Social Distancing)| All |
@@ -178,9 +177,6 @@ CSV file containing the proportion of people in each age group, per health board
 #### scot_data.csv, scot_deaths.csv
 CSV file containing the timeseries of cases and deaths, per health board. Each row corresponds to a different health board, while ach column is a day in the time series. The first column is the toal population of the health board.
 
-#### scot_frail.csv
-CSV file containing the probabilities of frailty for each age group, by health board. Each column is an age group. Each row is a health board, with the exception of the last row, which is for the whole of Scotland.
-
 #### waifw_home.csv, waifw_norm.csv, waifw_sdist.csv
 CSV files containing the age mixing matrices for people (1) isolating at home, (2) behaving normally, and (3) socially distancing. 
 
@@ -192,6 +188,66 @@ Index,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro, T_lat, juvp_s, T_inf, T_rec, T_sym, T
 ...
 ```
 Each row in the file contains 17 entries: the first is the index of the row; the following 8 are the inferred posterior parameters; and the remaining 8 are model fixed parameters. The row selected for use in the prediction run will be that specified by the index argument on the command line (see Prediction Mode discussion below).
+
+### Input - Data pipeline
+
+The intention with the data pipeline is to obtain relevant input data from a shared remote source and to return any results similarly to a shared remote destination. The workflow involves a distinct download stage of the data before running the model and also an upload step after the model has completed.
+
+The download is carried out using the `pipeline_download` script that is supplied with the [Data Pipeline API](git@github.com:ScottishCovidResponse/data_pipeline_api.git). See instruction in that repository for setting up.
+
+To action the download, a config `.yaml` file must be supplied similar to this:
+
+```
+pipeline_download --config <path>/config.yaml
+```
+
+For this model, the following elements are expected to be available via the data pipeline download. An example `config.yaml` file is located in `test/datapipeline/config.yaml` in the git repository:
+
+| Local item        | Data pipeline           |
+| ------------- |:-------------:|
+| parameters.ini, Fixed Parameters, T\_lat | "fixed-parameters/T\_lat", "T\_lat" |
+| parameters.ini, Fixed Parameters, juvp\_s | "fixed-parameters/juvp\_s", "juvp\_s" |
+| parameters.ini, Fixed Parameters, T\_inf | "fixed-parameters/T\_inf", "T\_inf" |
+| parameters.ini, Fixed Parameters, T\_rec | "fixed-parameters/T\_rec", "T\_rec" |
+| parameters.ini, Fixed Parameters, T\_sym | "fixed-parameters/T\_sym", "T\_sym" |
+| parameters.ini, Fixed Parameters, T\_hos | "fixed-parameters/T\_hos", "T\_hos" |
+| parameters.ini, Fixed Parameters, K | "fixed-parameters/K", "K" |
+| parameters.ini, Fixed Parameters, inf\_asym | "fixed-parameters/inf\_asym", "inf\_asym" |
+| parameters.ini, Fixed Parameters, totN\_hcw   | "fixed-parameters/total\_hcw", "total\_hcw" |
+| parameters.ini, Fixed Parameters, day\_shut | "fixed-parameters/day\_shut", "day\_shut" |
+| ------------- |:-------------:|
+| parameters.ini, Priors Settings, prior\_pinf\_shape1 | "prior-distributions/pinf", "pinf", "alpha" |
+| parameters.ini, Priors Settings, prior\_pinf\_shape2 | "prior-distributions/pinf", "pinf", "beta" |
+| parameters.ini, Priors Settings, prior\_phcw\_shape1 | "prior-distributions/phcw", "phcw", "alpha" |
+| parameters.ini, Priors Settings, prior\_phcw\_shape2 | "prior-distributions/phcw", "phcw", "beta" |
+| parameters.ini, Priors Settings, prior\_chcw\_mean | "prior-distributions/chcw", "chcw", "lambda" |
+| parameters.ini, Priors Settings, prior\_d\_shape1 | "prior-distributions/d", "d", "alpha" |
+| parameters.ini, Priors Settings, prior\_d\_shape2 | "prior-distributions/d", "d", "beta" |
+| parameters.ini, Priors Settings, prior\_q\_shape1 | "prior-distributions/q", "q", "alpha" |
+| parameters.ini, Priors Settings, prior\_q\_shape2 | "prior-distributions/q", "q", "beta" |
+| parameters.ini, Priors Settings, prior\_lambda\_shape1 | "prior-distributions/lambda", "lambda", "a" |
+| parameters.ini, Priors Settings, prior\_lambda\_shape2 | "prior-distributions/lambda", "lambda", "b" |
+| parameters.ini, Priors Settings, prior\_ps\_shape1 | "prior-distributions/ps", "ps", "alpha" |
+| parameters.ini, Priors Settings, prior\_ps\_shape2 | "prior-distributions/ps", "ps", "beta" |
+| parameters.ini, Priors Settings, prior\_rrd\_shape1 | "prior-distributions/rrd", "rrd", "k" |
+| parameters.ini, Priors Settings, prior\_rrd\_shape2 | "prior-distributions/rrd", "rrd", "theta" |
+| ------------- |:-------------:|
+| scot\_data.csv       | "population-data/data\_for\_scotland", "data" |
+| scot\_age.csv        | "population-data/data\_for\_scotland", "age" |
+| scot\_deaths.csv     | "population-data/data\_for\_scotland", "deaths" |
+| waifw\_norm.csv      | "contact-data/who\_acquired\_infection\_from\_whom", "norm" |
+| waifw\_home.csv      | "contact-data/who\_acquired\_infection\_from\_whom", "home" |
+| waifw\_sdist.csv     | "contact-data/who\_acquired\_infection\_from\_whom", "sdist" |
+| cfr\_byage.csv       | "prob\_hosp\_and\_cfr/data\_for\_scotland", "cfr\_byage" |
+| posterior\_parameters.csv | "posterior\_parameters/data\_for\_scotland", "posterior\_parameters" |
+
+Once the data has been successfully downloaded the model may be run as specified above but with the addition of the `-c` option indicating to use the data pipeline for the above elements instead of local files. For example:
+
+```
+Covid19EERAModel -s original -m inference -c <path>/config.yaml
+```
+
+Once completed, results should be uploaded, which is TBD.
 
 ### Prediction mode
 The model can be run in a prediction mode, where a fixed set of parameters is supplied to the model,

@@ -263,7 +263,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     const std::string waifw_home_file = configDir + "/waifw_home.csv";
     const std::string waifw_sdist_file = configDir + "/waifw_sdist.csv";
     const std::string cfr_byage_file = configDir + "/cfr_byage.csv";
-    const std::string scot_frail_file = configDir + "/scot_frail.csv";
     const std::string settings_file = configDir + "/parameters.ini";
 
     ValidationParameters validationParameters = ImportValidationParameters(settings_file);
@@ -342,19 +341,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 
     ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
     ImportConsistencyCheck(cfr_byage_file, cfr_cols, nCfrCategories, "columns");
-
-    //Upload frailty probability p_f by age group
-    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-    //rows are for each individual Health Borad
-    //last row is for Scotland
-    (*log) << "\t- " << scot_frail_file << std::endl;
-    observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
-
-    unsigned int pf_pop_rows = observations.pf_pop.size();
-    unsigned int pf_pop_cols = observations.pf_pop[0].size();
-
-    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
-    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
     return observations;
 }
