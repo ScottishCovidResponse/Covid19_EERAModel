@@ -46,9 +46,11 @@ jobs:
 
     - name: Data pipeline Dependencies
       run : |
-            apt update && apt install -y locales python3 python3-pip cmake git
-            locale-gen en_GB.UTF-8
-            pip3 install -r data_pipeline_api/bindings/cpp/requirements.txt 
+            sudo apt-get update && sudo apt-get install -y python3-setuptools python3-venv && sudo rm -rf /var/lib/apt/lists/*
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install wheel
+            pip install -r data_pipeline_api/bindings/cpp/requirements.txt 
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
@@ -73,8 +75,10 @@ jobs:
               CC: ${{ matrix.config.compiler }}
               CXX: ${{ matrix.config.compilerpp }}
       run : |
-            cmake -Hbindings/cpp -Bbindings/cpp/build
-            cmake --build bindings/cpp/build
+            source .venv/bin/activate
+            cd data_pipeline_api/bindings/cpp
+            cmake -H. -Bbuild
+            cmake --build build
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Compile
@@ -82,6 +86,7 @@ jobs:
               CC: ${{ matrix.config.compiler }}
               CXX: ${{ matrix.config.compilerpp }}
       run: |
+        source .venv/bin/activate
         mkdir build
         cd build
         cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON -DDATA_PIPELINE=../data_pipeline_api
@@ -104,6 +109,7 @@ jobs:
       env:
             PYTHONPATH: data_pipeline_api
       run: |
+        source .venv/bin/activate
         ./build/bin/Covid19EERAModel-unit_tests
         if [ $? -eq 0 ]; then
           echo "Unit tests completed successfully"
