@@ -39,23 +39,6 @@ jobs:
       run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
 
-    - name: Format Code ( Ubuntu GCC Master )
-      run: |
-           git config --local user.email "action@github.com"
-           git config --local user.name "GitHub Action"
-           find . -iname *.h -o -iname *.cpp | xargs clang-format -style=file -i -fallback-style=none
-           git add -u
-           git commit -m "Applied Code Formatting `date`"
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
-    
-    - name: Push format changes to Master Branch ( Ubuntu GCC Master )
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: master
-        force: false
-      if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
-
     - name: Compile
       env:
               CC: ${{ matrix.config.compiler }}
