@@ -21,16 +21,21 @@ PredictionFramework::PredictionFramework(
 
 void PredictionFramework::Run()
 {
+    std::vector<Status> statuses(config_.n_iterations);
     SimpleTimer timer;
 
-    Status status = model_->Run(config_.posterior_parameters, config_.seedlist,
-        config_.day_shut, config_.n_sim_steps);
-
+    (*log_) << "[Simulations]:" << std::endl;
+    for (int iter = 0; iter < config_.n_iterations; ++iter) {
+        statuses[iter] = model_->Run(config_.posterior_parameters, config_.seedlist,
+            config_.day_shut, config_.n_sim_steps);
+        
+        // Output a marker for every 10 iterations run
+        if (iter > 0 && iter % 10 == 0) (*log_) << "|" << std::flush;
+    }
+    
     (*log_) << "\n <computation time> " << timer.elapsedTime() << " seconds.\n";
 
-    std::vector<std::vector<int>> end_comps = Model::compartments_to_vector(status.ends);
-
-    IO::WritePredictionsToFiles(status, end_comps, outDir_, log_);
+    IO::WritePredictionsToFiles(statuses, outDir_, log_);
 }
 
 } // namespace Prediction
