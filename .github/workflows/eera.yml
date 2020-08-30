@@ -9,7 +9,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-                os: ['ubuntu-20.04', 'macos-latest']
+                os: ['ubuntu-20.04'] #, 'macos-latest']
                 config: [{
                             compiler: gcc,
                             compilerpp: g++
@@ -50,7 +50,8 @@ jobs:
             python3 -m venv .venv
             source .venv/bin/activate
             pip install wheel
-            pip install -r data_pipeline_api/bindings/cpp/requirements.txt 
+            pip install -r data_pipeline_api/bindings/cpp/requirements.txt
+            pip install data_pipeline_api
       if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
@@ -96,6 +97,7 @@ jobs:
       env:
             PYTHONPATH: data_pipeline_api
       run: |
+        source .venv/bin/activate
         ./scripts/RunRegressionTests.sh 1 24
         if [ $? -eq 0 ]; then
           echo "Regression tests completed successfully"

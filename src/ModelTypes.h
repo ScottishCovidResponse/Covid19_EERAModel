@@ -111,7 +111,6 @@ struct AgeGroupData
 	std::vector<std::vector<double>> waifw_home;	/*!< mean number of daily contacts between age groups (home only). */
 	std::vector<std::vector<double>> waifw_sdist;	/*!< mean number of daily contacts between age groups (not school, not work). */
 	std::vector<std::vector<double>> cfr_byage;		/*!< Case fatality ratio by age. */
-	std::vector<double> pf_byage;					/*!< Frailty Probability by age. */
 };
 
 /**
