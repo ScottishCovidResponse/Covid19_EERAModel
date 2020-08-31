@@ -233,13 +233,22 @@ void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Comp
 void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle);
 
 /**
+ * @brief Write header row for inference particles outputs
+ * 
+ * Writes inference particle state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceParticlesHeader(std::ostream& os);
+
+/**
  * @brief Write header row for prediction simulation outputs
  * 
  * Writes prediction simulation file header, followed by a newline
  * 
  * @param os Stream to write the header to
  */
-void WritePredictionSimuHeader(std::ostream& os);
+void WriteSimuHeader(std::ostream& os);
 
 /**
  * @brief Write header row for prediction simulation outputs
@@ -253,7 +262,7 @@ void WritePredictionSimuHeader(std::ostream& os);
  * @param inc_death_hospital Deaths in hospital
  * @param inc_death Deaths 
  */
-void WritePredictionSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
     int inc_death);
 
 /**

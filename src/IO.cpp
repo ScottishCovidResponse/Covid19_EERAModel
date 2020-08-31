@@ -424,10 +424,10 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
     std::ofstream output_ends (namefile_ends.str().c_str());
     
     //add the column names for each output list of particles
-    output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,lambda,weight" << std::endl;
+    WriteInferenceParticlesHeader(output_step);
 
     //add the column names for each output list of chosen simulations
-    output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
+    WriteSimuHeader(output_simu);
     
     //add the column names for each output list of the compartment values of the last day of the chosen simulations
     WriteInferenceEndsHeader(output_ends);	
@@ -437,8 +437,8 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
         WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
         
         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-            output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " \
-                        <<  particleList[kk].hospital_death_outs[var] << ", " << particleList[kk].death_outs[var] << '\n';
+            WriteSimuRow(output_simu, particleList[kk].iter, var , particleList[kk].simu_outs[var],
+                        particleList[kk].hospital_death_outs[var], particleList[kk].death_outs[var]);
         }
         
         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
@@ -460,12 +460,12 @@ void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& ou
     std::ofstream output_simu(namefile_simu.str());
     std::ofstream output_full(namefile_full.str());
 
-    WritePredictionSimuHeader(output_simu);
+    WriteSimuHeader(output_simu);
     for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
         const Status& status = statuses[iter];
         
         for (unsigned int day = 0; day < status.simulation.size(); ++day) {
-            WritePredictionSimuRow(output_simu, iter, day, status.simulation[day],
+            WriteSimuRow(output_simu, iter, day, status.simulation[day],
                 status.hospital_deaths[day], status.deaths[day]);
         }
     }
@@ -496,6 +496,12 @@ void WriteInferenceEndsHeader(std::ostream& os)
 {
     os << "iter, age_group, S, E, E_t, I_p, I_t,"
         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+}
+
+void WriteInferenceParticlesHeader(std::ostream& os)
+{
+    os << "iter, nsse_cases, nsse_deaths, p_inf, "
+        "p_hcw, c_hcw, d, q, p_s, rrd, lambda, weight" << std::endl;
 }
 
 void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
@@ -559,12 +565,12 @@ void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle parti
     os << particle.weight                                          << std::endl;
 }
 
-void WritePredictionSimuHeader(std::ostream& os)
+void WriteSimuHeader(std::ostream& os)
 {
     os << "iter, day, " << "inc_case, " << "inc_death_hospital, " << "inc_death" << std::endl;
 }
 
-void WritePredictionSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
     int inc_death) 
 {
     os << iter  << ", ";

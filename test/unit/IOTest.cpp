@@ -33,17 +33,17 @@ TEST(IOTest, WritePredictionFullRow)
     EXPECT_EQ(expected, os.str());
 }
 
-TEST(IOTest, WritePredictionSimuHeader)
+TEST(IOTest, WriteSimuHeader)
 {
     const std::string expected("iter, day, inc_case, inc_death_hospital, inc_death\n");
 
     std::ostringstream os;
-    IO::WritePredictionSimuHeader(os);
+    IO::WriteSimuHeader(os);
 
     EXPECT_EQ(expected, os.str());
 }
 
-TEST(IOTest, WritePredictionSimuRow)
+TEST(IOTest, WriteSimuRow)
 {
     int iter = 0;
     int day = 1;
@@ -53,7 +53,7 @@ TEST(IOTest, WritePredictionSimuRow)
     const std::string expected("0, 1, 2, 3, 4\n");
 
     std::ostringstream os;
-    IO::WritePredictionSimuRow(os, iter, day, inc_case, inc_hospital, inc_death);
+    IO::WriteSimuRow(os, iter, day, inc_case, inc_hospital, inc_death);
 
     EXPECT_EQ(expected, os.str());
 }
