@@ -9,7 +9,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-                os: ['ubuntu-20.04'] #, 'macos-latest']
+                os: ['ubuntu-20.04', 'macos-latest']
                 config: [{
                             compiler: gcc,
                             compilerpp: g++
@@ -112,7 +112,8 @@ jobs:
             PYTHONPATH: data_pipeline_api
       run: |
         source .venv/bin/activate
-        ./build/bin/Covid19EERAModel-unit_tests
+        cd build
+        ./bin/Covid19EERAModel-unit_tests
         if [ $? -eq 0 ]; then
           echo "Unit tests completed successfully"
           exit 0
