@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "ModelCommon.h"
 #include "IniFile.h"
 #include "Utilities.h"
 #include <sstream>
@@ -196,13 +197,100 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 /**
  * @brief Writes Prediction outputs to files
  * 
- * @param status Status object
- * @param end_comps Matrix to hold the end states of the simulation organised by compartments
+ * @param status Results of each model run
  * @param outDirPath Path to output directory where output files will be stored
  * @param log Logger
  */
-void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
-	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
+void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& outDirPath,
+    const Utilities::logging_stream::Sptr& log);
+
+/**
+ * @brief Write header row for prediction full outputs
+ * 
+ * Writes prediction full file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WritePredictionFullHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for inference end outputs
+ * 
+ * Writes inference end state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceEndsHeader(std::ostream& os);
+
+/**
+ * @brief Write data row for prediction full outputs
+ * 
+ * Writes @p iter, @p day, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param particle A particle representing a set of parameters
+ */
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle);
+
+/**
+ * @brief Write header row for inference particles outputs
+ * 
+ * Writes inference particle state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceParticlesHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for prediction simulation outputs
+ * 
+ * Writes prediction simulation file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteSimuHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for prediction simulation outputs
+ * 
+ * Writes @p iter, @p day, @p inc_case, @p inc_death_hospital, @p inc_death, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param inc_case Number of cases
+ * @param inc_death_hospital Deaths in hospital
+ * @param inc_death Deaths 
+ */
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+    int inc_death);
 
 /**
  * @brief Extract a numeric value from an INI file
