@@ -25,10 +25,9 @@ void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axi
 
 }
 
-ValidationParameters ImportValidationParameters(const std::string& configDir)
+ValidationParameters ImportValidationParameters(const std::string& filePath)
 {
     ValidationParameters parameters;
-    std::string filePath(configDir + "/parameters.ini");
 
     parameters.nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", filePath);
     parameters.nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", filePath);
@@ -98,7 +97,6 @@ SupplementaryInputParameters ReadSupplementaryParameters(const std::string& Para
 
 CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 {
-    std::cout << "(Files): ReadFixedModelParameters\n";
     CommonModelInputParameters commonParameters;
 
     commonParameters.paramlist  = ReadFixedModelParameters(ParamsPath);
@@ -108,18 +106,13 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
     return commonParameters;
 }
 
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log) 
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters) 
 {
     std::string ParamsPath(configDir + "/parameters.ini");
 
     InferenceConfig inferenceConfig;
     
-    inferenceConfig.seedlist = ReadSeedSettings(ParamsPath, log);
-    inferenceConfig.paramlist = ReadFixedModelParameters(ParamsPath);
-
-    inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
-    inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", ParamsPath);
-    inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
+    ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);    
 
     inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", ParamsPath);
@@ -138,62 +131,37 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", ParamsPath);
 
-    inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
-    inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
-    inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
-    inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
-
-    for (int ii = 1; ii <= inferenceConfig.nsteps; ii++) {
-        inferenceConfig.toleranceLimit.push_back(0.0);
-    }
-
-    for (int ii = 0; ii < inferenceConfig.nsteps; ii++) {
-        std::stringstream KeyName;
-        KeyName << "Key" << (ii + 1);
-        inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
-    }
-
     inferenceConfig.observations = ReadInferenceObservations(configDir, log);
 
     return inferenceConfig;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log)
+
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig)
 {
-    std::string filePath(configDir + "/parameters.ini");
+    inferenceConfig->seedlist = ReadSeedSettings(ParamsPath, log);
+    //inferenceConfig->paramlist = ReadFixedModelParameters(ParamsPath);
+    inferenceConfig->paramlist = commonParameters.paramlist;
+    inferenceConfig->herd_id = commonParameters.herd_id;
+    inferenceConfig->day_shut = commonParameters.day_shut;
+    inferenceConfig->tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
 
-    PredictionConfig predictionConfig;
-    
-    predictionConfig.seedlist = ReadSeedSettings(filePath, log);
+    inferenceConfig->nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
+    inferenceConfig->kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
+    inferenceConfig->nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
+    inferenceConfig->nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
 
-    predictionConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
-
-    std::string sectionId("Prediction Configuration");    
-    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
-        sectionId, filePath);
-
-    predictionConfig.index = index;
-
-    std::string parametersFile(configDir + "/posterior_parameters.csv");
-    if (!Utilities::fileExists(parametersFile)) {
-        std::stringstream error_message;
-        error_message << "Cannot locate posterior parameters file at " << parametersFile << std::endl;
-        throw std::runtime_error(error_message.str());
+    for (int ii = 1; ii <= inferenceConfig->nsteps; ii++) {
+        inferenceConfig->toleranceLimit.push_back(0.0);
     }
 
-    // The posterior parameters are columns 0 to 7; the fixed parameters are columns 8 to 15
-    std::vector<double> modelParameters = ReadPredictionParametersFromFile(parametersFile, predictionConfig.index);
-    predictionConfig.posterior_parameters = std::vector<double>(modelParameters.begin(), modelParameters.begin() + 8);
-    predictionConfig.fixedParameters.T_lat      = modelParameters[8];
-    predictionConfig.fixedParameters.juvp_s     = modelParameters[9];
-    predictionConfig.fixedParameters.T_inf      = modelParameters[10];
-    predictionConfig.fixedParameters.T_rec      = modelParameters[11];
-    predictionConfig.fixedParameters.T_sym      = modelParameters[12];
-    predictionConfig.fixedParameters.T_hos      = modelParameters[13];
-    predictionConfig.fixedParameters.K          = static_cast<int>(modelParameters[14]);
-    predictionConfig.fixedParameters.inf_asym   = modelParameters[15];
-
-    return predictionConfig;
+    for (int ii = 0; ii < inferenceConfig->nsteps; ii++) {
+        std::stringstream KeyName;
+        KeyName << "Key" << (ii + 1);
+        inferenceConfig->toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
+    }
 }
 
 ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
@@ -221,7 +189,7 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
 
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParams = ImportValidationParameters(configDir);
+    ValidationParameters validationParams = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParams.nHealthBoards;
     int nCasesDays = validationParams.nCasesDays;
 
@@ -240,11 +208,54 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
     return observations;
 }
 
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters)
+{
+    std::string filePath(configDir + "/parameters.ini");
+
+    PredictionConfig predictionConfig;
+
+    ReadLocalPredictionConfig(filePath, index, log, commonParameters, &predictionConfig);
+
+    std::string parametersFile(configDir + "/posterior_parameters.csv");
+    if (!Utilities::fileExists(parametersFile)) {
+        std::stringstream error_message;
+        error_message << "Cannot locate posterior parameters file at " << parametersFile << std::endl;
+        throw std::runtime_error(error_message.str());
+    }
+
+    // The posterior parameters are columns 0 to 7; the fixed parameters are columns 8 to 15
+    std::vector<double> modelParameters = ReadPredictionParametersFromFile(parametersFile, predictionConfig.index);
+    predictionConfig.posterior_parameters = std::vector<double>(modelParameters.begin(), modelParameters.begin() + 8);
+    predictionConfig.fixedParameters.T_lat      = modelParameters[8];
+    predictionConfig.fixedParameters.juvp_s     = modelParameters[9];
+    predictionConfig.fixedParameters.T_inf      = modelParameters[10];
+    predictionConfig.fixedParameters.T_rec      = modelParameters[11];
+    predictionConfig.fixedParameters.T_sym      = modelParameters[12];
+    predictionConfig.fixedParameters.T_hos      = modelParameters[13];
+    predictionConfig.fixedParameters.K          = static_cast<int>(modelParameters[14]);
+    predictionConfig.fixedParameters.inf_asym   = modelParameters[15];
+
+    return predictionConfig;
+}
+
+void ReadLocalPredictionConfig(
+    const std::string& filePath, int index, Utilities::logging_stream::Sptr log,
+    const CommonModelInputParameters& commonParameters, PredictionConfig *predictionConfig)
+{
+    predictionConfig->seedlist = ReadSeedSettings(filePath, log);
+
+    predictionConfig->day_shut = commonParameters.day_shut;
+
+    std::string sectionId("Prediction Configuration");    
+    predictionConfig->n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
+        sectionId, filePath);
+
+    predictionConfig->index = index;
+}
+
 ObservationsForModels ReadModelObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
 {
     ObservationsForModels observations;
-
-    (*log) << "Observations For Models:" << std::endl;
 
     const std::string scot_data_file = configDir + "/scot_data.csv";
     const std::string scot_ages_file = configDir + "/scot_age.csv";
@@ -252,10 +263,9 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
     const std::string waifw_home_file = configDir + "/waifw_home.csv";
     const std::string waifw_sdist_file = configDir + "/waifw_sdist.csv";
     const std::string cfr_byage_file = configDir + "/cfr_byage.csv";
-    const std::string scot_frail_file = configDir + "/scot_frail.csv";
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParameters = ImportValidationParameters(configDir);
+    ValidationParameters validationParameters = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParameters.nHealthBoards;
     int nAgeGroups = validationParameters.nAgeGroups;
     int nCfrCategories = validationParameters.nCfrCategories;
@@ -331,19 +341,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 
     ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
     ImportConsistencyCheck(cfr_byage_file, cfr_cols, nCfrCategories, "columns");
-
-    //Upload frailty probability p_f by age group
-    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-    //rows are for each individual Health Borad
-    //last row is for Scotland
-    (*log) << "\t- " << scot_frail_file << std::endl;
-    observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
-
-    unsigned int pf_pop_rows = observations.pf_pop.size();
-    unsigned int pf_pop_cols = observations.pf_pop[0].size();
-
-    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
-    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
     return observations;
 }

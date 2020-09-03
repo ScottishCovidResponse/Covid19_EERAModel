@@ -47,4 +47,6 @@ public:
   static std::string CommitDate();
   // The commit tag
   static std::string Tag();
+  // The Remote Origin URL
+  static std::string URL();
 };

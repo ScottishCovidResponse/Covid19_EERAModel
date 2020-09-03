@@ -41,16 +41,16 @@ private:
  * @param expectedLength Expected Length of axis to check against
  * @param axisID String holding axis identifier ("rows" or "columns")
  */
-void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue);
+void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue, const std::string& axisID);
 
 /**
  * @brief Import parameters used for validating observation data
  * 
- * @param configDir Directory containing INI file
+ * @param filePath File path to parameters INI file
  * 
  * @return Validation parameters
  */
-ValidationParameters ImportValidationParameters(const std::string& configDir);
+ValidationParameters ImportValidationParameters(const std::string& filePath);
 
 /**
  * @brief Read supplementary parameters used for main.cpp.
@@ -77,10 +77,23 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
  * 
  * @param configDir Directory containing the configuration and data files
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Inference parameters
  */
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the inference mode
+ * 
+ * @param ParamsPath Location of the parameters .ini file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param inferenceConfig Destination to place local inference config
+ */
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig);
 
 /**
  * @brief Read prediction framework configuration from input files
@@ -88,10 +101,24 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
  * @param configDir Directory containing the configuration and data files
  * @param index Index of the parameter set to select from the posterior parameters file
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the prediction mode
+ * 
+ * @param filePath Location of the parameters .ini file
+ * @param index Index of the parameter set to select from the posterior parameters file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param predictionConfig Destination to place local prediction config
+ */
+void ReadLocalPredictionConfig(
+    const std::string& filePath, int index, Utilities::logging_stream::Sptr log,
+    const CommonModelInputParameters& commonParameters, PredictionConfig *predictionConfig);
 
 /**
  * @brief Read model posterior parameters from a CSV file

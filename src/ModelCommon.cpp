@@ -41,7 +41,13 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
 int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs)
 {
     int scotlandPopulation = 0;
-	for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+
+	// TODO: In the csv files, obs.cases[0] contains column headings so probably shouldn't
+	// be used in this sum. The value of obs.cases[0][0] will be -1, so unlikely to show
+	// much?
+
+	// for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+	for (unsigned int region = 1; region < obs.cases.size() - 1; ++region) {
 		scotlandPopulation += obs.cases[region][0];
 	}
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;

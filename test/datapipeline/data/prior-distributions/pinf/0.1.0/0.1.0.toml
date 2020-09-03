@@ -1,0 +1,6 @@
+[pinf]
+type = "distribution"
+distribution = "beta"
+alpha = 3
+beta = 9
+

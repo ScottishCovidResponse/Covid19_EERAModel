@@ -45,3 +45,6 @@ std::string GitMetadata::CommitDate() {
 std::string GitMetadata::Tag() {
     return "@GIT_TAG@";
 }
+std::string GitMetadata::URL() {
+    return "@GIT_REMOTE_ORIGIN_URL@";
+}

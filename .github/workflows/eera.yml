@@ -23,6 +23,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: actions/checkout@v2
+      with:
+        repository: ScottishCovidResponse/data_pipeline_api
+        path: data_pipeline_api
+
     - name: Install Dependencies ( Ubuntu )
       run: |
            sudo apt-get update
@@ -38,6 +43,16 @@ jobs:
     - name: Install Dependencies ( Mac OS X )
       run : brew update && brew install gsl cppcheck lcov poppler htmldoc graphviz doxygen
       if: matrix.os == 'macos-latest'
+
+    - name: Data pipeline Dependencies
+      run : |
+            sudo apt-get update && sudo apt-get install -y python3-setuptools python3-venv && sudo rm -rf /var/lib/apt/lists/*
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install wheel
+            pip install -r data_pipeline_api/bindings/cpp/requirements.txt
+            pip install data_pipeline_api
+      if: matrix.os == 'ubuntu-20.04'
 
     - name: Format Code ( Ubuntu GCC Master )
       run: |
@@ -56,18 +71,33 @@ jobs:
         force: false
       if: matrix.os == 'ubuntu-20.04' && matrix.config.compiler == 'gcc' && github.ref == 'refs/heads/master'
 
+    - name: Data pipeline API Compile
+      env:
+              CC: ${{ matrix.config.compiler }}
+              CXX: ${{ matrix.config.compilerpp }}
+      run : |
+            source .venv/bin/activate
+            cd data_pipeline_api/bindings/cpp
+            cmake -H. -Bbuild
+            cmake --build build
+      if: matrix.os == 'ubuntu-20.04'
+
     - name: Compile
       env:
               CC: ${{ matrix.config.compiler }}
               CXX: ${{ matrix.config.compilerpp }}
       run: |
+        source .venv/bin/activate
         mkdir build
         cd build
-        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON
+        cmake .. -DCODE_COVERAGE=ON -DCLANG_TIDY=ON -DDATA_PIPELINE=$GITHUB_WORKSPACE/data_pipeline_api
         make 2>&1 | tee clang_tidy_build_results.log
         
     - name: Run regression tests
+      env:
+            PYTHONPATH: data_pipeline_api
       run: |
+        source .venv/bin/activate
         ./scripts/RunRegressionTests.sh 1 24
         if [ $? -eq 0 ]; then
           echo "Regression tests completed successfully"
@@ -78,8 +108,12 @@ jobs:
         fi
 
     - name: Run unit tests
+      env:
+            PYTHONPATH: data_pipeline_api
       run: |
-        ./build/bin/Covid19EERAModel-unit_tests
+        source .venv/bin/activate
+        cd build
+        ./bin/Covid19EERAModel-unit_tests
         if [ $? -eq 0 ]; then
           echo "Unit tests completed successfully"
           exit 0

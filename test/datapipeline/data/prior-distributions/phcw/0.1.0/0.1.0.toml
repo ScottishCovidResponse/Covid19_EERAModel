@@ -1,0 +1,6 @@
+[phcw]
+type = "distribution"
+distribution = "beta"
+alpha = 3
+beta = 3
+

@@ -15,8 +15,7 @@ IrishModel::IrishModel(const CommonModelInputParameters& commonParameters,
             observations.waifw_norm,
             observations.waifw_home,
             observations.waifw_sdist,
-            observations.cfr_byage,
-            observations.pf_pop[commonParameters.herd_id - 1]
+            observations.cfr_byage
     };
     
     int regionalPopulation = GetPopulationOfRegion(
