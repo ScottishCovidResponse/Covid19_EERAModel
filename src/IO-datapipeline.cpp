@@ -310,12 +310,7 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
         std::string product = "outputs/" + modelType + "/inference/" + timeStamp_;
         std::string component_prefix = "steps/" + std::to_string(smc);
 
-        std::string component_ends = component_prefix + "/ends";
-        std::string component_simu = component_prefix + "/simu";
-
         std::cout << "Writing product: " << product << "\n";
-        std::cout << "    " << component_ends << "\n";
-        std::cout << "    " << component_simu << "\n";
 
         // write_table("original/inference/2020-08-29_10_11_00", "log_", log_table);
         // for step in 0:nsteps
@@ -324,52 +319,38 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
         //   write_table("eera_outputs/original/inference", "steps/step/particles", particles_step_n);
         // ends
 
-        // So, these tables can only have columns added to them, but the other write routine is trying
-        // to output rows, so some flippage needed, ho-hum...
+        // Particles
 
-        std::string component_particles = component_prefix + "/particles";
-        std::cout << "    " << component_particles << "\n";
+        {
+            std::string component_particles = component_prefix + "/particles";
+            std::cout << "    " << component_particles << "\n";
 
-        Table output_part;
-        WriteInferenceParticlesTable(Nparticle, particleList, &output_part);
-        dp_->write_table(product, component_particles, output_part);
+            Table output_part;
+            WriteInferenceParticlesTable(Nparticle, particleList, &output_part);
+            dp_->write_table(product, component_particles, output_part);
+        }
 
+        // Simu
 
-    //     std::stringstream namefile, namefile_simu, namefile_ends;
-    //     namefile << (outDirPath_ + "/output_abc-smc_particles_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";
-    //     namefile_simu << (outDirPath_ + "/output_abc-smc_simu_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";
-    //     namefile_ends << (outDirPath_ + "/output_abc-smc_ends_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";		
+        {
+            std::string component_simu = component_prefix + "/simu";
+            std::cout << "    " << component_simu << "\n";
 
-    //     std::ofstream output_step (namefile.str().c_str());
-    //     std::ofstream output_simu (namefile_simu.str().c_str());
-    //     std::ofstream output_ends (namefile_ends.str().c_str());
-        
-    //     //add the column names for each output list of particles
-    //     WriteInferenceParticlesHeader(output_step);
+            Table output_simu;
+            WriteInferenceSimuTable(Nparticle, particleList, &output_simu);
+            dp_->write_table(product, component_simu, output_simu);
+        }
 
-    //     //add the column names for each output list of chosen simulations
-    //     WriteSimuHeader(output_simu);
-        
-    //     //add the column names for each output list of the compartment values of the last day of the chosen simulations
-    //     WriteInferenceEndsHeader(output_ends);	
+        // Ends
 
-    //     // outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
-    //     for (int kk = 0; kk < Nparticle; ++kk) {
-    //         WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
-            
-    //         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-    //             WriteSimuRow(output_simu, particleList[kk].iter, var , particleList[kk].simu_outs[var],
-    //                         particleList[kk].hospital_death_outs[var], particleList[kk].death_outs[var]);
-    //         }
-            
-    //         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
-    //             WriteInferenceEndsRow(output_ends, particleList[kk].iter, age, particleList[kk].end_comps[age]);
-    //         }
-    //     }
-        
-    //     output_step.close();
-    //     output_simu.close();
-    //     output_ends.close();
+        {
+            std::string component_ends = component_prefix + "/ends";
+            std::cout << "    " << component_ends << "\n";
+
+            Table output_ends;
+            WriteInferenceEndsTable(Nparticle, particleList, &output_ends);
+            dp_->write_table(product, component_ends, output_ends);
+        }
     }
 }
 
@@ -379,54 +360,184 @@ void IOdatapipeline::WriteInferenceParticlesTable(
     std::vector<int> int_values(Nparticle);
     std::vector<double> double_values(Nparticle);
 
-    for (int kk = 0; kk < Nparticle; ++kk) {
-        int_values[kk] = kk;
-    }
+    auto intcolumn =
+        [&] (const char *colname, std::function<int(const particle& particle)> element) {
+            for (int kk = 0; kk < Nparticle; ++kk) {
+                int_values[kk] = element(particleList[kk]);
+            }
 
-    table->add_column("iter", int_values);
+            table->add_column(colname, int_values);
+        };
 
-    auto buildcolumn = [&] (const char *colname, std::function<double(const particle& particle)> element) {
-        for (int kk = 0; kk < Nparticle; ++kk) {
-            const auto& particle = particleList[kk];
-            double_values[kk] = element(particle);
-        }
+    auto doublecolumn =
+        [&] (const char *colname, std::function<double(const particle& particle)> element) {
+            for (int kk = 0; kk < Nparticle; ++kk) {
+                double_values[kk] = element(particleList[kk]);
+            }
 
-        table->add_column(colname, double_values);
-    };
+            table->add_column(colname, double_values);
+        };
 
-    buildcolumn("nsse_cases", [=] (const particle& particle) -> double {
+    intcolumn("iter", [=] (const particle& particle) -> int {
+        return particle.iter; });
+
+    doublecolumn("nsse_cases", [=] (const particle& particle) -> double {
         return particle.nsse_cases; });
 
-    buildcolumn("nsse_deaths", [=] (const particle& particle) -> double {
+    doublecolumn("nsse_deaths", [=] (const particle& particle) -> double {
         return particle.nsse_deaths; });
 
-    buildcolumn("p_inf", [=] (const particle& particle) -> double {
+    doublecolumn("p_inf", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::PINF]; });
 
-    buildcolumn("p_hcw", [=] (const particle& particle) -> double {
+    doublecolumn("p_hcw", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::PHCW]; });
 
-    buildcolumn("c_hcw", [=] (const particle& particle) -> double {
+    doublecolumn("c_hcw", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::CHCW]; });
 
-    buildcolumn("d", [=] (const particle& particle) -> double {
+    doublecolumn("d", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::D]; });
 
-    buildcolumn("q", [=] (const particle& particle) -> double {
+    doublecolumn("q", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::Q]; });
 
-    buildcolumn("p_s", [=] (const particle& particle) -> double {
+    doublecolumn("p_s", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::PS]; });
 
-    buildcolumn("rrd", [=] (const particle& particle) -> double {
+    doublecolumn("rrd", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::RRD]; });
 
-    buildcolumn("lambda", [=] (const particle& particle) -> double {
+    doublecolumn("lambda", [=] (const particle& particle) -> double {
         return particle.parameter_set[Model::ModelParameters::LAMBDA]; });
 
-    buildcolumn("weight", [=] (const particle& particle) -> double {
+    doublecolumn("weight", [=] (const particle& particle) -> double {
         return particle.weight; });
 }
+
+void IOdatapipeline::WriteInferenceSimuTable(
+    int Nparticle, const std::vector<particle>& particleList, Table *table)
+{
+    size_t vectorsize = 0;
+
+    for (const auto& particle : particleList) {
+        vectorsize += particle.simu_outs.size();
+    }
+
+    std::vector<int> int_values(vectorsize);
+
+    auto intcolumn =
+        [&] (const char *colname, std::function<int(const particle& particle, int var)> element) {
+            size_t dst = 0;
+
+            for (int kk = 0; kk < Nparticle; ++kk) {
+                size_t nvar = particleList[kk].simu_outs.size();
+                for (unsigned int var = 0; var < nvar; ++var) {
+                    int_values[dst] = element(particleList[kk], var);
+                    ++dst;
+                }
+            }
+
+            table->add_column(colname, int_values);
+        };
+
+    intcolumn("iter", [=] (const particle& particle, int var) -> int {
+        return particle.iter; });
+
+    intcolumn("day", [=] (const particle& particle, int var) -> int {
+        return var; });
+
+    intcolumn("inc_case", [=] (const particle& particle, int var) -> int {
+        return particle.simu_outs[var]; });
+
+    intcolumn("inc_death_hospital", [=] (const particle& particle, int var) -> int {
+        return particle.hospital_death_outs[var]; });
+
+    intcolumn("inc_death", [=] (const particle& particle, int var) -> int {
+        return particle.death_outs[var]; });
+}
+
+void IOdatapipeline::WriteInferenceEndsTable(
+    int Nparticle, const std::vector<particle>& particleList, Table *table)
+{
+    size_t vectorsize = 0;
+
+    for (const auto& particle : particleList) {
+        vectorsize += particle.end_comps.size();
+    }
+
+    std::vector<int> int_values(vectorsize);
+
+    auto intcolumn =
+        [&] (const char *colname, std::function<int(const particle& particle, int age)> element) {
+            size_t dst = 0;
+
+            for (int kk = 0; kk < Nparticle; ++kk) {
+                size_t nage = particleList[kk].end_comps.size();
+                for (unsigned int age = 0; age < nage; ++age) {
+                    int_values[dst] = element(particleList[kk], age);
+                    ++dst;
+                }
+            }
+
+            table->add_column(colname, int_values);
+        };
+
+    intcolumn("iter", [=] (const particle& particle, int age) -> int {
+        return particle.iter; });
+
+    intcolumn("age_group", [=] (const particle& particle, int age) -> int {
+        return age; });
+
+    intcolumn("S", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].S; });
+
+    intcolumn("E", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].E; });
+
+    intcolumn("E_t", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].E_t; });
+
+    intcolumn("I_p", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_p; });
+
+    intcolumn("I_t", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_t; });
+
+    intcolumn("I1", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I1; });
+
+    intcolumn("I2", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I2; });
+
+    intcolumn("I3", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I3; });
+
+    intcolumn("I4", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I4; });
+
+    intcolumn("I_s1", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_s1; });
+
+    intcolumn("I_s2", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_s2; });
+
+    intcolumn("I_s3", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_s3; });
+
+    intcolumn("I_s4", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].I_s4; });
+
+    intcolumn("H", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].H; });
+
+    intcolumn("R", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].R; });
+
+    intcolumn("D", [=] (const particle& particle, int age) -> int {
+        return particle.end_comps[age].D; });
+}
+
 
 void IOdatapipeline::WritePredictionsToFiles(std::vector<Status> statuses, const std::string &modelType)
 {
@@ -436,139 +547,165 @@ void IOdatapipeline::WritePredictionsToFiles(std::vector<Status> statuses, const
     }
     else
     {
-
-    
         // write_table("original/prediction/2020-08-29_10_11_00", "log_", log_table);
         // write_table("eera_outputs/original/prediction", "full", full);
         // write_table("eera_outputs/original/prediction", "simu", simu);
-
-    // std::stringstream namefile_simu, namefile_full;
-    // namefile_simu << (outDirPath_ + "/output_prediction_simu") << "_" << log_->getLoggerTime() << ".txt";
-    // namefile_full << (outDirPath_ + "/output_prediction_full") << "_" << log_->getLoggerTime() << ".txt";
-
-    // std::ofstream output_simu(namefile_simu.str());
-    // std::ofstream output_full(namefile_full.str());
-
-    // WriteSimuHeader(output_simu);
-    // for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
-    //     const Status& status = statuses[iter];
         
-    //     for (unsigned int day = 0; day < status.simulation.size(); ++day) {
-    //         WriteSimuRow(output_simu, iter, day, status.simulation[day],
-    //             status.hospital_deaths[day], status.deaths[day]);
-    //     }
-    // }
+        std::string product = "outputs/" + modelType + "/prediction/" + timeStamp_;
+        std::cout << "Writing product: " << product << "\n";
 
-    // WritePredictionFullHeader(output_full);
-    // for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
-    //     const Status& status = statuses[iter];
-    //     const auto& pop_array = status.pop_array;
-        
-    //     for (unsigned int day = 0; day < pop_array.size(); ++day) {
-    //         const auto& age_groups = pop_array[day];
-            
-    //         for (unsigned int age = 0; age < age_groups.size(); age++) {
-    //             const auto& comp = age_groups[age];
-    //             WritePredictionFullRow(output_full, iter, day, age, comp);
-    //         }
-    //     }
-    // }
+        // Simu
+
+        {
+            std::string component_simu = "simu";
+            std::cout << "    " << component_simu << "\n";
+
+            Table output_simu;
+            WritePredictionSimuTable(statuses, &output_simu);
+            dp_->write_table(product, component_simu, output_simu);
+        }
+    
+        // Full
+
+        {
+            std::string component_full = "full";
+            std::cout << "    " << component_full << "\n";
+
+            Table output_full;
+            WritePredictionFullTable(statuses, &output_full);
+            dp_->write_table(product, component_full, output_full);
+        }
     }
 }
 
-// void WritePredictionFullHeader(std::ostream& os)
-// {
-//     os << "iter, day, age_group, S, E, E_t, I_p, I_t,"
-//         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
-// }
+void IOdatapipeline::WritePredictionSimuTable(std::vector<Status> statuses, Table *table)
+{
+    size_t vectorsize = 0;
 
-// void WriteInferenceEndsHeader(std::ostream& os)
-// {
-//     os << "iter, age_group, S, E, E_t, I_p, I_t,"
-//         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
-// }
+    for (const auto& status : statuses) {
+        vectorsize += status.simulation.size();
+    }
 
-// void WriteInferenceParticlesHeader(std::ostream& os)
-// {
-//     os << "iter, nsse_cases, nsse_deaths, p_inf, "
-//         "p_hcw, c_hcw, d, q, p_s, rrd, lambda, weight" << std::endl;
-// }
+    std::vector<int> int_values(vectorsize);
 
-// void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
-// {
-//     os << iter          << ", ";
-//     os << day           << ", ";
-//     os << age_group     << ", ";
-//     os << comp.S        << ", ";
-//     os << comp.E        << ", ";
-//     os << comp.E_t      << ", ";
-//     os << comp.I_p      << ", ";
-//     os << comp.I_t      << ", ";
-//     os << comp.I1       << ", ";
-//     os << comp.I2       << ", ";
-//     os << comp.I3       << ", ";
-//     os << comp.I4       << ", ";
-//     os << comp.I_s1     << ", ";
-//     os << comp.I_s2     << ", ";
-//     os << comp.I_s3     << ", ";
-//     os << comp.I_s4     << ", ";
-//     os << comp.H        << ", ";
-//     os << comp.R        << ", ";
-//     os << comp.D        << std::endl;
-// }
+    auto intcolumn =
+        [&] (const char *colname, std::function<int(const Status& status, int iter, int day)> element) {
+            size_t dst = 0, nstatus = statuses.size();
 
-// void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
-// {
-//     os << iter          << ", ";
-//     os << age_group     << ", ";
-//     os << comp.S        << ", ";
-//     os << comp.E        << ", ";
-//     os << comp.E_t      << ", ";
-//     os << comp.I_p      << ", ";
-//     os << comp.I_t      << ", ";
-//     os << comp.I1       << ", ";
-//     os << comp.I2       << ", ";
-//     os << comp.I3       << ", ";
-//     os << comp.I4       << ", ";
-//     os << comp.I_s1     << ", ";
-//     os << comp.I_s2     << ", ";
-//     os << comp.I_s3     << ", ";
-//     os << comp.I_s4     << ", ";
-//     os << comp.H        << ", ";
-//     os << comp.R        << ", ";
-//     os << comp.D        << std::endl;
-// }
+            for (int iter = 0; iter < nstatus; ++iter) {
+                size_t nday = statuses[iter].simulation.size();
+                for (unsigned int day = 0; day < nday; ++day) {
+                    int_values[dst] = element(statuses[iter], iter, day);
+                    ++dst;
+                }
+            }
 
-// void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
-// {
-//     os << iter                                                     << ", ";
-//     os << particle.nsse_cases                                      << ", ";
-//     os << particle.nsse_deaths                                     << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::PINF]     << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::PHCW]     << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::CHCW]     << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::D]        << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::Q]        << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::PS]       << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::RRD]      << ", ";
-//     os << particle.parameter_set[Model::ModelParameters::LAMBDA]   << ", ";
-//     os << particle.weight                                          << std::endl;
-// }
+            table->add_column(colname, int_values);
+        };
 
-// void WriteSimuHeader(std::ostream& os)
-// {
-//     os << "iter, day, " << "inc_case, " << "inc_death_hospital, " << "inc_death" << std::endl;
-// }
+    intcolumn("iter", [=] (const Status& status, int iter, int day) -> int {
+        return iter; });
 
-// void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
-//     int inc_death) 
-// {
-//     os << iter  << ", ";
-//     os << day   << ", ";
-//     os << inc_case  << ", ";
-//     os << inc_death_hospital << ", ";
-//     os << inc_death << std::endl;
-// }
+    intcolumn("day", [=] (const Status& status, int iter, int day) -> int {
+        return day; });
+
+    intcolumn("inc_case", [=] (const Status& status, int iter, int day) -> int {
+        return status.simulation[day]; });
+
+    intcolumn("inc_death_hospital", [=] (const Status& status, int iter, int day) -> int {
+        return status.hospital_deaths[day]; });
+
+    intcolumn("inc_death", [=] (const Status& status, int iter, int day) -> int {
+        return status.deaths[day]; });
+}
+
+void IOdatapipeline::WritePredictionFullTable(std::vector<Status> statuses, Table *table)
+{
+    size_t vectorsize = 0;
+
+    for (const auto& status : statuses) {
+        for (const auto& age_group : status.pop_array) {
+            vectorsize += age_group.size();
+        }
+    }
+
+    std::vector<int> int_values(vectorsize);
+
+    auto intcolumn =
+        [&] (const char *colname, std::function<int(const Compartments& comp, int iter, int day, int age)> element) {
+            size_t dst = 0, nstatus = statuses.size();
+
+            for (int iter = 0; iter < nstatus; ++iter) {
+                size_t nday = statuses[iter].pop_array.size();
+                for (unsigned int day = 0; day < nday; ++day) {
+                    size_t nage = statuses[iter].pop_array[day].size();
+                    for (unsigned int age = 0; age < nage; ++age) {
+                        int_values[dst] = element(statuses[iter].pop_array[day][age], iter, day, age);
+                        ++dst;
+                    }
+                }
+            }
+
+            table->add_column(colname, int_values);
+        };
+
+    intcolumn("iter", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return iter; });
+
+    intcolumn("day", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return day; });
+
+    intcolumn("age_group", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return age; });
+
+    intcolumn("S", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.S; });
+
+    intcolumn("E", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.E; });
+
+    intcolumn("E_t", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.E_t; });
+
+    intcolumn("I_p", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_p; });
+
+    intcolumn("I_t", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_t; });
+
+    intcolumn("I1", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I1; });
+
+    intcolumn("I2", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I2; });
+
+    intcolumn("I3", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I3; });
+
+    intcolumn("I4", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I4; });
+
+    intcolumn("I_s1", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_s1; });
+
+    intcolumn("I_s2", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_s2; });
+
+    intcolumn("I_s3", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_s3; });
+
+    intcolumn("I_s4", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.I_s4; });
+
+    intcolumn("H", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.H; });
+
+    intcolumn("R", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.R; });
+
+    intcolumn("D", [=] (const Compartments& comp, int iter, int day, int age) -> int {
+        return comp.D; });
+}
 
 // Some utilities ----------------------------------------
 

@@ -122,7 +122,7 @@ public:
     /**
      * @brief Writes Prediction outputs to files
      * 
-     * @param status Results of each model run
+     * @param statuses Results of each model run
      * @param modelType The name of the model type in use
      */
     void WritePredictionsToFiles(std::vector<Status> statuses, const std::string &modelType);
@@ -193,13 +193,47 @@ private:
     ObservationsForInference ReadInferenceObservations(const ObservationsForModels& modelObservations);
 
     /**
-     * @brief Write the particles to a table
+     * @brief Write the inference particles to a table
      * 
      * @param Nparticle Number of particles
      * @param particleList Vector of particles to write out
      * @param table The table to fill
      */
     void WriteInferenceParticlesTable(int Nparticle, const std::vector<particle>& particleList, Table *table);
+
+    /**
+     * @brief Write the inference simulation outputs to a table
+     * 
+     * @param Nparticle Number of particles
+     * @param particleList Vector of particles to write out
+     * @param table The table to fill
+     */
+    void WriteInferenceSimuTable(int Nparticle, const std::vector<particle>& particleList, Table *table);
+
+    /**
+     * @brief Write the inference ends outputs to a table
+     * 
+     * @param Nparticle Number of particles
+     * @param particleList Vector of particles to write out
+     * @param table The table to fill
+     */
+    void WriteInferenceEndsTable(int Nparticle, const std::vector<particle>& particleList, Table *table);
+
+    /**
+     * @brief Write the prediction simulation outputs to a table
+     * 
+     * @param statuses Results of each model run
+     * @param table The table to fill
+     */
+    void WritePredictionSimuTable(std::vector<Status> statuses, Table *table);
+
+    /**
+     * @brief Write the prediction full outputs to a table
+     * 
+     * @param statuses Results of each model run
+     * @param table The table to fill
+     */
+    void WritePredictionFullTable(std::vector<Status> statuses, Table *table);
 
     /**
      * @brief Perform consistency checks on imported data from filePath.
