@@ -267,5 +267,12 @@ std::string dirname(std::string path);
  */
 std::string appendPath(std::string dirpath, std::string path);
 
+/**
+ * @brief Return a string containing the local time as a string
+ * 
+ * @return string of the form "YYYY-MMDD-HH-MM-SS" for the current time
+ */
+std::string timeString();
+
 } // namespace Utilities
 } // namespace EERAModel

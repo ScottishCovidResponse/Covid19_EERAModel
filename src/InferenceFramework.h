@@ -5,6 +5,7 @@
 #include "Random.h"
 #include "Utilities.h"
 #include "InferenceParameters.h"
+#include "IO-datapipeline.h"
 
 namespace EERAModel {
 namespace Inference {
@@ -102,14 +103,14 @@ public:
      * @param model Model interface
      * @param inferenceConfig Inference config
      * @param rng Seeded random number generator
-     * @param outDir Outputs directory path
      * @param log Logger
+     * @param datapipeline data pipeline handler
      */
     InferenceFramework(Model::ModelInterface::Sptr model,
         const InferenceConfig& inferenceConfig,
         Random::RNGInterface::Sptr rng,
-        const std::string& outDir,
-        Utilities::logging_stream::Sptr log);
+        Utilities::logging_stream::Sptr log,
+        IO::IOdatapipeline *datapipeline);
     
     /**
      * @brief Calculate the time offset for the dataset
@@ -219,12 +220,6 @@ private:
 
     /**
      * @private
-     * @brief Outputs directory path
-     */
-    std::string outDir_;
-
-    /**
-     * @private
      * @brief Logger
      */
     Utilities::logging_stream::Sptr log_;
@@ -240,6 +235,12 @@ private:
      * @brief Inference particle generator
      */
     InferenceParticleGenerator::Sptr inferenceParticleGenerator_;
+
+    /**
+     * @private
+     * @brief Data pipeline handler
+     */
+    IO::IOdatapipeline *datapipeline_;
 };
 
 /**

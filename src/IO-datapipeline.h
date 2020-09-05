@@ -60,11 +60,14 @@ public:
      * must be active and remain in scope for the durection of the use of this class.
      * 
      * @param params_path Pathname for a parameters ".ini" file
-     * @param model_config Pathname for a directory containing model configuration data
+     * @param model_config Pathname for a directory containing model configuration data, if local files
+     * @param outdir_path Path to output directory where output files will be stored, if local files
      * @param log_stream An output stream to use for logging diagnostic messages
      * @param dpconfig_path Pathname for a data pipeline configuration yaml file (empty string disables data pipeline)
      */
-    IOdatapipeline(string params_path, string model_config, Utilities::logging_stream::Sptr log_stream, string dpconfig_path = "");
+    IOdatapipeline(
+        string params_path, string model_config, string outdir_path,
+        Utilities::logging_stream::Sptr log_stream, string dpconfig_path = "");
 
     ~IOdatapipeline() {}
 
@@ -103,6 +106,28 @@ public:
      */ 
     PredictionConfig ReadPredictionConfig(int index, const CommonModelInputParameters& commonParameters);
 
+    /**
+     * @brief  Write outputs to files
+     * 
+     * @param smc Iteration number
+     * @param herd_id Herd Id
+     * @param Nparticle Number of particles
+     * @param nPar Number of parameters
+     * @param particleList Vector of particles to write out
+     * @param modelType The name of the model type in use
+     */
+    void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
+        const std::vector<EERAModel::particle>& particleList, const std::string &modelType);
+
+    /**
+     * @brief Writes Prediction outputs to files
+     * 
+     * @param status Results of each model run
+     * @param modelType The name of the model type in use
+     */
+    void WritePredictionsToFiles(std::vector<Status> statuses, const std::string &modelType);
+
+
 private:
     /**
      * @private
@@ -114,31 +139,43 @@ private:
      * @private
      * @brief The path of the specified parameter ".ini" file
      */
-    std::string ParamsPath;
+    std::string paramsPath_;
 
     /**
      * @private
-     * @brief The path of the model data configspecified parameter ".ini" file
+     * @brief The path of the model data config if using local files
      */
-    std::string ModelConfigDir;
+    std::string modelConfigDir_;
+
+    /**
+     * @private
+     * @brief Path to output directory where output files will be stored if using local files
+     */
+    std::string outDirPath_;
 
     /**
      * @private
      * @brief A stream to use for logging diagnostic messages
      */
-    Utilities::logging_stream::Sptr log;
+    Utilities::logging_stream::Sptr log_;
 
     /**
      * @private
      * @brief Flag indicating if the data pipeline has been requested and open successfully 
      */
-    bool datapipelineActive = false;
+    bool datapipelineActive_ = false;
 
     /**
      * @private
      * @brief Handle for C++ data pipeline API
      */    
-    std::unique_ptr<DataPipeline> dp;
+    std::unique_ptr<DataPipeline> dp_;
+
+    /**
+     * @private
+     * @brief Timestamp used for creating output product names in the data pipeline
+     */    
+    std::string timeStamp_;
 
 private:
     /**
@@ -154,6 +191,15 @@ private:
      * @return Inference observations data structure
      */
     ObservationsForInference ReadInferenceObservations(const ObservationsForModels& modelObservations);
+
+    /**
+     * @brief Write the particles to a table
+     * 
+     * @param Nparticle Number of particles
+     * @param particleList Vector of particles to write out
+     * @param table The table to fill
+     */
+    void WriteInferenceParticlesTable(int Nparticle, const std::vector<particle>& particleList, Table *table);
 
     /**
      * @brief Perform consistency checks on imported data from filePath.
@@ -182,9 +228,9 @@ private:
         const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result,
         int expected_rows = -1, int expected_columns = -1)
     {
-        (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+        (*log_) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
-        Array<T> input = dp->read_array<T>(data_product, component);
+        Array<T> input = dp_->read_array<T>(data_product, component);
         std::vector<int> array_sizes = input.size();
 
         if (array_sizes.size() != 2) {
@@ -238,9 +284,9 @@ private:
         const std::string& data_product, const std::string& component, std::vector<std::vector<T>> *result,
         int expected_rows = -1, int expected_columns = -1)
     {
-        (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+        (*log_) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
-        Table input = dp->read_table(data_product, component);
+        Table input = dp_->read_table(data_product, component);
 
         // std::cout << input.to_string() << "\n";
 

@@ -11,13 +11,13 @@ PredictionFramework::PredictionFramework(
     Model::ModelInterface::Sptr model,
     const PredictionConfig& config,
     Random::RNGInterface::Sptr rng,
-    const std::string& outDir,
-    Utilities::logging_stream::Sptr log)
+    Utilities::logging_stream::Sptr log,
+    IO::IOdatapipeline *datapipeline)
      : model_(model),
        config_(config),
        rng_(rng),
-       outDir_(outDir),
-       log_(log) {}
+       log_(log),
+       datapipeline_(datapipeline) {}
 
 void PredictionFramework::Run()
 {
@@ -35,7 +35,7 @@ void PredictionFramework::Run()
     
     (*log_) << "\n <computation time> " << timer.elapsedTime() << " seconds.\n";
 
-    IO::WritePredictionsToFiles(statuses, outDir_, log_);
+    datapipeline_->WritePredictionsToFiles(statuses, model_->ModelName());
 }
 
 } // namespace Prediction

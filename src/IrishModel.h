@@ -25,6 +25,13 @@ public:
         Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log);
 
     /**
+     * @brief Return the model name
+     * 
+     * @return Returns "irish"
+     */
+    std::string ModelName() { return "irish"; }
+
+    /**
      * @brief Run the model with the given parameters and configurations
      * 
      * @param parameter_set: set of parameters that are being infered (i.e. particles)

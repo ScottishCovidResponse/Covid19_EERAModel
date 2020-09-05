@@ -13,13 +13,13 @@ namespace Inference {
 InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
     const InferenceConfig& inferenceConfig,
     Random::RNGInterface::Sptr rng,
-    const std::string& outDir,
-    Utilities::logging_stream::Sptr log)
+    Utilities::logging_stream::Sptr log,
+	IO::IOdatapipeline *datapipeline)
     : model_(model),
       inferenceConfig_(inferenceConfig),
       rng_(rng),
-      outDir_(outDir),
-      log_(log) {
+      log_(log),
+      datapipeline_(datapipeline) {
 
     const unsigned int nInferenceParams = Model::ModelParameters::NPARAMS;
 
@@ -157,8 +157,8 @@ void InferenceFramework::Run()
 			<< " seconds.\n";
 
 		// Record the list of accepted particles in the output files.
-		IO::WriteOutputsToFiles(smc, inferenceConfig_.herd_id, currentParticles.size(),
-            nInferenceParams, currentParticles, outDir_, log_);
+		datapipeline_->WriteOutputsToFiles(smc, inferenceConfig_.herd_id, currentParticles.size(),
+            nInferenceParams, currentParticles, model_->ModelName());
 	}
 
 	// Output on screen the overall computation time

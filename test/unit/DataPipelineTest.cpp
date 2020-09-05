@@ -19,7 +19,7 @@ TEST(TestIODatapipeline, ExpectThrowForBadPath)
     const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
-    EXPECT_ANY_THROW(IO::IOdatapipeline idp2("../test/datapipeline/parameters.ini", "", logger, "NoValidPath.yaml"););
+    EXPECT_ANY_THROW(IO::IOdatapipeline idp2("../test/datapipeline/parameters.ini", "", "", logger, "NoValidPath.yaml"););
 }
 
 TEST(TestIODatapipeline, CanReadFixedParameters)
@@ -27,7 +27,7 @@ TEST(TestIODatapipeline, CanReadFixedParameters)
     const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
-    IO::IOdatapipeline idp("../test/datapipeline/parameters.ini", "", logger, "../test/datapipeline/config.yaml");
+    IO::IOdatapipeline idp("../test/datapipeline/parameters.ini", "", "", logger, "../test/datapipeline/config.yaml");
     CommonModelInputParameters params = idp.ReadCommonParameters();
 
     EXPECT_EQ(params.paramlist.T_lat, 4);
@@ -111,7 +111,7 @@ TEST(TestIODatapipeline, CanReadModelData)
     std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
 
     // Load data from data pipeline store
-    IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
+    IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
     ObservationsForModels dp_params = idp.ReadModelObservations();
 
     // Load data from regression test 1
@@ -135,7 +135,7 @@ TEST(TestIODatapipeline, CanReadInferenceConfig)
     std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
 
     // Load data from data pipeline store
-    IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
+    IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
     CommonModelInputParameters common_params = idp.ReadCommonParameters();
     ObservationsForModels model_obs = idp.ReadModelObservations();
     InferenceConfig dp_infconfig = idp.ReadInferenceConfig(common_params, model_obs);
@@ -173,7 +173,7 @@ TEST(TestIODatapipeline, CanReadPredictionConfig)
     std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
 
     // Load data from data pipeline store
-    IO::IOdatapipeline idp(paramsFile, configDir, logger, datapipelineConfig);
+    IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
     CommonModelInputParameters common_params = idp.ReadCommonParameters();
     PredictionConfig dp_predconfig = idp.ReadPredictionConfig(0, common_params);
 

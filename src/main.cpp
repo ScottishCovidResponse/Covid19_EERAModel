@@ -31,9 +31,10 @@ int main(int argc, char** argv)
     // Model Observational data location
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
 
+    // Start the data pipeline
     pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
     IO::IOdatapipeline datapipeline{
-        params_addr, modelConfigDir, logger, arg_parser.getArgs().datapipeline_path};
+        params_addr, modelConfigDir, out_dir, logger, arg_parser.getArgs().datapipeline_path};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
@@ -92,8 +93,7 @@ int main(int argc, char** argv)
         // Update the model with the fixed parameters from the prediction configuration
         model->SetFixedParameters(predictionConfig.fixedParameters);
         
-        Prediction::PredictionFramework framework(model, predictionConfig, 
-            rng, out_dir, logger);
+        Prediction::PredictionFramework framework(model, predictionConfig, rng, logger, &datapipeline);
 
         framework.Run();
     }
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
         IO::LogFixedParameters(commonParameters.paramlist, logger);
 
-        Inference::InferenceFramework framework(model, inferenceConfig, rng, out_dir, logger);
+        Inference::InferenceFramework framework(model, inferenceConfig, rng, logger, &datapipeline);
         
         framework.Run();
     }

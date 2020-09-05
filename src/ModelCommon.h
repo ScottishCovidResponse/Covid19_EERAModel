@@ -32,6 +32,13 @@ public:
     virtual ~ModelInterface() = default;
 
     /**
+     * @brief Return the name of the model as a string
+     * 
+     * @return Returns the model name
+     */
+    virtual std::string ModelName() = 0;
+
+    /**
      * @brief Run interface
      * 
      * Interface to model-specific implementation

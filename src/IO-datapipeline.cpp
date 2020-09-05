@@ -13,17 +13,23 @@
 namespace EERAModel {
 namespace IO {
 
-IOdatapipeline::IOdatapipeline(string params_path, string model_config, Utilities::logging_stream::Sptr log_stream, string dpconfig_path)
+IOdatapipeline::IOdatapipeline(
+    string params_path, string model_config, string outdir_path,
+    Utilities::logging_stream::Sptr log_stream, string dpconfig_path)
 {
-    ParamsPath = params_path;
-    ModelConfigDir = model_config; // Shouldn't need this if data pipeline active
-    log = log_stream;
+    paramsPath_ = params_path;
+    modelConfigDir_ = model_config; // Shouldn't need this if data pipeline active
+    outDirPath_ = outdir_path; // nor this
+    log_ = log_stream;
 
-    datapipelineActive = false;
+    datapipelineActive_ = false;
 
-    // std::cout << "ParamsPath: " << ParamsPath << "\n";
-    // std::cout << "ModelConfig: " << ModelConfigDir << "\n";
-    // std::cout << "ConfigPath: " << dpconfig_path << "\n";
+    timeStamp_ = Utilities::timeString();
+
+    // std::cout << "paramsPath_: " << paramsPath_ << "\n";
+    // std::cout << "modelConfigDir_: " << modelConfigDir_ << "\n";
+    // std::cout << "outDirPath_: " << outDirPath_ << "\n";
+    // std::cout << "DPConfigPath: " << dpconfig_path << "\n";
 
     if (dpconfig_path != "")
     {
@@ -34,8 +40,8 @@ IOdatapipeline::IOdatapipeline(string params_path, string model_config, Utilitie
         // std::cout << "SHA: " << git_sha << "\n";
 
         // If something goes wrong in the opening of the data pipeline an exception will get thrown
-        dp.reset(new DataPipeline(dpconfig_path, uri.c_str(), git_sha.c_str()));
-        datapipelineActive = true;
+        dp_.reset(new DataPipeline(dpconfig_path, uri.c_str(), git_sha.c_str()));
+        datapipelineActive_ = true;
     }
 }
 
@@ -43,24 +49,24 @@ CommonModelInputParameters IOdatapipeline::ReadCommonParameters()
 {
     CommonModelInputParameters commonParameters;
 
-    if (datapipelineActive)
+    if (datapipelineActive_)
     {
-        (*log) << "    From data pipeline" << std::endl;
+        (*log_) << "    From data pipeline" << std::endl;
 
-        commonParameters.paramlist  = ReadFixedModelParameters();
-        commonParameters.totN_hcw   = dp->read_estimate("fixed-parameters/total_hcw", "total_hcw");
-        commonParameters.day_shut = dp->read_estimate("fixed-parameters/day_shut", "day_shut");
+        commonParameters.paramlist = ReadFixedModelParameters();
+        commonParameters.totN_hcw = dp_->read_estimate("fixed-parameters/total_hcw", "total_hcw");
+        commonParameters.day_shut = dp_->read_estimate("fixed-parameters/day_shut", "day_shut");
     }
     else
     {
-        (*log) << "    From local parameters.ini" << std::endl;
+        (*log_) << "    From local parameters.ini" << std::endl;
 
-        commonParameters.paramlist  = IO::ReadFixedModelParameters(ParamsPath);
-        commonParameters.totN_hcw   = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", ParamsPath);
-        commonParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", ParamsPath);
+        commonParameters.paramlist = IO::ReadFixedModelParameters(paramsPath_);
+        commonParameters.totN_hcw = ReadNumberFromFile<int>("totN_hcw", "Fixed parameters", paramsPath_);
+        commonParameters.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", paramsPath_);
     }
     
-    commonParameters.herd_id    = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
+    commonParameters.herd_id    = ReadNumberFromFile<int>("shb_id", "Settings", paramsPath_);
 
     return commonParameters;
 }
@@ -69,27 +75,27 @@ params IOdatapipeline::ReadFixedModelParameters()
 {
     params paramlist;
 
-    paramlist.T_lat = dp->read_estimate("fixed-parameters/T_lat", "T_lat");
-    paramlist.juvp_s = dp->read_estimate("fixed-parameters/juvp_s", "juvp_s");
-    paramlist.T_inf = dp->read_estimate("fixed-parameters/T_inf", "T_inf");
-    paramlist.T_rec = dp->read_estimate("fixed-parameters/T_rec", "T_rec");
-    paramlist.T_sym = dp->read_estimate("fixed-parameters/T_sym", "T_sym");
-    paramlist.T_hos = dp->read_estimate("fixed-parameters/T_hos", "T_hos");
-    paramlist.K = dp->read_estimate("fixed-parameters/K", "K");
-    paramlist.inf_asym = dp->read_estimate("fixed-parameters/inf_asym", "inf_asym");
+    paramlist.T_lat = dp_->read_estimate("fixed-parameters/T_lat", "T_lat");
+    paramlist.juvp_s = dp_->read_estimate("fixed-parameters/juvp_s", "juvp_s");
+    paramlist.T_inf = dp_->read_estimate("fixed-parameters/T_inf", "T_inf");
+    paramlist.T_rec = dp_->read_estimate("fixed-parameters/T_rec", "T_rec");
+    paramlist.T_sym = dp_->read_estimate("fixed-parameters/T_sym", "T_sym");
+    paramlist.T_hos = dp_->read_estimate("fixed-parameters/T_hos", "T_hos");
+    paramlist.K = dp_->read_estimate("fixed-parameters/K", "K");
+    paramlist.inf_asym = dp_->read_estimate("fixed-parameters/inf_asym", "inf_asym");
 
     return paramlist;
 }
 
 ObservationsForModels IOdatapipeline::ReadModelObservations()
 {
-    if (!datapipelineActive)
+    if (!datapipelineActive_)
     {
-        return IO::ReadModelObservations(ModelConfigDir, log);
+        return IO::ReadModelObservations(modelConfigDir_, log_);
     }
     else
     {
-        ValidationParameters validationParameters = ImportValidationParameters(ParamsPath);
+        ValidationParameters validationParameters = ImportValidationParameters(paramsPath_);
         int nHealthBoards = validationParameters.nHealthBoards;
         int nAgeGroups = validationParameters.nAgeGroups;
         int nCfrCategories = validationParameters.nCfrCategories;
@@ -162,15 +168,15 @@ ObservationsForModels IOdatapipeline::ReadModelObservations()
 InferenceConfig IOdatapipeline::ReadInferenceConfig(
     const CommonModelInputParameters& commonParameters, const ObservationsForModels& modelObservations) 
 {
-    if (!datapipelineActive)
+    if (!datapipelineActive_)
     {
-        return IO::ReadInferenceConfig(ModelConfigDir, log, commonParameters);
+        return IO::ReadInferenceConfig(modelConfigDir_, log_, commonParameters);
     }
     else
     {
         InferenceConfig inferenceConfig;
 
-        IO::ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);
+        IO::ReadLocalInferenceConfig(paramsPath_, log_, commonParameters, &inferenceConfig);
 
         dpdistribution(
             "prior-distributions/pinf", "pinf",
@@ -212,19 +218,19 @@ InferenceConfig IOdatapipeline::ReadInferenceConfig(
 
 ObservationsForInference IOdatapipeline::ReadInferenceObservations(const ObservationsForModels& modelObservations)
 {
-    ValidationParameters validationParameters = ImportValidationParameters(ParamsPath);
+    ValidationParameters validationParameters = ImportValidationParameters(paramsPath_);
     int nHealthBoards = validationParameters.nHealthBoards;
     int nCasesDays = validationParameters.nCasesDays;
     
     ObservationsForInference observations;
     
-    (*log) << "Observations For Inference Config:" << std::endl;
+    (*log_) << "Observations For Inference Config:" << std::endl;
 
     //Uploading observed disease data
     //Note: first vector is the vector of time. value of -1 indicate number of pigs in the herd
     //rows from 1 are indivudual health board
     //last row is for all of scotland
-    (*log) << "\t- (data pipeline) copying cases from model observations" << std::endl;
+    (*log_) << "\t- (data pipeline) copying cases from model observations" << std::endl;
     observations.cases = modelObservations.cases;
 
     //Uploading observed death data
@@ -242,22 +248,22 @@ ObservationsForInference IOdatapipeline::ReadInferenceObservations(const Observa
 
 PredictionConfig IOdatapipeline::ReadPredictionConfig(int index, const CommonModelInputParameters& commonParameters)
 {
-    if (!datapipelineActive)
+    if (!datapipelineActive_)
     {
-        return IO::ReadPredictionConfig(ModelConfigDir, index, log, commonParameters);
+        return IO::ReadPredictionConfig(modelConfigDir_, index, log_, commonParameters);
     }
     else
     {
         PredictionConfig predictionConfig;
 
-        IO::ReadLocalPredictionConfig(ParamsPath, index, log, commonParameters, &predictionConfig);
+        IO::ReadLocalPredictionConfig(paramsPath_, index, log_, commonParameters, &predictionConfig);
 
         const char *posterior_product = "posterior_parameters/data_for_scotland";
         const char *posterior_component = "posterior_parameters";
 
-        (*log) << "\t- (data pipeline) \"" << posterior_product << "\", \"" << posterior_component << "\"" << std::endl;
+        (*log_) << "\t- (data pipeline) \"" << posterior_product << "\", \"" << posterior_component << "\"" << std::endl;
 
-        Table posterior_table = dp->read_table(posterior_product, posterior_component);
+        Table posterior_table = dp_->read_table(posterior_product, posterior_component);
 
         ImportConsistencyCheck(
             posterior_product, posterior_component, posterior_table.get_column_names().size(), 17, "columns");
@@ -292,13 +298,287 @@ PredictionConfig IOdatapipeline::ReadPredictionConfig(int index, const CommonMod
     }
 }
 
+void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar, 
+    const std::vector<particle>& particleList, const std::string &modelType)
+{
+    if (!datapipelineActive_)
+    {
+        IO::WriteOutputsToFiles(smc, herd_id, Nparticle, nPar, particleList, outDirPath_, log_);
+    }
+    else
+    {
+        std::string product = "outputs/" + modelType + "/inference/" + timeStamp_;
+        std::string component_prefix = "steps/" + std::to_string(smc);
+
+        std::string component_ends = component_prefix + "/ends";
+        std::string component_simu = component_prefix + "/simu";
+
+        std::cout << "Writing product: " << product << "\n";
+        std::cout << "    " << component_ends << "\n";
+        std::cout << "    " << component_simu << "\n";
+
+        // write_table("original/inference/2020-08-29_10_11_00", "log_", log_table);
+        // for step in 0:nsteps
+        //   write_table("eera_outputs/original/inference/2020-08-29_10_11_00", "steps/step/ends", ends_step_n);
+        //   write_table("eera_outputs/original/inference", "steps/step/simu", simu_step_n);
+        //   write_table("eera_outputs/original/inference", "steps/step/particles", particles_step_n);
+        // ends
+
+        // So, these tables can only have columns added to them, but the other write routine is trying
+        // to output rows, so some flippage needed, ho-hum...
+
+        std::string component_particles = component_prefix + "/particles";
+        std::cout << "    " << component_particles << "\n";
+
+        Table output_part;
+        WriteInferenceParticlesTable(Nparticle, particleList, &output_part);
+        dp_->write_table(product, component_particles, output_part);
+
+
+    //     std::stringstream namefile, namefile_simu, namefile_ends;
+    //     namefile << (outDirPath_ + "/output_abc-smc_particles_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";
+    //     namefile_simu << (outDirPath_ + "/output_abc-smc_simu_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";
+    //     namefile_ends << (outDirPath_ + "/output_abc-smc_ends_step") << smc << "_shb"<< herd_id << "_" << log_->getLoggerTime() << ".txt";		
+
+    //     std::ofstream output_step (namefile.str().c_str());
+    //     std::ofstream output_simu (namefile_simu.str().c_str());
+    //     std::ofstream output_ends (namefile_ends.str().c_str());
+        
+    //     //add the column names for each output list of particles
+    //     WriteInferenceParticlesHeader(output_step);
+
+    //     //add the column names for each output list of chosen simulations
+    //     WriteSimuHeader(output_simu);
+        
+    //     //add the column names for each output list of the compartment values of the last day of the chosen simulations
+    //     WriteInferenceEndsHeader(output_ends);	
+
+    //     // outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
+    //     for (int kk = 0; kk < Nparticle; ++kk) {
+    //         WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
+            
+    //         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
+    //             WriteSimuRow(output_simu, particleList[kk].iter, var , particleList[kk].simu_outs[var],
+    //                         particleList[kk].hospital_death_outs[var], particleList[kk].death_outs[var]);
+    //         }
+            
+    //         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
+    //             WriteInferenceEndsRow(output_ends, particleList[kk].iter, age, particleList[kk].end_comps[age]);
+    //         }
+    //     }
+        
+    //     output_step.close();
+    //     output_simu.close();
+    //     output_ends.close();
+    }
+}
+
+void IOdatapipeline::WriteInferenceParticlesTable(
+    int Nparticle, const std::vector<particle>& particleList, Table *table)
+{
+    std::vector<int> int_values(Nparticle);
+    std::vector<double> double_values(Nparticle);
+
+    for (int kk = 0; kk < Nparticle; ++kk) {
+        int_values[kk] = kk;
+    }
+
+    table->add_column("iter", int_values);
+
+    auto buildcolumn = [&] (const char *colname, std::function<double(const particle& particle)> element) {
+        for (int kk = 0; kk < Nparticle; ++kk) {
+            const auto& particle = particleList[kk];
+            double_values[kk] = element(particle);
+        }
+
+        table->add_column(colname, double_values);
+    };
+
+    buildcolumn("nsse_cases", [=] (const particle& particle) -> double {
+        return particle.nsse_cases; });
+
+    buildcolumn("nsse_deaths", [=] (const particle& particle) -> double {
+        return particle.nsse_deaths; });
+
+    buildcolumn("p_inf", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::PINF]; });
+
+    buildcolumn("p_hcw", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::PHCW]; });
+
+    buildcolumn("c_hcw", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::CHCW]; });
+
+    buildcolumn("d", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::D]; });
+
+    buildcolumn("q", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::Q]; });
+
+    buildcolumn("p_s", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::PS]; });
+
+    buildcolumn("rrd", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::RRD]; });
+
+    buildcolumn("lambda", [=] (const particle& particle) -> double {
+        return particle.parameter_set[Model::ModelParameters::LAMBDA]; });
+
+    buildcolumn("weight", [=] (const particle& particle) -> double {
+        return particle.weight; });
+}
+
+void IOdatapipeline::WritePredictionsToFiles(std::vector<Status> statuses, const std::string &modelType)
+{
+    if (!datapipelineActive_)
+    {
+        IO::WritePredictionsToFiles(statuses, outDirPath_, log_);
+    }
+    else
+    {
+
+    
+        // write_table("original/prediction/2020-08-29_10_11_00", "log_", log_table);
+        // write_table("eera_outputs/original/prediction", "full", full);
+        // write_table("eera_outputs/original/prediction", "simu", simu);
+
+    // std::stringstream namefile_simu, namefile_full;
+    // namefile_simu << (outDirPath_ + "/output_prediction_simu") << "_" << log_->getLoggerTime() << ".txt";
+    // namefile_full << (outDirPath_ + "/output_prediction_full") << "_" << log_->getLoggerTime() << ".txt";
+
+    // std::ofstream output_simu(namefile_simu.str());
+    // std::ofstream output_full(namefile_full.str());
+
+    // WriteSimuHeader(output_simu);
+    // for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
+    //     const Status& status = statuses[iter];
+        
+    //     for (unsigned int day = 0; day < status.simulation.size(); ++day) {
+    //         WriteSimuRow(output_simu, iter, day, status.simulation[day],
+    //             status.hospital_deaths[day], status.deaths[day]);
+    //     }
+    // }
+
+    // WritePredictionFullHeader(output_full);
+    // for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
+    //     const Status& status = statuses[iter];
+    //     const auto& pop_array = status.pop_array;
+        
+    //     for (unsigned int day = 0; day < pop_array.size(); ++day) {
+    //         const auto& age_groups = pop_array[day];
+            
+    //         for (unsigned int age = 0; age < age_groups.size(); age++) {
+    //             const auto& comp = age_groups[age];
+    //             WritePredictionFullRow(output_full, iter, day, age, comp);
+    //         }
+    //     }
+    // }
+    }
+}
+
+// void WritePredictionFullHeader(std::ostream& os)
+// {
+//     os << "iter, day, age_group, S, E, E_t, I_p, I_t,"
+//         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+// }
+
+// void WriteInferenceEndsHeader(std::ostream& os)
+// {
+//     os << "iter, age_group, S, E, E_t, I_p, I_t,"
+//         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+// }
+
+// void WriteInferenceParticlesHeader(std::ostream& os)
+// {
+//     os << "iter, nsse_cases, nsse_deaths, p_inf, "
+//         "p_hcw, c_hcw, d, q, p_s, rrd, lambda, weight" << std::endl;
+// }
+
+// void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
+// {
+//     os << iter          << ", ";
+//     os << day           << ", ";
+//     os << age_group     << ", ";
+//     os << comp.S        << ", ";
+//     os << comp.E        << ", ";
+//     os << comp.E_t      << ", ";
+//     os << comp.I_p      << ", ";
+//     os << comp.I_t      << ", ";
+//     os << comp.I1       << ", ";
+//     os << comp.I2       << ", ";
+//     os << comp.I3       << ", ";
+//     os << comp.I4       << ", ";
+//     os << comp.I_s1     << ", ";
+//     os << comp.I_s2     << ", ";
+//     os << comp.I_s3     << ", ";
+//     os << comp.I_s4     << ", ";
+//     os << comp.H        << ", ";
+//     os << comp.R        << ", ";
+//     os << comp.D        << std::endl;
+// }
+
+// void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
+// {
+//     os << iter          << ", ";
+//     os << age_group     << ", ";
+//     os << comp.S        << ", ";
+//     os << comp.E        << ", ";
+//     os << comp.E_t      << ", ";
+//     os << comp.I_p      << ", ";
+//     os << comp.I_t      << ", ";
+//     os << comp.I1       << ", ";
+//     os << comp.I2       << ", ";
+//     os << comp.I3       << ", ";
+//     os << comp.I4       << ", ";
+//     os << comp.I_s1     << ", ";
+//     os << comp.I_s2     << ", ";
+//     os << comp.I_s3     << ", ";
+//     os << comp.I_s4     << ", ";
+//     os << comp.H        << ", ";
+//     os << comp.R        << ", ";
+//     os << comp.D        << std::endl;
+// }
+
+// void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
+// {
+//     os << iter                                                     << ", ";
+//     os << particle.nsse_cases                                      << ", ";
+//     os << particle.nsse_deaths                                     << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::PINF]     << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::PHCW]     << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::CHCW]     << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::D]        << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::Q]        << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::PS]       << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::RRD]      << ", ";
+//     os << particle.parameter_set[Model::ModelParameters::LAMBDA]   << ", ";
+//     os << particle.weight                                          << std::endl;
+// }
+
+// void WriteSimuHeader(std::ostream& os)
+// {
+//     os << "iter, day, " << "inc_case, " << "inc_death_hospital, " << "inc_death" << std::endl;
+// }
+
+// void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+//     int inc_death) 
+// {
+//     os << iter  << ", ";
+//     os << day   << ", ";
+//     os << inc_case  << ", ";
+//     os << inc_death_hospital << ", ";
+//     os << inc_death << std::endl;
+// }
+
+// Some utilities ----------------------------------------
+
 void IOdatapipeline::dpdistribution(
     const std::string& data_product, const std::string& component,
     std::string p1, double *a, std::string p2, double *b)
 {
-    (*log) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
+    (*log_) << "\t- (data pipeline) \"" << data_product << "\", \"" << component << "\"" << std::endl;
 
-    Distribution input = dp->read_distribution(data_product, component);
+    Distribution input = dp_->read_distribution(data_product, component);
     *a = input.getParameter(p1.c_str());
     if (b) *b = input.getParameter(p2.c_str());
 }
