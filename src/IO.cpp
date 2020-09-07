@@ -666,6 +666,7 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Git Versioning]"    << std::endl;
+    (*log) << "    Commit URL: "    << GitMetadata::URL() << std::endl;
     (*log) << "    Commit SHA: "    << GitMetadata::CommitSHA1() << std::endl;
     (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
     (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;

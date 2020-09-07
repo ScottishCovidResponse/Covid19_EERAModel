@@ -15,16 +15,15 @@ namespace IO {
 
 IOdatapipeline::IOdatapipeline(
     string params_path, string model_config, string outdir_path,
-    Utilities::logging_stream::Sptr log_stream, string dpconfig_path)
+    Utilities::logging_stream::Sptr log_stream, string dpconfig_path, string time_stamp)
 {
     paramsPath_ = params_path;
     modelConfigDir_ = model_config; // Shouldn't need this if data pipeline active
     outDirPath_ = outdir_path; // nor this
     log_ = log_stream;
+    timeStamp_ = time_stamp;
 
     datapipelineActive_ = false;
-
-    timeStamp_ = Utilities::timeString();
 
     // std::cout << "paramsPath_: " << paramsPath_ << "\n";
     // std::cout << "modelConfigDir_: " << modelConfigDir_ << "\n";
@@ -310,7 +309,7 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
         std::string product = "outputs/" + modelType + "/inference/" + timeStamp_;
         std::string component_prefix = "steps/" + std::to_string(smc);
 
-        std::cout << "Writing product: " << product << "\n";
+        (*log_) << "[Writing data pipeline product]:\n    " << product << "\n";
 
         // write_table("original/inference/2020-08-29_10_11_00", "log_", log_table);
         // for step in 0:nsteps
@@ -323,7 +322,7 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
 
         {
             std::string component_particles = component_prefix + "/particles";
-            std::cout << "    " << component_particles << "\n";
+            (*log_) << "     - " << component_particles << "\n";
 
             Table output_part;
             WriteInferenceParticlesTable(Nparticle, particleList, &output_part);
@@ -334,7 +333,7 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
 
         {
             std::string component_simu = component_prefix + "/simu";
-            std::cout << "    " << component_simu << "\n";
+            (*log_)  << "     - " << component_simu << "\n";
 
             Table output_simu;
             WriteInferenceSimuTable(Nparticle, particleList, &output_simu);
@@ -345,7 +344,7 @@ void IOdatapipeline::WriteOutputsToFiles(int smc, int herd_id, int Nparticle, in
 
         {
             std::string component_ends = component_prefix + "/ends";
-            std::cout << "    " << component_ends << "\n";
+            (*log_) << "     - " << component_ends << "\n";
 
             Table output_ends;
             WriteInferenceEndsTable(Nparticle, particleList, &output_ends);
@@ -361,25 +360,43 @@ void IOdatapipeline::WriteInferenceParticlesTable(
     std::vector<double> double_values(Nparticle);
 
     auto intcolumn =
-        [&] (const char *colname, std::function<int(const particle& particle)> element) {
+        [&] (const char *colname, std::function<int(const particle& particle, int kk)> element) {
             for (int kk = 0; kk < Nparticle; ++kk) {
-                int_values[kk] = element(particleList[kk]);
+                int_values[kk] = element(particleList[kk], kk);
             }
 
             table->add_column(colname, int_values);
         };
 
+    // auto doublecolumn =
+    //     [&] (const char *colname, std::function<double(const particle& particle)> element) {
+    //         for (int kk = 0; kk < Nparticle; ++kk) {
+    //             double_values[kk] = element(particleList[kk]);
+    //         }
+
+    //         table->add_column(colname, double_values);
+    //     };
+
+    // NOTE: The use of the string conversion allows the output to exactly match the files
+    // output in IO.cpp. 
+
     auto doublecolumn =
         [&] (const char *colname, std::function<double(const particle& particle)> element) {
+            std::stringstream str;
+            str << std::scientific << std::setprecision(5);
+
             for (int kk = 0; kk < Nparticle; ++kk) {
-                double_values[kk] = element(particleList[kk]);
+                str.str("");
+                str << element(particleList[kk]);
+                double_values[kk] = atof(str.str().c_str());
             }
 
             table->add_column(colname, double_values);
         };
 
-    intcolumn("iter", [=] (const particle& particle) -> int {
-        return particle.iter; });
+
+    intcolumn("iter", [=] (const particle& particle, int kk) -> int {
+        return kk; });
 
     doublecolumn("nsse_cases", [=] (const particle& particle) -> double {
         return particle.nsse_cases; });
@@ -552,13 +569,13 @@ void IOdatapipeline::WritePredictionsToFiles(std::vector<Status> statuses, const
         // write_table("eera_outputs/original/prediction", "simu", simu);
         
         std::string product = "outputs/" + modelType + "/prediction/" + timeStamp_;
-        std::cout << "Writing product: " << product << "\n";
+        (*log_) << "[Writing data pipeline product]:\n    " << product << "\n";
 
         // Simu
 
         {
             std::string component_simu = "simu";
-            std::cout << "    " << component_simu << "\n";
+            (*log_) << "     - " << component_simu << "\n";
 
             Table output_simu;
             WritePredictionSimuTable(statuses, &output_simu);
@@ -569,7 +586,7 @@ void IOdatapipeline::WritePredictionsToFiles(std::vector<Status> statuses, const
 
         {
             std::string component_full = "full";
-            std::cout << "    " << component_full << "\n";
+            (*log_) << "     - " << component_full << "\n";
 
             Table output_full;
             WritePredictionFullTable(statuses, &output_full);
@@ -705,6 +722,27 @@ void IOdatapipeline::WritePredictionFullTable(std::vector<Status> statuses, Tabl
 
     intcolumn("D", [=] (const Compartments& comp, int iter, int day, int age) -> int {
         return comp.D; });
+}
+
+void IOdatapipeline::WriteLog(const std::string &simuType, const std::string &modelType)
+{
+    if (datapipelineActive_)
+    {
+        // Not sure what is best here, could do just one string. However, this will currently
+        // create a column with one row for each line. I hope that the log file is not so
+        // big as I expect quite a bit of copying and data duplication is going on...
+
+        std::string product = "outputs/" + modelType + "/" + simuType+ "/" + timeStamp_;
+        std::string component_log = "log";
+        (*log_) << "[Writing data pipeline log]:\n    " << product << "\n     - " << component_log << "\n";
+
+        std::vector<std::string> logColumn;
+        logColumn.push_back(log_->getLogAsString());
+
+        Table log_table;
+        log_table.add_column("log", logColumn);
+        dp_->write_table(product, component_log, log_table);
+    }
 }
 
 // Some utilities ----------------------------------------

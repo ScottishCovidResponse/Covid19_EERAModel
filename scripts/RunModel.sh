@@ -27,8 +27,9 @@ else
     echo "Warning: Outputs directory $OUTPUT_DIR does not exist; creating it now"
 	mkdir -p $OUTPUT_DIR
   else
-    rm $OUTPUT_DIR/* 2> /dev/null
+    rm -r $OUTPUT_DIR/* 2> /dev/null
   fi
+  mkdir -p $OUTPUT_DIR/logs
   
   $EXEPATH $FLAGS
   if [ $? -ne 0 ]; then

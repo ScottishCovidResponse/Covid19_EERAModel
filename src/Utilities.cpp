@@ -59,14 +59,6 @@ std::string appendPath(std::string path1, std::string path2)
     }
 }
 
-std::string timeString()
-{
-    char buffer[100];
-    time_t rawtime = time(nullptr);
-    strftime(buffer, sizeof(buffer)-1, "%F-%H-%M-%S", localtime(&rawtime));
-
-    return std::string(buffer);
-}
 
 } //namespace Utilities
 } //namespace EERAModel

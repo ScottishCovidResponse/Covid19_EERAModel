@@ -36,6 +36,7 @@ void PredictionFramework::Run()
     (*log_) << "\n <computation time> " << timer.elapsedTime() << " seconds.\n";
 
     datapipeline_->WritePredictionsToFiles(statuses, model_->ModelName());
+   	datapipeline_->WriteLog("prediction", model_->ModelName());
 }
 
 } // namespace Prediction

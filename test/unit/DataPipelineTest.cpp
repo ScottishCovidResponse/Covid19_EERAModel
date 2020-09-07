@@ -2,6 +2,7 @@
 #include "ModelTypes.h"
 #include "IO-datapipeline.h"
 #include "IO.h"
+#include "Git.h"
 
 #include <iostream>
 
@@ -193,4 +194,52 @@ TEST(TestIODatapipeline, CanReadPredictionConfig)
     EXPECT_EQ(dp_predconfig.fixedParameters.T_hos, 5);
     EXPECT_EQ(dp_predconfig.fixedParameters.K, 2000);
     EXPECT_EQ(dp_predconfig.fixedParameters.inf_asym, 1);
+}
+
+TEST(TestIODatapipeline, CanWriteInferenceSimuData)
+{
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+
+    std::string timeStamp = logger->getLoggerTime();
+    
+    // Load data from data pipeline store
+    {
+        IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig, timeStamp);
+
+        std::vector<particle> particleList = {
+            particle{ .nsse_cases=1,
+                .nsse_deaths=2,
+                .parameter_set={ 3, 4, 5, 6 },
+                .iter = 0,
+                .weight = 7,
+                .simu_outs = { 8, 9 },
+                .hospital_death_outs = { 10, 11 },
+                .death_outs = { 12, 13 },
+                .end_comps = {
+                    Compartments{
+                        .S = 14, .E = 15, .E_t = 16, .I_p = 17, .I_t = 18,
+                        .I1 = 19, .I2 = 20, .I3 = 21, .I4 = 22,
+                        .I_s1 = 23, .I_s2 = 24, .I_s3 = 25, .I_s4 = 26,
+                        .H = 27, .R = 28, .D = 29
+                    }
+                }
+            }
+        };
+
+        idp.WriteOutputsToFiles(0, 0, 1, 0, particleList, "unit_test");
+    }
+
+    {
+        std::string uri = GitMetadata::URL();
+        std::string git_sha = GitMetadata::CommitSHA1();
+
+        DataPipeline dp(datapipelineConfig, uri.c_str(), git_sha.c_str());
+
+        Table simu_table = dp.read_table("outputs/unit_test/inference/" + timeStamp, "steps/0/simu");
+    }
 }

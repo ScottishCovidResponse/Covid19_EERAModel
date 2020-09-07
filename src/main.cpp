@@ -31,10 +31,14 @@ int main(int argc, char** argv)
     // Model Observational data location
     std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
 
+    // Get the run time
+    std::string timeStamp = logger->getLoggerTime();
+    (*logger) << "[Run Time]:\n    " << timeStamp << "\n";
+
     // Start the data pipeline
     pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
     IO::IOdatapipeline datapipeline{
-        params_addr, modelConfigDir, out_dir, logger, arg_parser.getArgs().datapipeline_path};
+        params_addr, modelConfigDir, out_dir, logger, arg_parser.getArgs().datapipeline_path, timeStamp};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);

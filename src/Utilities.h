@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <memory>
 #include <cmath>
@@ -144,6 +145,7 @@ class logging_stream
 	{
 	std::cout << output;
 	log_fstream << output;
+	log_sstream << output;
 	return *this;
 	}
 
@@ -153,13 +155,16 @@ class logging_stream
 	{
 	func(std::cout);
 	func(log_fstream);
+	func(log_sstream);
 	return *this;
 	}
 
 	std::string getLoggerTime() const {return _log_time;}
+	std::string getLogAsString() const {return log_sstream.str();}
 	
  private:
 	std::ofstream log_fstream;
+	std::stringstream log_sstream;
 	std::string _log_time = "";
 };
 
@@ -266,13 +271,6 @@ std::string dirname(std::string path);
  * @return string with the extracted directory
  */
 std::string appendPath(std::string dirpath, std::string path);
-
-/**
- * @brief Return a string containing the local time as a string
- * 
- * @return string of the form "YYYY-MMDD-HH-MM-SS" for the current time
- */
-std::string timeString();
 
 } // namespace Utilities
 } // namespace EERAModel

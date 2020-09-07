@@ -163,6 +163,8 @@ void InferenceFramework::Run()
 
 	// Output on screen the overall computation time
 	(*log_) << runTimer.elapsedTime() << " seconds." << std::endl;
+
+	datapipeline_->WriteLog("inference", model_->ModelName());
 }
 
 bool InferenceFramework::ParticlePassesTolerances(const particle& p, int smc) 

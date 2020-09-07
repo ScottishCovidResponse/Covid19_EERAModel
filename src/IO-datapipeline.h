@@ -64,10 +64,11 @@ public:
      * @param outdir_path Path to output directory where output files will be stored, if local files
      * @param log_stream An output stream to use for logging diagnostic messages
      * @param dpconfig_path Pathname for a data pipeline configuration yaml file (empty string disables data pipeline)
+     * @param time_stamp Time stamp to use in the data pipeline product names
      */
     IOdatapipeline(
         string params_path, string model_config, string outdir_path,
-        Utilities::logging_stream::Sptr log_stream, string dpconfig_path = "");
+        Utilities::logging_stream::Sptr log_stream, string dpconfig_path = "", string time_stamp = "no_time");
 
     ~IOdatapipeline() {}
 
@@ -126,6 +127,15 @@ public:
      * @param modelType The name of the model type in use
      */
     void WritePredictionsToFiles(std::vector<Status> statuses, const std::string &modelType);
+
+    /**
+     * @brief Writes a string logfile to the data pipeline as a table
+     * 
+     * @param logString String log data to store
+     * @param simuType The name of the simulation type (inference or prediction currently)
+     * @param modelType The name of the model type in use
+     */
+    void WriteLog(const std::string &simuType, const std::string &modelType);
 
 
 private:
