@@ -63,6 +63,22 @@ At the present time, the `-d` and `-l` options are unused by the code and can be
 
 The command line options used on a given model run are logged in the output log file (see below) for traceability and future reference.
 
+### Running with Docker
+
+The model can also be run via the included Dockerfile, firstly build the image by running:
+
+```bash
+docker build --label eeramodel </path/to/Dockerfile>
+```
+
+you can then run an interactive terminal within a new container, with the additional option of mounting the repository to your local file system (important for having access to the model outputs):
+
+```bash
+docker run -ti --label eeramodel_container -v </path/on/host-file-system>:/home/Covid19_EERAModel eeramodel
+```
+
+note however that these outputs will be owned by `root` within the container, as such it is highly advised that this method not be used for development. If you do not care about having access to the files on your host file system the volume option can be dropped.
+
 ### Inputs
 The model requires a number of input files to run, in addition to the command line arguments. Input files must be placed in the `data` directory, and must be named according to the table below. The required contents of each file are described in more detail underneath the table. 
 
