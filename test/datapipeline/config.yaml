@@ -2,7 +2,11 @@ data_directory: data
 access_log: access-{run_id}.yaml
 fail_on_hash_mismatch: False
 run_metadata:
+  description: Test
   default_input_namespace: EERA
+  default_output_namespace: EERA
+  remote_uri: ssh://boydorr.gla.ac.uk/srv/ftp/scrc/
+  remote_uri_override: ftp://boydorr.gla.ac.uk/scrc/
 read:
   - where:
       data_product: fixed-parameters/T_lat

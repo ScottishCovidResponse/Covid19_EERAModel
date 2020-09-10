@@ -401,6 +401,59 @@ where `iter` is the simulation number, `day` is the day number, `age_group` is t
 #### Simulation file
 The `output_prediction_simu_dd-mm-yyyy_hh-mm-ss.txt` file (hereafter referred to as the simulation file) records the disease incidence at each day in each simulation run. Its format is identical to that of the inference mode simulation file described above.
 
+## Outputs - Data pipeline
+When the data pipeline is selected, the above outputs are generated but as tables in the data pipeline instead of as csv files. The text log file is still generated, but an additional copy of this information is placed into the data pipeline under the same product.
+
+For Inference simulations, the following product is generated:
+
+    `outputs/<original|irish|etc>/inference/dd-mm-yyyy_hh-mm-ss`
+
+This will correspond with a single hdf5 containing the following components:
+
+    `log` - A single entry table containing the text log file.
+    `steps/<n>/ends`, `steps/<n>/particles`, `steps/<n>/simu` - These tables directely corresponds with the inference output described above.
+
+For Prediction simulations, this product is generated:
+
+    `outputs/<original|irish|etc>/prediction/dd-mm-yyyy_hh-mm-ss`
+
+Similarly, this will correspond with a single hdf5 containing the following components:
+
+    `log` - A single entry table containing the text log file.
+    `full`, `simu` - Tables directly corresponds with the prediction output described above.
+
+### Uploading the results to the data pipeline
+NOTE: THESE INSTRUCTIONS ARE NOT PROPERLY TESTED AND NEED FINISHING. IT SUCESSFULLY UPLOADED, BUT THE SCRIPT CRASHED BEFORE THE END FOR ME.
+
+During a run of the model the results are placed inside the data directory created during the `pipeline_download` step described above. To return these results to the remote an upload step is needed.
+
+Part of the output was a file called `access-*.yaml` created in the same directory as the original `config.yaml` file. These two files need to be specified to the upload script. Additionally, the `run_metadata:` section of the `config.yaml` should have had the following entries set appropriately before starting the model run:
+
+```
+run_metadata:
+  description: Test
+  default_input_namespace: EERA
+  default_output_namespace: EERA
+  remote_uri: ssh://boydorr.gla.ac.uk/srv/ftp/scrc/
+  remote_uri_override: ftp://boydorr.gla.ac.uk/scrc/
+```
+The `remote_uri` refers to the system that will ultimately hold the `hdf5` file. The `remote_uri_override` should be set too, if the standard download method is different to upload. To proceed you need to have write login access to the `remote_uri` system. You will also need a token for the data repository. Set the value for this as follows or it may also be specified on the upload command:
+```
+export DATA_REGISTRY_ACCESS_TOKEN=<my access token>
+```
+Then to upload:
+```
+pipeline_upload \
+    --config a_path/access-*.yaml \
+    --model-config a_path/config.yaml \
+    --submission-script a_path/my_sub.sub \
+    --remote-option username my_login_name \
+    --remote-option password xxxx
+```
+The user name and password options can be omitted if the `remote_uri` already specifies the username and/or an automatic authentication mechanism has been configured.
+
+THIS IS WHERE IT FAILED FOR ME SO FAR...
+
 ## Code Documentation Site
 Code documentation generated using Doxygen and Code Coverage reports can be found [here](https://scottishcovidresponse.github.io/Covid19_EERAModel/).
 
