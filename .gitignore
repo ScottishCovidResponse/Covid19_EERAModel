@@ -10,4 +10,6 @@ site/*
 index.html
 src/tclap/
 .DS_Store
-
+test/datapipeline/access-*.yaml
+test/datapipeline/data/outputs
+datapipeline

@@ -25,10 +25,9 @@ void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axi
 
 }
 
-ValidationParameters ImportValidationParameters(const std::string& configDir)
+ValidationParameters ImportValidationParameters(const std::string& filePath)
 {
     ValidationParameters parameters;
-    std::string filePath(configDir + "/parameters.ini");
 
     parameters.nHealthBoards = ReadNumberFromFile<int>("nHealthBoards", "Settings", filePath);
     parameters.nAgeGroups = ReadNumberFromFile<int>("nAgeGroups", "Settings", filePath);
@@ -98,7 +97,6 @@ SupplementaryInputParameters ReadSupplementaryParameters(const std::string& Para
 
 CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
 {
-    std::cout << "(Files): ReadFixedModelParameters\n";
     CommonModelInputParameters commonParameters;
 
     commonParameters.paramlist  = ReadFixedModelParameters(ParamsPath);
@@ -108,18 +106,13 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath)
     return commonParameters;
 }
 
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log) 
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters) 
 {
     std::string ParamsPath(configDir + "/parameters.ini");
 
     InferenceConfig inferenceConfig;
     
-    inferenceConfig.seedlist = ReadSeedSettings(ParamsPath, log);
-    inferenceConfig.paramlist = ReadFixedModelParameters(ParamsPath);
-
-    inferenceConfig.herd_id = ReadNumberFromFile<int>("shb_id", "Settings", ParamsPath);
-    inferenceConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", ParamsPath);
-    inferenceConfig.tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
+    ReadLocalInferenceConfig(ParamsPath, log, commonParameters, &inferenceConfig);    
 
     inferenceConfig.prior_pinf_shape1 = ReadNumberFromFile<double>("prior_pinf_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_pinf_shape2 = ReadNumberFromFile<double>("prior_pinf_shape2", "Priors settings", ParamsPath);
@@ -138,41 +131,46 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
     inferenceConfig.prior_rrd_shape1 = ReadNumberFromFile<double>("prior_rrd_shape1", "Priors settings", ParamsPath);
     inferenceConfig.prior_rrd_shape2 = ReadNumberFromFile<double>("prior_rrd_shape2", "Priors settings", ParamsPath);
 
-    inferenceConfig.nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
-    inferenceConfig.kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
-    inferenceConfig.nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
-    inferenceConfig.nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
-
-    for (int ii = 1; ii <= inferenceConfig.nsteps; ii++) {
-        inferenceConfig.toleranceLimit.push_back(0.0);
-    }
-
-    for (int ii = 0; ii < inferenceConfig.nsteps; ii++) {
-        std::stringstream KeyName;
-        KeyName << "Key" << (ii + 1);
-        inferenceConfig.toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
-    }
-
     inferenceConfig.observations = ReadInferenceObservations(configDir, log);
 
     return inferenceConfig;
 }
 
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log)
+
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig)
+{
+    inferenceConfig->seedlist = ReadSeedSettings(ParamsPath, log);
+    //inferenceConfig->paramlist = ReadFixedModelParameters(ParamsPath);
+    inferenceConfig->paramlist = commonParameters.paramlist;
+    inferenceConfig->herd_id = commonParameters.herd_id;
+    inferenceConfig->day_shut = commonParameters.day_shut;
+    inferenceConfig->tau = ReadNumberFromFile<double>("tau", "Settings", ParamsPath);
+
+    inferenceConfig->nsteps = ReadNumberFromFile<int>("nsteps", "Fit settings", ParamsPath);
+    inferenceConfig->kernelFactor = ReadNumberFromFile<double>("kernelFactor", "Fit settings", ParamsPath);
+    inferenceConfig->nSim = ReadNumberFromFile<int>("nSim", "Fit settings", ParamsPath);
+    inferenceConfig->nParticleLimit = ReadNumberFromFile<int>("nParticLimit", "Fit settings", ParamsPath);
+
+    for (int ii = 1; ii <= inferenceConfig->nsteps; ii++) {
+        inferenceConfig->toleranceLimit.push_back(0.0);
+    }
+
+    for (int ii = 0; ii < inferenceConfig->nsteps; ii++) {
+        std::stringstream KeyName;
+        KeyName << "Key" << (ii + 1);
+        inferenceConfig->toleranceLimit[ii] = ReadNumberFromFile<double>(KeyName.str(), "Tolerance settings", ParamsPath);
+    }
+}
+
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters)
 {
     std::string filePath(configDir + "/parameters.ini");
 
     PredictionConfig predictionConfig;
-    
-    predictionConfig.seedlist = ReadSeedSettings(filePath, log);
 
-    predictionConfig.day_shut = ReadNumberFromFile<int>("day_shut", "Fixed parameters", filePath);
-
-    std::string sectionId("Prediction Configuration");    
-    predictionConfig.n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
-        sectionId, filePath);
-
-    predictionConfig.index = index;
+    ReadLocalPredictionConfig(filePath, index, log, commonParameters, &predictionConfig);
 
     std::string parametersFile(configDir + "/posterior_parameters.csv");
     if (!Utilities::fileExists(parametersFile)) {
@@ -194,6 +192,23 @@ PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, U
     predictionConfig.fixedParameters.inf_asym   = modelParameters[15];
 
     return predictionConfig;
+}
+
+void ReadLocalPredictionConfig(
+    const std::string& filePath, int index, Utilities::logging_stream::Sptr log,
+    const CommonModelInputParameters& commonParameters, PredictionConfig *predictionConfig)
+{
+    predictionConfig->seedlist = ReadSeedSettings(filePath, log);
+
+    predictionConfig->day_shut = commonParameters.day_shut;
+
+    std::string sectionId("Prediction Configuration");    
+    predictionConfig->n_sim_steps = ReadNumberFromFile<int>("n_sim_steps",
+        sectionId, filePath);
+    predictionConfig->n_iterations = ReadNumberFromFile<int>("n_iterations",
+        sectionId, filePath);
+
+    predictionConfig->index = index;
 }
 
 ObservationsForInference ReadInferenceObservations(const std::string& configDir, Utilities::logging_stream::Sptr log)
@@ -221,7 +236,7 @@ ObservationsForInference ReadInferenceObservations(const std::string& configDir,
 
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParams = ImportValidationParameters(configDir);
+    ValidationParameters validationParams = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParams.nHealthBoards;
     int nCasesDays = validationParams.nCasesDays;
 
@@ -244,18 +259,15 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 {
     ObservationsForModels observations;
 
-    (*log) << "Observations For Models:" << std::endl;
-
     const std::string scot_data_file = configDir + "/scot_data.csv";
     const std::string scot_ages_file = configDir + "/scot_age.csv";
     const std::string waifw_norm_file = configDir + "/waifw_norm.csv";
     const std::string waifw_home_file = configDir + "/waifw_home.csv";
     const std::string waifw_sdist_file = configDir + "/waifw_sdist.csv";
     const std::string cfr_byage_file = configDir + "/cfr_byage.csv";
-    const std::string scot_frail_file = configDir + "/scot_frail.csv";
     const std::string settings_file = configDir + "/parameters.ini";
 
-    ValidationParameters validationParameters = ImportValidationParameters(configDir);
+    ValidationParameters validationParameters = ImportValidationParameters(settings_file);
     int nHealthBoards = validationParameters.nHealthBoards;
     int nAgeGroups = validationParameters.nAgeGroups;
     int nCfrCategories = validationParameters.nCfrCategories;
@@ -331,19 +343,6 @@ ObservationsForModels ReadModelObservations(const std::string& configDir, Utilit
 
     ImportConsistencyCheck(cfr_byage_file, cfr_rows, nAgeGroups, "rows");
     ImportConsistencyCheck(cfr_byage_file, cfr_cols, nCfrCategories, "columns");
-
-    //Upload frailty probability p_f by age group
-    //columns are for each age group: [0] Under20,[1] 20-29,[2] 30-39,[3] 40-49,[4] 50-59,[5] 60-69,[6] Over70,[7] HCW
-    //rows are for each individual Health Borad
-    //last row is for Scotland
-    (*log) << "\t- " << scot_frail_file << std::endl;
-    observations.pf_pop = Utilities::read_csv<double>(scot_frail_file, ',');
-
-    unsigned int pf_pop_rows = observations.pf_pop.size();
-    unsigned int pf_pop_cols = observations.pf_pop[0].size();
-
-    ImportConsistencyCheck(scot_frail_file, pf_pop_rows, nHealthBoards, "rows");
-    ImportConsistencyCheck(scot_frail_file, pf_pop_cols, nAgeGroups, "columns");
 
     return observations;
 }
@@ -465,32 +464,25 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
     std::ofstream output_ends (namefile_ends.str().c_str());
     
     //add the column names for each output list of particles
-    output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,intro,weight" << std::endl;
+    WriteInferenceParticlesHeader(output_step);
 
     //add the column names for each output list of chosen simulations
-    output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
+    WriteSimuHeader(output_simu);
     
     //add the column names for each output list of the compartment values of the last day of the chosen simulations
-    output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value" << std::endl;		
+    WriteInferenceEndsHeader(output_ends);	
 
     // outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
     for (int kk = 0; kk < Nparticle; ++kk) {
-        output_step << particleList[kk].iter << ", " << particleList[kk].nsse_cases <<  ", " << particleList[kk].nsse_deaths <<  ", " ;
-
-        for (int var = 0; var < nPar; ++var) {
-            output_step << particleList[kk].parameter_set[var] << ", ";
-        }
-        output_step	<< particleList[kk].weight<< '\n';
+        WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
         
         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-            output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " \
-                        <<  particleList[kk].hospital_death_outs[var] << ", " << particleList[kk].death_outs[var] << '\n';
+            WriteSimuRow(output_simu, particleList[kk].iter, var , particleList[kk].simu_outs[var],
+                        particleList[kk].hospital_death_outs[var], particleList[kk].death_outs[var]);
         }
         
         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
-            for (unsigned int var = 0; var < particleList[kk].end_comps[0].size(); ++var) {
-                output_ends << particleList[kk].iter << ", " << age << ", " << var << ", " <<  particleList[kk].end_comps[age][var] << '\n';
-            }
+            WriteInferenceEndsRow(output_ends, particleList[kk].iter, age, particleList[kk].end_comps[age]);
         }
     }
     
@@ -499,71 +491,133 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
     output_ends.close();
 }
 
-void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
+void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& outDirPath, const Utilities::logging_stream::Sptr& log)
 {
-    std::stringstream namefile_simu, namefile_ends, namefile_full;
+    std::stringstream namefile_simu, namefile_full;
     namefile_simu << (outDirPath + "/output_prediction_simu") << "_" << log->getLoggerTime() << ".txt";
-    namefile_ends << (outDirPath + "/output_prediction_ends") << "_" << log->getLoggerTime() << ".txt";
     namefile_full << (outDirPath + "/output_prediction_full") << "_" << log->getLoggerTime() << ".txt";
 
-    std::ofstream output_simu (namefile_simu.str().c_str());
-    std::ofstream output_ends (namefile_ends.str().c_str());
-    std::ofstream output_full (namefile_full.str().c_str());
+    std::ofstream output_simu(namefile_simu.str());
+    std::ofstream output_full(namefile_full.str());
 
-    output_simu << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
-
-    output_ends << "age_group" << "," << "comparts" << "," << "value" << std::endl;
-
-    for (unsigned int var = 0; var < status.simulation.size(); ++var) {
-        output_simu << var << ", " << status.simulation[var] << ", "\
-                    << status.hospital_deaths[var] << ", " << status.deaths[var] << '\n';
-    }
-    
-    for (unsigned int age = 0; age < end_comps.size(); ++age) {
-        for (unsigned int var = 0; var < end_comps[0].size(); ++var) {
-            output_ends << age << ", " << var << ", " << end_comps[age][var] << '\n';
+    WriteSimuHeader(output_simu);
+    for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
+        const Status& status = statuses[iter];
+        
+        for (unsigned int day = 0; day < status.simulation.size(); ++day) {
+            WriteSimuRow(output_simu, iter, day, status.simulation[day],
+                status.hospital_deaths[day], status.deaths[day]);
         }
     }
 
-    /** The first two lines are just markers for age group and compartments
-     * similar to the first and second columns of output_ends. These can be 
-     * removed if it'll make parsing easier.
-     */
-    for (unsigned int age = 0; age < end_comps.size(); ++age) {
-        for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
-            output_full << age;
-            if (comp < end_comps[0].size() - 1) { output_full << ", "; }
-        }
-        output_full << "\t";
-    }
-    output_full << std::endl;
-
-    for (unsigned int age = 0; age < end_comps.size(); ++age) {
-        for (unsigned int comp = 0; comp < end_comps[age].size(); ++comp) {
-            output_full << comp;
-            if (comp < end_comps[0].size() - 1) { output_full << ", "; }
-        }
-        output_full << "\t";
-    }
-
-    output_full << std::endl;
-    
-
-    for (unsigned int var = 0; var < status.pop_array.size(); ++var) {
-        std::vector<std::vector<int>> pop_array_compartment_to_vector = Model::compartments_to_vector(status.pop_array[var]);
-        for (auto & age: pop_array_compartment_to_vector) {
-            for (unsigned int comp = 0; comp < age.size(); ++comp) {
-                output_full << age[comp];
-                if (comp < age.size() - 1) { output_full << ", "; }
+    WritePredictionFullHeader(output_full);
+    for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
+        const Status& status = statuses[iter];
+        const auto& pop_array = status.pop_array;
+        
+        for (unsigned int day = 0; day < pop_array.size(); ++day) {
+            const auto& age_groups = pop_array[day];
+            
+            for (unsigned int age = 0; age < age_groups.size(); age++) {
+                const auto& comp = age_groups[age];
+                WritePredictionFullRow(output_full, iter, day, age, comp);
             }
-            output_full << "\t";
         }
-        if (var < status.pop_array.size() - 1) { output_full << '\n'; }
     }
+}
 
-    output_simu.close();
-    output_ends.close();
-    output_full.close();
+void WritePredictionFullHeader(std::ostream& os)
+{
+    os << "iter, day, age_group, S, E, E_t, I_p, I_t,"
+        " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+}
+
+void WriteInferenceEndsHeader(std::ostream& os)
+{
+    os << "iter, age_group, S, E, E_t, I_p, I_t,"
+        " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+}
+
+void WriteInferenceParticlesHeader(std::ostream& os)
+{
+    os << "iter, nsse_cases, nsse_deaths, p_inf, "
+        "p_hcw, c_hcw, d, q, p_s, rrd, lambda, weight" << std::endl;
+}
+
+void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
+{
+    os << iter          << ", ";
+    os << day           << ", ";
+    os << age_group     << ", ";
+    os << comp.S        << ", ";
+    os << comp.E        << ", ";
+    os << comp.E_t      << ", ";
+    os << comp.I_p      << ", ";
+    os << comp.I_t      << ", ";
+    os << comp.I1       << ", ";
+    os << comp.I2       << ", ";
+    os << comp.I3       << ", ";
+    os << comp.I4       << ", ";
+    os << comp.I_s1     << ", ";
+    os << comp.I_s2     << ", ";
+    os << comp.I_s3     << ", ";
+    os << comp.I_s4     << ", ";
+    os << comp.H        << ", ";
+    os << comp.R        << ", ";
+    os << comp.D        << std::endl;
+}
+
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
+{
+    os << iter          << ", ";
+    os << age_group     << ", ";
+    os << comp.S        << ", ";
+    os << comp.E        << ", ";
+    os << comp.E_t      << ", ";
+    os << comp.I_p      << ", ";
+    os << comp.I_t      << ", ";
+    os << comp.I1       << ", ";
+    os << comp.I2       << ", ";
+    os << comp.I3       << ", ";
+    os << comp.I4       << ", ";
+    os << comp.I_s1     << ", ";
+    os << comp.I_s2     << ", ";
+    os << comp.I_s3     << ", ";
+    os << comp.I_s4     << ", ";
+    os << comp.H        << ", ";
+    os << comp.R        << ", ";
+    os << comp.D        << std::endl;
+}
+
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
+{
+    os << iter                                                     << ", ";
+    os << particle.nsse_cases                                      << ", ";
+    os << particle.nsse_deaths                                     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PINF]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::CHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::D]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::Q]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PS]       << ", ";
+    os << particle.parameter_set[Model::ModelParameters::RRD]      << ", ";
+    os << particle.parameter_set[Model::ModelParameters::LAMBDA]   << ", ";
+    os << particle.weight                                          << std::endl;
+}
+
+void WriteSimuHeader(std::ostream& os)
+{
+    os << "iter, day, " << "inc_case, " << "inc_death_hospital, " << "inc_death" << std::endl;
+}
+
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+    int inc_death) 
+{
+    os << iter  << ", ";
+    os << day   << ", ";
+    os << inc_case  << ", ";
+    os << inc_death_hospital << ", ";
+    os << inc_death << std::endl;
 }
 
 void LogFixedParameters(const params& paramlist, Utilities::logging_stream::Sptr log)
@@ -595,6 +649,7 @@ void LogSeedSettings(const seed& params, Utilities::logging_stream::Sptr log)
 void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Prediction Configuration]" << std::endl;
+    (*log) << "    n_iterations: "       << config.n_iterations << std::endl;
     (*log) << "    n_sim_steps: "       << config.n_sim_steps << std::endl;
     (*log) << "    parameter index: "   << config.index << std::endl;
     (*log) << "    p_inf: "             << config.posterior_parameters[0] << std::endl;
@@ -611,6 +666,7 @@ void LogPredictionConfig(const PredictionConfig& config, Utilities::logging_stre
 void LogGitVersionInfo(Utilities::logging_stream::Sptr log)
 {
     (*log) << "[Git Versioning]"    << std::endl;
+    (*log) << "    Commit URL: "    << GitMetadata::URL() << std::endl;
     (*log) << "    Commit SHA: "    << GitMetadata::CommitSHA1() << std::endl;
     (*log) << "    Commit Date: "   << GitMetadata::CommitDate() << std::endl;
     (*log) << "    Tag: "           << GitMetadata::Tag() << std::endl;

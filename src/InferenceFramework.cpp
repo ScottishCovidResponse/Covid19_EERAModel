@@ -13,13 +13,13 @@ namespace Inference {
 InferenceFramework::InferenceFramework(Model::ModelInterface::Sptr model,
     const InferenceConfig& inferenceConfig,
     Random::RNGInterface::Sptr rng,
-    const std::string& outDir,
-    Utilities::logging_stream::Sptr log)
+    Utilities::logging_stream::Sptr log,
+	IO::IOdatapipeline *datapipeline)
     : model_(model),
       inferenceConfig_(inferenceConfig),
       rng_(rng),
-      outDir_(outDir),
-      log_(log) {
+      log_(log),
+      datapipeline_(datapipeline) {
 
     const unsigned int nInferenceParams = Model::ModelParameters::NPARAMS;
 
@@ -157,12 +157,14 @@ void InferenceFramework::Run()
 			<< " seconds.\n";
 
 		// Record the list of accepted particles in the output files.
-		IO::WriteOutputsToFiles(smc, inferenceConfig_.herd_id, currentParticles.size(),
-            nInferenceParams, currentParticles, outDir_, log_);
+		datapipeline_->WriteOutputsToFiles(smc, inferenceConfig_.herd_id, currentParticles.size(),
+            nInferenceParams, currentParticles, model_->ModelName());
 	}
 
 	// Output on screen the overall computation time
 	(*log_) << runTimer.elapsedTime() << " seconds." << std::endl;
+
+	datapipeline_->WriteLog("inference", model_->ModelName());
 }
 
 bool InferenceFramework::ParticlePassesTolerances(const particle& p, int smc) 
@@ -218,7 +220,7 @@ void InferenceFramework::ModelSelect(EERAModel::particle& outvec, int n_sim_step
 	outvec.simu_outs = status.simulation;
 	outvec.hospital_death_outs = status.hospital_deaths;
 	outvec.death_outs = status.deaths;
-	outvec.end_comps = Model::compartments_to_vector(status.ends);
+	outvec.end_comps = status.ends;
 }
 
 double InferenceFramework::ComputeParticleWeight(int smc, const std::vector<EERAModel::particle>& previousParticles,

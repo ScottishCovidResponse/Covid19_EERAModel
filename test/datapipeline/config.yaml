@@ -1,41 +1,54 @@
 data_directory: data
 access_log: access-{run_id}.yaml
-fail_on_hash_mismatch: True
-namespace: EERA
+fail_on_hash_mismatch: False
+run_metadata:
+  description: Test
+  default_input_namespace: EERA
+  default_output_namespace: EERA
+  remote_uri: ssh://boydorr.gla.ac.uk/srv/ftp/scrc/
+  remote_uri_override: ftp://boydorr.gla.ac.uk/scrc/
 read:
   - where:
       data_product: fixed-parameters/T_lat
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/juvp_s
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_inf
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_rec
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_sym
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/T_hos
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/K
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/inf_asym
-    use:
-      version: 0.1.0
   - where:
       data_product: fixed-parameters/total_hcw
-    use:
-      version: 0.1.0
+  - where:
+      data_product: fixed-parameters/day_shut
+  - where:
+      data_product: prob_hosp_and_cfr/data_for_scotland
+  - where:
+      data_product: population-data/data_for_scotland
+  - where:
+      data_product: posterior_parameters/data_for_scotland
+  - where:
+      data_product: contact-data/who_acquired_infection_from_whom
+  - where:
+      data_product: prior-distributions/pinf
+  - where:
+      data_product: prior-distributions/ps
+  - where:
+      data_product: prior-distributions/q
+  - where:
+      data_product: prior-distributions/lambda
+  - where:
+      data_product: prior-distributions/chcw
+  - where:
+      data_product: prior-distributions/d
+  - where:
+      data_product: prior-distributions/phcw
+  - where:
+      data_product: prior-distributions/rrd

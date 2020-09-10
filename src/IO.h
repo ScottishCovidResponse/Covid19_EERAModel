@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "ModelCommon.h"
 #include "IniFile.h"
 #include "Utilities.h"
 #include <sstream>
@@ -41,16 +42,16 @@ private:
  * @param expectedLength Expected Length of axis to check against
  * @param axisID String holding axis identifier ("rows" or "columns")
  */
-void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue);
+void ImportConsistencyCheck(const std::string& filePath, const unsigned int& axisLength, const unsigned int& expectedValue, const std::string& axisID);
 
 /**
  * @brief Import parameters used for validating observation data
  * 
- * @param configDir Directory containing INI file
+ * @param filePath File path to parameters INI file
  * 
  * @return Validation parameters
  */
-ValidationParameters ImportValidationParameters(const std::string& configDir);
+ValidationParameters ImportValidationParameters(const std::string& filePath);
 
 /**
  * @brief Read supplementary parameters used for main.cpp.
@@ -77,10 +78,23 @@ CommonModelInputParameters ReadCommonParameters(const std::string& ParamsPath);
  * 
  * @param configDir Directory containing the configuration and data files
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Inference parameters
  */
-InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log);
+InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the inference mode
+ * 
+ * @param ParamsPath Location of the parameters .ini file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param inferenceConfig Destination to place local inference config
+ */
+void ReadLocalInferenceConfig(
+    const std::string& ParamsPath, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters,
+    InferenceConfig *inferenceConfig);
 
 /**
  * @brief Read prediction framework configuration from input files
@@ -88,10 +102,24 @@ InferenceConfig ReadInferenceConfig(const std::string& configDir, Utilities::log
  * @param configDir Directory containing the configuration and data files
  * @param index Index of the parameter set to select from the posterior parameters file
  * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
  * 
  * @return Prediction configuration
  */
-PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log);
+PredictionConfig ReadPredictionConfig(const std::string& configDir, int index, Utilities::logging_stream::Sptr log, const CommonModelInputParameters& commonParameters);
+
+/**
+ * @brief Read local parameters for the prediction mode
+ * 
+ * @param filePath Location of the parameters .ini file
+ * @param index Index of the parameter set to select from the posterior parameters file
+ * @param log Logger
+ * @param commonParameters CommonModelInputParameters object that has already been read
+ * @param predictionConfig Destination to place local prediction config
+ */
+void ReadLocalPredictionConfig(
+    const std::string& filePath, int index, Utilities::logging_stream::Sptr log,
+    const CommonModelInputParameters& commonParameters, PredictionConfig *predictionConfig);
 
 /**
  * @brief Read model posterior parameters from a CSV file
@@ -169,13 +197,100 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
 /**
  * @brief Writes Prediction outputs to files
  * 
- * @param status Status object
- * @param end_comps Matrix to hold the end states of the simulation organised by compartments
+ * @param status Results of each model run
  * @param outDirPath Path to output directory where output files will be stored
  * @param log Logger
  */
-void WritePredictionsToFiles(Status status, std::vector<std::vector<int>>& end_comps, 
-	const std::string& outDirPath, const Utilities::logging_stream::Sptr& log);
+void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& outDirPath,
+    const Utilities::logging_stream::Sptr& log);
+
+/**
+ * @brief Write header row for prediction full outputs
+ * 
+ * Writes prediction full file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WritePredictionFullHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for inference end outputs
+ * 
+ * Writes inference end state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceEndsHeader(std::ostream& os);
+
+/**
+ * @brief Write data row for prediction full outputs
+ * 
+ * Writes @p iter, @p day, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param particle A particle representing a set of parameters
+ */
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle);
+
+/**
+ * @brief Write header row for inference particles outputs
+ * 
+ * Writes inference particle state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceParticlesHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for prediction simulation outputs
+ * 
+ * Writes prediction simulation file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteSimuHeader(std::ostream& os);
+
+/**
+ * @brief Write header row for prediction simulation outputs
+ * 
+ * Writes @p iter, @p day, @p inc_case, @p inc_death_hospital, @p inc_death, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param inc_case Number of cases
+ * @param inc_death_hospital Deaths in hospital
+ * @param inc_death Deaths 
+ */
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+    int inc_death);
 
 /**
  * @brief Extract a numeric value from an INI file

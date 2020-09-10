@@ -32,6 +32,13 @@ public:
     virtual ~ModelInterface() = default;
 
     /**
+     * @brief Return the name of the model as a string
+     * 
+     * @return Returns the model name
+     */
+    virtual std::string ModelName() = 0;
+
+    /**
      * @brief Run interface
      * 
      * Interface to model-specific implementation
@@ -163,18 +170,6 @@ std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observati
  * @return Vector of @p size copies of @p parameters
  */
 std::vector<params> BuildFixedParameters(unsigned int size, params parameters);
-
-/**
- * @brief Convert Vector of Compartments struct to a vector of integers
- * 
- * NOTE: This is a temporary function to allow compatibility
- * converts the Compartments struct to a vector of integers
- * 
- * @param cmps_vec Vector of compartments struct containing population per category
- * 
- * @return Vector of population counters
- */
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec);
 
 } // namespace Model
 } // namespace EERAModel

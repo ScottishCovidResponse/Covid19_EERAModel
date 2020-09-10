@@ -25,10 +25,20 @@ int main(int argc, char** argv)
     IO::LogDependencyVersionInfo(logger);
     arg_parser.logArguments(logger);
 
+    // Parameters ini file location
     const std::string params_addr = std::string(ROOT_DIR)+"/data/parameters.ini";
 
+    // Model Observational data location
+    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
+
+    // Get the run time
+    std::string timeStamp = logger->getLoggerTime();
+    (*logger) << "[Run Time]:\n    " << timeStamp << "\n";
+
+    // Start the data pipeline
     pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    IO::IOdatapipeline datapipeline{params_addr, arg_parser.getArgs().datapipeline_path};
+    IO::IOdatapipeline datapipeline{
+        params_addr, modelConfigDir, out_dir, logger, arg_parser.getArgs().datapipeline_path, timeStamp};
 
     SupplementaryInputParameters supplementaryParameters = IO::ReadSupplementaryParameters(params_addr, logger);
     arg_parser.AppendOptions(supplementaryParameters);
@@ -45,14 +55,17 @@ int main(int argc, char** argv)
     Random::RNG::Sptr rng = std::make_shared<Random::RNG>(randomiser_seed);
     IO::LogRandomiserSettings(supplementaryParameters, randomiser_seed, logger);
 
-    // Import common parameters for all models
+    (*logger) << "[Common Parameters]:" << std::endl;
 
+    // Import common parameters for all models
     CommonModelInputParameters commonParameters = datapipeline.ReadCommonParameters();
     // CommonModelInputParameters commonParameters = IO::ReadCommonParameters(params_addr);
 
+    (*logger) << "[Model Observations]:" << std::endl;
+
     // Import model observational data
-    std::string modelConfigDir(std::string(ROOT_DIR) + "/data");
-    ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
+    ObservationsForModels modelObservations = datapipeline.ReadModelObservations();
+    // ObservationsForModels modelObservations = IO::ReadModelObservations(modelConfigDir, logger);
 
     // Log the disease seed settings
     IO::LogSeedSettings(supplementaryParameters.seedlist, logger);
@@ -75,28 +88,27 @@ int main(int argc, char** argv)
     // Select the mode to run in - prediction or inference    
     if (ModelModeId::PREDICTION == supplementaryParameters.run_type)
     {
-        std::string configDir(std::string(ROOT_DIR) + "/data");
+        // std::string configDir(std::string(ROOT_DIR) + "/data");
         int index = arg_parser.parameterSetIndex();
 
-        PredictionConfig predictionConfig = IO::ReadPredictionConfig(configDir, index, logger);
+        PredictionConfig predictionConfig = datapipeline.ReadPredictionConfig(index, commonParameters);
         IO::LogPredictionConfig(predictionConfig, logger);
 
         // Update the model with the fixed parameters from the prediction configuration
         model->SetFixedParameters(predictionConfig.fixedParameters);
         
-        Prediction::PredictionFramework framework(model, predictionConfig, 
-            rng, out_dir, logger);
+        Prediction::PredictionFramework framework(model, predictionConfig, rng, logger, &datapipeline);
 
         framework.Run();
     }
     else
     {
-        std::string configDir(std::string(ROOT_DIR) + "/data");
-        InferenceConfig inferenceConfig = IO::ReadInferenceConfig(configDir, logger);
+        // std::string configDir(std::string(ROOT_DIR) + "/data");
+        InferenceConfig inferenceConfig = datapipeline.ReadInferenceConfig(commonParameters, modelObservations);
 
         IO::LogFixedParameters(commonParameters.paramlist, logger);
 
-        Inference::InferenceFramework framework(model, inferenceConfig, rng, out_dir, logger);
+        Inference::InferenceFramework framework(model, inferenceConfig, rng, logger, &datapipeline);
         
         framework.Run();
     }

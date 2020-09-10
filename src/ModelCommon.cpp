@@ -41,7 +41,13 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
 int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs)
 {
     int scotlandPopulation = 0;
-	for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+
+	// TODO: In the csv files, obs.cases[0] contains column headings so probably shouldn't
+	// be used in this sum. The value of obs.cases[0][0] will be -1, so unlikely to show
+	// much?
+
+	// for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+	for (unsigned int region = 1; region < obs.cases.size() - 1; ++region) {
 		scotlandPopulation += obs.cases[region][0];
 	}
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
@@ -58,21 +64,6 @@ int accumulate_compartments(const Compartments& comp)
 	_total += comp.I_s4 + comp.H + comp.R + comp.D;
 
 	return _total;
-}
-
-std::vector<std::vector<int>> compartments_to_vector(const std::vector<Compartments>& cmps_vec)
-{
-	std::vector<std::vector<int>> _temp;
-
-	for(auto cmps : cmps_vec)
-	{
-		_temp.push_back({cmps.S, cmps.E, cmps.E_t, cmps.I_p,
-						cmps.I_t, cmps.I1, cmps.I2, cmps.I3,
-						cmps.I4, cmps.I_s1, cmps.I_s2, cmps.I_s3,
-						cmps.I_s4, cmps.H, cmps.R, cmps.D});
-	}
-
-	return _temp;
 }
 
 } // namespace Model

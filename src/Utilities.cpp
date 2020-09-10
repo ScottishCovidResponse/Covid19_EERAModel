@@ -1,5 +1,6 @@
 #include "Utilities.h"
 #include <sys/stat.h>
+#include <ctime>
 
 namespace EERAModel {
 namespace Utilities {
@@ -57,6 +58,7 @@ std::string appendPath(std::string path1, std::string path2)
         return path1 + "/" + path2;
     }
 }
+
 
 } //namespace Utilities
 } //namespace EERAModel

@@ -4,12 +4,16 @@ scriptname=$0
 
 WORKING_DATA_DIR=./data
 WORKING_OUTPUTS_DIR=./outputs
+WORKING_PIPELINE_DIR=./datapipeline
+PIPELINE_CONFIG=$WORKING_PIPELINE_DIR/config.yaml
 REGRESSION_DIR=./test/regression
-PIPELINE_CONFIG=./test/datapipeline/config.yaml
+PIPELINE_DIR=./test/datapipeline
 EXEPATH=./build/bin/Covid19EERAModel
 SETUP_SCRIPT=./scripts/SetUpModelRun.sh
+SETUP_DP_SCRIPT=./scripts/SetUpDPModelRun.sh
 RUN_SCRIPT=./scripts/RunModel.sh
 CHECK_SCRIPT=./scripts/CheckRunOutputs.sh
+CHECK_DP_SCRIPT=./scripts/CheckDPRunOutputs.sh
 
 function usage {
     echo "usage: $scriptname <first> <last> [-d]"
@@ -81,6 +85,12 @@ for i in $(seq $FIRST $LAST) ; do
 
   regression_test_dir=$REGRESSION_DIR/run$i
   
+  setupdp=0
+  if [[ $USEDATAPIPELINE -eq 1 ]]; then
+    $SETUP_DP_SCRIPT $WORKING_PIPELINE_DIR $PIPELINE_DIR
+    setupdp=$?
+  fi
+
   $SETUP_SCRIPT $WORKING_DATA_DIR $regression_test_dir/data
   setup=$?
 
@@ -88,10 +98,14 @@ for i in $(seq $FIRST $LAST) ; do
   $RUN_SCRIPT $EXEPATH $WORKING_OUTPUTS_DIR $FLAGS
   run=$?
 
-  $CHECK_SCRIPT $WORKING_OUTPUTS_DIR $regression_test_dir/outputs
+  if [[ $USEDATAPIPELINE -eq 1 ]]; then
+    $CHECK_DP_SCRIPT $WORKING_PIPELINE_DIR $regression_test_dir/outputs
+  else
+    $CHECK_SCRIPT $WORKING_OUTPUTS_DIR $regression_test_dir/outputs
+  fi
   check=$?
   
-  if [[ setup -ne 0 ]] || [[ run -ne 0 ]] || [[ check -ne 0 ]]; then
+  if [[ setupdp -ne 0 ]] || [[ setup -ne 0 ]] || [[ run -ne 0 ]] || [[ check -ne 0 ]]; then
     failures=$((failures+1))
   else
     successes=$((successes+1))

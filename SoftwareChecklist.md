@@ -10,11 +10,11 @@ This checklist is part of ongoing work on a model scoresheet for SCRC models. It
 
 ### Date
 
-> 2020-07-31
+> 2020-08-28
 
 ### Version identifier
 
-> 0.10.0
+> 0.10.1
 
 ## Overall statement
 
@@ -58,8 +58,7 @@ Additionally, for each question please explain the situation and include any rel
 > - [x] Some work remaining or caveats
 > - [ ] Needs to be addressed
 > 
-> We have a set of regression tests which exercise the code in inference mode. These have been used mainly as an aid to refactoring, and are not considered confirmation of the code’s correctness. There are a limited set of unit tests which have been developed to test new software modules that we have developed. However, the core model code has effectively no unit tests. As noted above, implementing effective unit tests would require significant re-design of large portions of the core model code. Both our regression tests and unit tests are automated and run in the GitHub CI. Tests can also be
-run locally on the development host, and there is documentation in the project README on how to do that.
+> We have a set of regression tests which exercise the code in both inference and prediction modes. These have been used mainly as an aid to refactoring, and are not considered confirmation of the code’s correctness. There are a limited set of unit tests which have been developed to test new software modules that we have developed. However, the core model code has effectively no unit tests. As noted above, implementing effective unit tests would require significant re-design of large portions of the core model code. Both our regression tests and unit tests are automated and run in the GitHub CI. Tests can also be run locally on the development host, and there is documentation in the project README on how to do that.
 
 ### Are the scientific results of runs robust to different ways of running the code?
 
@@ -111,7 +110,7 @@ run locally on the development host, and there is documentation in the project R
 > - [ ] Some work remaining or caveats
 > - [ ] Needs to be addressed
 > 
-> Documentation exists at all of these levels. There is high-level documentation (in the `docs/` directory) describing how the model works from an epidemiological point of view. There is user documentation (`README.md`) explaining how to build and run the code, and what inputs are required. There is also inline code documentation which is exported via Doxygen, and can be viewed on the project dashboard (https://scottishcovidresponse.github.io/Covid19_EERAModel/site/doxygen-docs.html).
+> Documentation exists at all of these levels. There is high-level documentation (in the `docs/` directory) describing how the model works from an epidemiological point of view. There is user documentation (`README.md`) explaining how to build and run the code, and what inputs are required, and what outputs are produced. There is also inline code documentation which is exported via Doxygen, and can be viewed on the project dashboard (https://scottishcovidresponse.github.io/Covid19_EERAModel/site/doxygen-docs.html).
 
 ### Is there suitable collaboration infrastructure?
 

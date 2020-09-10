@@ -1,4 +1,4 @@
-iterID,day,inc_case,inc_death_hospital,inc_death
+iter, day, inc_case, inc_death_hospital, inc_death
 6, 0, 0, 0, 0
 6, 1, 0, 0, 0
 6, 2, 0, 0, 0
