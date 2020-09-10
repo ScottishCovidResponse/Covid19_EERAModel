@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModelTypes.h"
+#include "ModelCommon.h"
 #include "IniFile.h"
 #include "Utilities.h"
 #include <sstream>
@@ -186,9 +187,18 @@ void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& ou
 void WritePredictionFullHeader(std::ostream& os);
 
 /**
+ * @brief Write header row for inference end outputs
+ * 
+ * Writes inference end state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceEndsHeader(std::ostream& os);
+
+/**
  * @brief Write data row for prediction full outputs
  * 
- * Writes @p iter, @p daya, @p age_group, followed by the contents of @p comp, followed by a newline
+ * Writes @p iter, @p day, @p age_group, followed by the contents of @p comp, followed by a newline
  * 
  * @param os Stream to write the row to
  * @param iter Iteration number
@@ -197,6 +207,30 @@ void WritePredictionFullHeader(std::ostream& os);
  * @param comp Epidemiological compartments for @p age_group
  */
 void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param particle A particle representing a set of parameters
+ */
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle);
 
 /**
  * @brief Write header row for prediction simulation outputs
