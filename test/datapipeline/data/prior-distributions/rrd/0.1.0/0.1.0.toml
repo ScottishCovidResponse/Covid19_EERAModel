@@ -1,6 +1,0 @@
-[rrd]
-type = "distribution"
-distribution = "gamma"
-k = 1
-theta = 1
-

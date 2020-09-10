@@ -1,6 +1,0 @@
-[ps]
-type = "distribution"
-distribution = "beta"
-alpha = 9
-beta = 3
-

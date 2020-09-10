@@ -1,5 +1,0 @@
-[chcw]
-type = "distribution"
-distribution = "poisson"
-lambda = 42
-
