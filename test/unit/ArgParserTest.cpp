@@ -124,7 +124,7 @@ TEST(AnArgumentParser, RecognisesRequestForDataPipeline)
 
 TEST(AnArgumentParser, TerminatesIfNoDataPipelinePath)
 {
-    const char* _test_args_default[] = {"exe", "-c"};
+    const char* _test_args_default[] = {"exe", "-m", "inference", "-s", "original", "-c"};
 
-    EXPECT_EXIT( ArgumentParser(2, _test_args_default), ExitedWithCode(1), "");
+    EXPECT_EXIT( ArgumentParser(6, _test_args_default), ExitedWithCode(1), "");
 }

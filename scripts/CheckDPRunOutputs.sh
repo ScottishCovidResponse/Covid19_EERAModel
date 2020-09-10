@@ -37,13 +37,13 @@ else
   for expected_filepath in $EXPECTED_OUTPUTS_DIR/*.txt
   do
 	filename=$(basename $expected_filepath)
-    component=$(
+  component=$(
 		echo $filename |
 		awk -F_ '{ if ($2 == "prediction") { match($3, /([a-z]*).txt/, arr); printf("%s", arr[1]); } else { match($4, /step([0-9]*)/, arr); printf("steps/%s/%s", arr[1], $3); } }'
 	)
 
-	echo "Checking component: $component" 
-	$DPCHECK_SCRIPT "$DPH5FILE" "$component" "$expected_filepath"
+	echo "Checking component: $component"
+  $DPCHECK_SCRIPT "$DPH5FILE" "$component" "$expected_filepath"
 	if [[ $? -ne 0 ]]; then
 	  echo "ERROR: Files $expected_filepath and $component are different"
 	  difference_count=$((difference_count+1))

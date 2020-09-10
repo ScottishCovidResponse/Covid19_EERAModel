@@ -19,8 +19,8 @@ TEST(TestIODatapipeline, ExpectThrowForBadPath)
 {
     const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
-
-    EXPECT_ANY_THROW(IO::IOdatapipeline idp2("../test/datapipeline/parameters.ini", "", "", logger, "NoValidPath.yaml"););
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    EXPECT_ANY_THROW(IO::IOdatapipeline idp2(paramsFile, "", "", logger, "NoValidPath.yaml"););
 }
 
 TEST(TestIODatapipeline, CanReadFixedParameters)
@@ -28,7 +28,10 @@ TEST(TestIODatapipeline, CanReadFixedParameters)
     const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
-    IO::IOdatapipeline idp("../test/datapipeline/parameters.ini", "", "", logger, "../test/datapipeline/config.yaml");
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
+
+    IO::IOdatapipeline idp(paramsFile, "", "", logger, datapipelineConfig);
     CommonModelInputParameters params = idp.ReadCommonParameters();
 
     EXPECT_EQ(params.paramlist.T_lat, 4);
@@ -44,28 +47,6 @@ TEST(TestIODatapipeline, CanReadFixedParameters)
 }
 
 namespace {
-    template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-    {
-        os << "(" << v.size() << ") [";
-        for (auto &ve : v) {
-            os << " " << ve;
-        }
-        os << " ]";
-        return os;
-    }
-
-    template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<T>>& v)
-    {
-        os << "(" << v.size() << ") [\n";
-        for (auto &ve : v) {
-            os << "  " << ve << "\n";
-        }
-        os << "]";
-        return os;
-    }
-
     void compare_eq(int a, int b)
     { 
         EXPECT_EQ(a, b);
@@ -109,7 +90,7 @@ TEST(TestIODatapipeline, CanReadModelData)
 
     std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
     std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
-    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
 
     // Load data from data pipeline store
     IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
@@ -133,7 +114,7 @@ TEST(TestIODatapipeline, CanReadInferenceConfig)
 
     std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
     std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
-    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
 
     // Load data from data pipeline store
     IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
@@ -171,7 +152,7 @@ TEST(TestIODatapipeline, CanReadPredictionConfig)
 
     std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
     std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
-    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
 
     // Load data from data pipeline store
     IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig);
@@ -196,18 +177,17 @@ TEST(TestIODatapipeline, CanReadPredictionConfig)
     EXPECT_EQ(dp_predconfig.fixedParameters.inf_asym, 1);
 }
 
-TEST(TestIODatapipeline, CanWriteInferenceSimuData)
+TEST(TestIODatapipeline, CanWriteInferenceData)
 {
     const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
     Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
 
     std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
     std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
-    std::string datapipelineConfig = std::string(ROOT_DIR)+"/test/datapipeline/config.yaml";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
 
     std::string timeStamp = logger->getLoggerTime();
     
-    // Load data from data pipeline store
     {
         IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig, timeStamp);
 
@@ -231,15 +211,57 @@ TEST(TestIODatapipeline, CanWriteInferenceSimuData)
             }
         };
 
-        idp.WriteOutputsToFiles(0, 0, 1, 0, particleList, "unit_test");
+        EXPECT_NO_THROW(idp.WriteOutputsToFiles(0, 0, 1, 0, particleList, "unit_test"));
     }
 
+    // Can't reread the data back currently via the API without upload and downloading
+
+    // {
+    //     std::string uri = GitMetadata::URL();
+    //     std::string git_sha = GitMetadata::CommitSHA1();
+
+    //     DataPipeline dp(datapipelineConfig, uri.c_str(), git_sha.c_str());
+
+    //     Table simu_table = dp.read_table("outputs/unit_test/inference/" + timeStamp, "steps/0/simu");
+    // }
+}
+
+TEST(TestIODatapipeline, CanWritePredictionData)
+{
+    const std::string out_dir = std::string(ROOT_DIR)+"/outputs";
+    Utilities::logging_stream::Sptr logger = std::make_shared<Utilities::logging_stream>(out_dir);
+
+    std::string paramsFile = std::string(ROOT_DIR)+"/test/datapipeline/parameters.ini";
+    std::string configDir = std::string(ROOT_DIR)+"/test/regression/run1/data";
+    std::string datapipelineConfig = std::string(ROOT_DIR)+"/datapipeline/config.yaml";
+
+    std::string timeStamp = logger->getLoggerTime();
+    
     {
-        std::string uri = GitMetadata::URL();
-        std::string git_sha = GitMetadata::CommitSHA1();
+        IO::IOdatapipeline idp(paramsFile, configDir, "", logger, datapipelineConfig, timeStamp);
 
-        DataPipeline dp(datapipelineConfig, uri.c_str(), git_sha.c_str());
+        std::vector<Status> statuses = {
+            Status{
+                .simulation = { 0, 1 },
+                .deaths = { 2, 3 },
+                .hospital_deaths = { 4, 5},
 
-        Table simu_table = dp.read_table("outputs/unit_test/inference/" + timeStamp, "steps/0/simu");
+                .ends = {
+                    Compartments{
+                        .S = 1014, .E = 1015, .E_t = 1016, .I_p = 1017, .I_t = 1018,
+                        .I1 = 1019, .I2 = 1020, .I3 = 1021, .I4 = 1022,
+                        .I_s1 = 1023, .I_s2 = 1024, .I_s3 = 1025, .I_s4 = 1026,
+                        .H = 1027, .R = 1028, .D = 1029 } },
+
+                .pop_array = { {
+                    Compartments{
+                        .S = 2014, .E = 2015, .E_t = 2016, .I_p = 2017, .I_t = 2018,
+                        .I1 = 2019, .I2 = 2020, .I3 = 2021, .I4 = 2022,
+                        .I_s1 = 2023, .I_s2 = 2024, .I_s3 = 2025, .I_s4 = 2026,
+                        .H = 2027, .R = 2028, .D = 2029 } } }
+            }
+        };
+
+        EXPECT_NO_THROW(idp.WritePredictionsToFiles(statuses, "unit_test"));
     }
 }

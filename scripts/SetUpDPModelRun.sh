@@ -23,11 +23,14 @@ if [[ ! -d $INPUTS_DIR ]]; then
   usage
 else
   if [[ ! -d $WORKING_DIR ]]; then
+    # No datapipeline directory - create and download the data
     mkdir -p $WORKING_DIR
+    cp $INPUTS_DIR/config.yaml $INPUTS_DIR/parameters.ini $WORKING_DIR
+    python3 -m data_pipeline_api.registry.download --config $WORKING_DIR/config.yaml
   else
-    rm -rf $WORKING_DIR/data $WORKING_DIR/*.yaml $WORKING_DIR/*.ini
+    # Directory exists - assume still valid and just delete results
+    rm -rf $WORKING_DIR/data/outputs $WORKING_DIR/access*.yaml
   fi
-  cp -r $INPUTS_DIR/* $WORKING_DIR
-  rm -rf $WORKDIR_DIR/data/outputs
-  echo "Copied contents of $INPUTS_DIR to $WORKING_DIR"
+
+  echo "Configured data pipeline contents of $WORKING_DIR from $INPUTS_DIR"
 fi

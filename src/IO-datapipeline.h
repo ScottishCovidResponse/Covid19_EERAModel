@@ -14,30 +14,6 @@
 namespace EERAModel {
 namespace IO {
 
-namespace {
-    template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
-        std::cout << std::scientific << std::setprecision(17);
-
-        os << "(" << v.size() << ") [";
-        for (auto &ve : v) {
-            os << " " << ve;
-        }
-        os << " ]";
-        return os;
-    }
-
-    template <class T>
-    std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<T>>& v) {
-        os << "(" << v.size() << ") [\n";
-        for (auto &ve : v) {
-            os << "  " << ve << "\n";
-        }
-        os << "]";
-        return os;
-    }
-}
-
 /**
  * @class IOdatapipeline
  * @brief IO class to manage access to the data pipeline API
