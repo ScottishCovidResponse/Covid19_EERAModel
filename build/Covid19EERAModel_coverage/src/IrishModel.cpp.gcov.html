@@ -1,0 +1,452 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - Covid19EERAModel.info - src/IrishModel.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - IrishModel.cpp<span style="font-size: 80%;"> (source / <a href="IrishModel.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">Covid19EERAModel.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">192</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-09-16 15:46:45</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &quot;IrishModel.h&quot;</a>
+<a name="2"><span class="lineNum">       2 </span>            : </a>
+<a name="3"><span class="lineNum">       3 </span>            : namespace EERAModel {</a>
+<a name="4"><span class="lineNum">       4 </span>            : namespace Model {</a>
+<a name="5"><span class="lineNum">       5 </span>            : </a>
+<a name="6"><span class="lineNum">       6 </span><span class="lineNoCov">          0 : IrishModel::IrishModel(const CommonModelInputParameters&amp; commonParameters,</span></a>
+<a name="7"><span class="lineNum">       7 </span><span class="lineNoCov">          0 :     const ObservationsForModels&amp; observations, Random::RNGInterface::Sptr rng, Utilities::logging_stream::Sptr log) </span></a>
+<a name="8"><span class="lineNum">       8 </span><span class="lineNoCov">          0 :     : rng_(rng) {</span></a>
+<a name="9"><span class="lineNum">       9 </span>            :     </a>
+<a name="10"><span class="lineNum">      10 </span><span class="lineNoCov">          0 :     fixedParameters_ = BuildFixedParameters(</span></a>
+<a name="11"><span class="lineNum">      11 </span><span class="lineNoCov">          0 :         observations.waifw_norm.size(), commonParameters.paramlist</span></a>
+<a name="12"><span class="lineNum">      12 </span><span class="lineNoCov">          0 :     );</span></a>
+<a name="13"><span class="lineNum">      13 </span>            :         </a>
+<a name="14"><span class="lineNum">      14 </span><span class="lineNoCov">          0 :     ageGroupData_ = AgeGroupData{</span></a>
+<a name="15"><span class="lineNum">      15 </span><span class="lineNoCov">          0 :             observations.waifw_norm,</span></a>
+<a name="16"><span class="lineNum">      16 </span><span class="lineNoCov">          0 :             observations.waifw_home,</span></a>
+<a name="17"><span class="lineNum">      17 </span><span class="lineNoCov">          0 :             observations.waifw_sdist,</span></a>
+<a name="18"><span class="lineNum">      18 </span><span class="lineNoCov">          0 :             observations.cfr_byage,</span></a>
+<a name="19"><span class="lineNum">      19 </span><span class="lineNoCov">          0 :             observations.pf_pop[commonParameters.herd_id - 1]</span></a>
+<a name="20"><span class="lineNum">      20 </span><span class="lineNoCov">          0 :     };</span></a>
+<a name="21"><span class="lineNum">      21 </span>            :     </a>
+<a name="22"><span class="lineNum">      22 </span><span class="lineNoCov">          0 :     int regionalPopulation = GetPopulationOfRegion(</span></a>
+<a name="23"><span class="lineNum">      23 </span><span class="lineNoCov">          0 :         observations, commonParameters.herd_id</span></a>
+<a name="24"><span class="lineNum">      24 </span><span class="lineNoCov">          0 :     );</span></a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span><span class="lineNoCov">          0 :     int healthCareWorkers = ComputeNumberOfHCWInRegion(</span></a>
+<a name="27"><span class="lineNum">      27 </span><span class="lineNoCov">          0 :         regionalPopulation, commonParameters.totN_hcw, observations</span></a>
+<a name="28"><span class="lineNum">      28 </span><span class="lineNoCov">          0 :     );</span></a>
+<a name="29"><span class="lineNum">      29 </span>            :     </a>
+<a name="30"><span class="lineNum">      30 </span><span class="lineNoCov">          0 :     ageNums_ = ComputeAgeNums(</span></a>
+<a name="31"><span class="lineNum">      31 </span><span class="lineNoCov">          0 :         commonParameters.herd_id, regionalPopulation, healthCareWorkers, observations</span></a>
+<a name="32"><span class="lineNum">      32 </span><span class="lineNoCov">          0 :     );</span></a>
+<a name="33"><span class="lineNum">      33 </span>            : </a>
+<a name="34"><span class="lineNum">      34 </span><span class="lineNoCov">          0 :     (*log) &lt;&lt; &quot;[Model settings]&quot; &lt;&lt; std::endl;</span></a>
+<a name="35"><span class="lineNum">      35 </span><span class="lineNoCov">          0 :     (*log) &lt;&lt; &quot;    Model Structure: Irish&quot; &lt;&lt; std::endl;</span></a>
+<a name="36"><span class="lineNum">      36 </span><span class="lineNoCov">          0 :     (*log) &lt;&lt; &quot;    Population size: &quot; &lt;&lt; regionalPopulation &lt;&lt; std::endl;</span></a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineNoCov">          0 :         (*log) &lt;&lt; &quot;    Number of HCW: &quot; &lt;&lt; healthCareWorkers &lt;&lt; std::endl;</span></a>
+<a name="38"><span class="lineNum">      38 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span><span class="lineNoCov">          0 : std::vector&lt;double&gt; IrishModel::BuildPopulationSeed(const std::vector&lt;int&gt;&amp; age_nums)</span></a>
+<a name="41"><span class="lineNum">      41 </span>            : {</a>
+<a name="42"><span class="lineNum">      42 </span><span class="lineNoCov">          0 :     unsigned int end_age = age_nums.size() - 1;</span></a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineNoCov">          0 :     unsigned int start_age = 0;</span></a>
+<a name="44"><span class="lineNum">      44 </span>            :     </a>
+<a name="45"><span class="lineNum">      45 </span><span class="lineNoCov">          0 :     std::vector&lt;double&gt; _temp;</span></a>
+<a name="46"><span class="lineNum">      46 </span><span class="lineNoCov">          0 :     for (unsigned int age = start_age; age &lt; end_age; ++age)</span></a>
+<a name="47"><span class="lineNum">      47 </span>            :     {</a>
+<a name="48"><span class="lineNum">      48 </span><span class="lineNoCov">          0 :         _temp.push_back(static_cast&lt;double&gt;(age_nums[age]));</span></a>
+<a name="49"><span class="lineNum">      49 </span>            :     }</a>
+<a name="50"><span class="lineNum">      50 </span>            : </a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineNoCov">          0 :     return _temp;</span></a>
+<a name="52"><span class="lineNum">      52 </span>            : }</a>
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineNoCov">          0 : std::vector&lt;Compartments&gt; IrishModel::BuildPopulationArray(const std::vector&lt;int&gt;&amp; age_nums,</span></a>
+<a name="55"><span class="lineNum">      55 </span>            :     const seed&amp; seedlist)</a>
+<a name="56"><span class="lineNum">      56 </span>            : {</a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineNoCov">          0 :     unsigned int distribution_size = 7;</span></a>
+<a name="58"><span class="lineNum">      58 </span>            : </a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineNoCov">          0 :     std::vector&lt;Compartments&gt; _temp(age_nums.size(), Compartments());</span></a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineNoCov">          0 :     for (unsigned int age = 0; age &lt; age_nums.size(); ++age) </span></a>
+<a name="61"><span class="lineNum">      61 </span>            :     {</a>
+<a name="62"><span class="lineNum">      62 </span>            :         //set up the starting population as fully susceptible</a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineNoCov">          0 :          _temp[age].S = age_nums[age];</span></a>
+<a name="64"><span class="lineNum">      64 </span>            :     }</a>
+<a name="65"><span class="lineNum">      65 </span>            : </a>
+<a name="66"><span class="lineNum">      66 </span><span class="lineNoCov">          0 :     if(seedlist.seedmethod != &quot;background&quot;)</span></a>
+<a name="67"><span class="lineNum">      67 </span>            :     {        </a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineNoCov">          0 :         std::vector&lt;int&gt; startdist(distribution_size, 0);</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineNoCov">          0 :         startdist[static_cast&lt;int&gt;(rng_-&gt;Flat(0, distribution_size))] = seedlist.nseed;</span></a>
+<a name="70"><span class="lineNum">      70 </span>            : </a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineNoCov">          0 :         for (unsigned int age = 0; age &lt; age_nums.size() - 1; ++age)</span></a>
+<a name="72"><span class="lineNum">      72 </span>            :         {</a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineNoCov">          0 :             _temp[age].S -=  startdist[age];    // take diseased out of S</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineNoCov">          0 :             _temp[age].I_p +=  startdist[age];  // put diseased in I    </span></a>
+<a name="75"><span class="lineNum">      75 </span>            :         }</a>
+<a name="76"><span class="lineNum">      76 </span>            :     }</a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineNoCov">          0 :     return _temp;</span></a>
+<a name="79"><span class="lineNum">      79 </span>            : }</a>
+<a name="80"><span class="lineNum">      80 </span>            : </a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineNoCov">          0 : void IrishModel::GenerateDiseasedPopulation(std::vector&lt;Compartments&gt;&amp; poparray,</span></a>
+<a name="82"><span class="lineNum">      82 </span>            :     std::vector&lt;double&gt;&amp; seedarray, const double&amp; bkg_lambda)</a>
+<a name="83"><span class="lineNum">      83 </span>            : {</a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineNoCov">          0 :     unsigned int start_age = 0;</span></a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineNoCov">          0 :         int n_susc = 0;</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineNoCov">          0 :     for (unsigned int age = start_age; age &lt; poparray.size() - 1; ++age) </span></a>
+<a name="88"><span class="lineNum">      88 </span>            :     {</a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineNoCov">          0 :         seedarray[age - start_age] = static_cast&lt;double&gt;(poparray[age].S);</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineNoCov">          0 :         n_susc += poparray[age].S;      </span></a>
+<a name="91"><span class="lineNum">      91 </span>            :     }</a>
+<a name="92"><span class="lineNum">      92 </span>            : </a>
+<a name="93"><span class="lineNum">      93 </span>            :     // how many diseased is introduced in each given day before lockdown</a>
+<a name="94"><span class="lineNum">      94 </span>            :     // as a proportion of number of Susceptible available for background infection</a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineNoCov">          0 :     int startdz = static_cast&lt;int&gt;(rng_-&gt;Poisson(static_cast&lt;double&gt;(n_susc) * bkg_lambda));</span></a>
+<a name="96"><span class="lineNum">      96 </span>            : </a>
+<a name="97"><span class="lineNum">      97 </span>            :     //unsigned int startdist[seedarray.size()];</a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineNoCov">          0 :     std::vector&lt;unsigned int&gt; startdist(seedarray.size(), 0);</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineNoCov">          0 :     rng_-&gt;Multinomial(seedarray.size(), startdz, &amp;seedarray[0], &amp;startdist[0]); //distribute the diseased across the older age categories</span></a>
+<a name="100"><span class="lineNum">     100 </span>            :     </a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineNoCov">          0 :     for (unsigned int age = start_age; age &lt; poparray.size() - 1; ++age) {</span></a>
+<a name="102"><span class="lineNum">     102 </span><span class="lineNoCov">          0 :         int nseed = startdist[age - start_age];</span></a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineNoCov">          0 :         poparray[age].S -=  nseed;      // take diseased out of S</span></a>
+<a name="104"><span class="lineNum">     104 </span><span class="lineNoCov">          0 :         poparray[age].E +=  nseed;      // put diseased in E</span></a>
+<a name="105"><span class="lineNum">     105 </span>            :     }</a>
+<a name="106"><span class="lineNum">     106 </span>            : </a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="108"><span class="lineNum">     108 </span>            : </a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineNoCov">          0 : Status IrishModel::Run(std::vector&lt;double&gt; parameter_set, const seed&amp; seedlist, int day_shut, int n_sim_steps) {</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineNoCov">          0 :         Status status = {{0}, {0}, {0}, {}, {}};</span></a>
+<a name="111"><span class="lineNum">     111 </span>            : </a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineNoCov">          0 :         const int n_agegroup = ageGroupData_.waifw_norm.size();</span></a>
+<a name="113"><span class="lineNum">     113 </span>            : </a>
+<a name="114"><span class="lineNum">     114 </span>            :         // Start without lockdown</a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineNoCov">          0 :         bool inLockdown = false;</span></a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span>            :         // Assumes that the number of age groups matches the size of the 'agenums' vector</a>
+<a name="118"><span class="lineNum">     118 </span><span class="lineNoCov">          0 :         std::vector&lt;double&gt; seed_pop = BuildPopulationSeed(ageNums_);</span></a>
+<a name="119"><span class="lineNum">     119 </span>            : </a>
+<a name="120"><span class="lineNum">     120 </span><span class="lineNoCov">          0 :         std::vector&lt;std::vector&lt;double&gt;&gt; parameter_fit(ageGroupData_.waifw_norm.size(), parameter_set);     </span></a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineNoCov">          0 :         parameter_fit[0][5] = fixedParameters_[0].juvp_s;</span></a>
+<a name="122"><span class="lineNum">     122 </span>            : </a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineNoCov">          0 :         std::vector&lt;Compartments&gt; poparray = BuildPopulationArray(ageNums_, seedlist);</span></a>
+<a name="124"><span class="lineNum">     124 </span>            : </a>
+<a name="125"><span class="lineNum">     125 </span><span class="lineNoCov">          0 :         for (int tt{1}; tt &lt; n_sim_steps; ++tt) {</span></a>
+<a name="126"><span class="lineNum">     126 </span>            :                 //initialize return value</a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineNoCov">          0 :                 InfectionState infection_state; </span></a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            :                 //identify the lock down</a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineNoCov">          0 :                 if(tt &gt; day_shut){ inLockdown = true; }</span></a>
+<a name="131"><span class="lineNum">     131 </span>            :                 </a>
+<a name="132"><span class="lineNum">     132 </span>            :         </a>
+<a name="133"><span class="lineNum">     133 </span>            :                 //introduce disease from background infection until lockdown</a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineNoCov">          0 :                 if(!inLockdown &amp;&amp; seedlist.seedmethod == &quot;background&quot;)</span></a>
+<a name="135"><span class="lineNum">     135 </span>            :                 {</a>
+<a name="136"><span class="lineNum">     136 </span>            :                         //compute the total number of susceptible and the number of susceptible per age class                   </a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineNoCov">          0 :                         GenerateDiseasedPopulation(poparray, seed_pop, parameter_set[ModelParameters::LAMBDA]);</span></a>
+<a name="138"><span class="lineNum">     138 </span>            :                 }</a>
+<a name="139"><span class="lineNum">     139 </span>            : </a>
+<a name="140"><span class="lineNum">     140 </span>            :         //compute the forces of infection</a>
+<a name="141"><span class="lineNum">     141 </span>            :         std::vector&lt;double&gt; lambda = GenerateForcesOfInfection(infection_state.hospitalised,</a>
+<a name="142"><span class="lineNum">     142 </span><span class="lineNoCov">          0 :             parameter_set, fixedParameters_[0].inf_asym, ageGroupData_, poparray, inLockdown);  </span></a>
+<a name="143"><span class="lineNum">     143 </span>            : </a>
+<a name="144"><span class="lineNum">     144 </span>            :         // step each agegroup through infections</a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineNoCov">          0 :         for ( int age{0}; age &lt; n_agegroup; ++age) { </span></a>
+<a name="146"><span class="lineNum">     146 </span>            :             InfectionState new_spread = </a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineNoCov">          0 :                     GenerateInfectionSpread(poparray[age], infection_state.hospitalised,</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineNoCov">          0 :                         fixedParameters_[age],parameter_fit[age],</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineNoCov">          0 :                         ageGroupData_.cfr_byage[age], lambda[age]);</span></a>
+<a name="150"><span class="lineNum">     150 </span>            : </a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineNoCov">          0 :             infection_state.deaths += new_spread.deaths;</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineNoCov">          0 :             infection_state.hospital_deaths += new_spread.hospital_deaths;</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineNoCov">          0 :             infection_state.detected += new_spread.detected;</span></a>
+<a name="154"><span class="lineNum">     154 </span>            :         }</a>
+<a name="155"><span class="lineNum">     155 </span>            : </a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineNoCov">          0 :         status.pop_array.push_back(poparray);</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineNoCov">          0 :         status.simulation.push_back(infection_state.detected); </span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineNoCov">          0 :         status.deaths.push_back(infection_state.deaths); </span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineNoCov">          0 :         status.hospital_deaths.push_back(infection_state.hospital_deaths);</span></a>
+<a name="160"><span class="lineNum">     160 </span>            :     }</a>
+<a name="161"><span class="lineNum">     161 </span>            : </a>
+<a name="162"><span class="lineNum">     162 </span>            :         //save the population in each epi compt for the last day</a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineNoCov">          0 :         for ( int age{0}; age &lt; n_agegroup; ++age) {</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineNoCov">          0 :                 status.ends.push_back(poparray[age]);</span></a>
+<a name="165"><span class="lineNum">     165 </span>            :         }</a>
+<a name="166"><span class="lineNum">     166 </span>            : </a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineNoCov">          0 :         return status;</span></a>
+<a name="168"><span class="lineNum">     168 </span>            : }</a>
+<a name="169"><span class="lineNum">     169 </span>            : </a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineNoCov">          0 : void IrishModel::SetFixedParameters(const params&amp; paramlist)</span></a>
+<a name="171"><span class="lineNum">     171 </span>            : {</a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineNoCov">          0 :     fixedParameters_ = BuildFixedParameters(fixedParameters_.size(), paramlist);</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="174"><span class="lineNum">     174 </span>            : </a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineNoCov">          0 : InfectionState IrishModel::GenerateInfectionSpread(Compartments&amp; pop,</span></a>
+<a name="176"><span class="lineNum">     176 </span>            :     const int&amp; n_hospitalised, params fixed_parameters, std::vector&lt;double&gt; parameter_set,</a>
+<a name="177"><span class="lineNum">     177 </span>            :     std::vector&lt;double&gt; cfr_tab, double lambda)</a>
+<a name="178"><span class="lineNum">     178 </span>            : {</a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineNoCov">          0 :     Compartments newpop(pop);</span></a>
+<a name="180"><span class="lineNum">     180 </span>            : </a>
+<a name="181"><span class="lineNum">     181 </span>            :     // Fixed parameters</a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineNoCov">          0 :     const double T_lat= fixed_parameters.T_lat;</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineNoCov">          0 :     const double T_inf= fixed_parameters.T_inf;</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineNoCov">          0 :     const double T_rec= fixed_parameters.T_rec;</span></a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineNoCov">          0 :     const double T_sym= fixed_parameters.T_sym;</span></a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineNoCov">          0 :     const double T_hos= fixed_parameters.T_hos;</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineNoCov">          0 :     const double K=fixed_parameters.K;</span></a>
+<a name="188"><span class="lineNum">     188 </span>            : </a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineNoCov">          0 :     double capacity = n_hospitalised / K;</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineNoCov">          0 :     capacity = std::min(1.0, capacity);</span></a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineNoCov">          0 :     const double p_h = cfr_tab[0];</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineNoCov">          0 :     const double p_d = cfr_tab[2];      </span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineNoCov">          0 :     const double p_s = parameter_set[ModelParameters::PS];</span></a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineNoCov">          0 :     const double rrd = parameter_set[ModelParameters::RRD];</span></a>
+<a name="196"><span class="lineNum">     196 </span>            : </a>
+<a name="197"><span class="lineNum">     197 </span>            :     // hospitalized </a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineNoCov">          0 :         const int outpatient = Flow(rng_, pop.H, newpop.H, (1.0 / T_hos));</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineNoCov">          0 :     const int newdeathsH = static_cast&lt;int&gt;(rng_-&gt;Binomial(p_d,outpatient));</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineNoCov">          0 :     const int recoverH = outpatient - newdeathsH;       </span></a>
+<a name="201"><span class="lineNum">     201 </span>            :         </a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineNoCov">          0 :     newpop.H -= outpatient;</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineNoCov">          0 :     newpop.D += newdeathsH;</span></a>
+<a name="204"><span class="lineNum">     204 </span><span class="lineNoCov">          0 :     newpop.R += recoverH;</span></a>
+<a name="205"><span class="lineNum">     205 </span>            : </a>
+<a name="206"><span class="lineNum">     206 </span>            :     // symptomatic</a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineNoCov">          0 :         const int outClinical = Flow(rng_, pop.I_s4, newpop.I_s4, (4.0 / T_sym));</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineNoCov">          0 :         const int severe = static_cast&lt;int&gt;(rng_-&gt;Binomial(p_h,outClinical));</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineNoCov">          0 :         const int mild = outClinical - severe;</span></a>
+<a name="210"><span class="lineNum">     210 </span>            :         </a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineNoCov">          0 :         const int hospitalize = static_cast&lt;int&gt;(rng_-&gt;Binomial((1.0 - capacity),severe));</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineNoCov">          0 :         const int nothospitalize = severe - hospitalize;</span></a>
+<a name="213"><span class="lineNum">     213 </span>            :         </a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineNoCov">          0 :         const int newdeathsI_s = static_cast&lt;int&gt;(rng_-&gt;Binomial(p_d * rrd,nothospitalize));</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineNoCov">          0 :         const int recoverI_s = nothospitalize - newdeathsI_s;</span></a>
+<a name="216"><span class="lineNum">     216 </span>            :         </a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineNoCov">          0 :         newpop.I_s4 -= outClinical;</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineNoCov">          0 :         newpop.H += hospitalize;</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineNoCov">          0 :         newpop.D += newdeathsI_s;</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineNoCov">          0 :         newpop.R += mild+recoverI_s;    </span></a>
+<a name="221"><span class="lineNum">     221 </span>            : </a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineNoCov">          0 :     const int Is_from3_to_4 = Flow(rng_, pop.I_s3, newpop.I_s3, (4.0 / T_sym));</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineNoCov">          0 :     newpop.I_s3 -= Is_from3_to_4;</span></a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineNoCov">          0 :     newpop.I_s4 += Is_from3_to_4;</span></a>
+<a name="225"><span class="lineNum">     225 </span>            : </a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineNoCov">          0 :     const int Is_from2_to_3 = Flow(rng_, pop.I_s2, newpop.I_s2, (4.0 / T_sym));</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineNoCov">          0 :     newpop.I_s2 -= Is_from2_to_3;</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineNoCov">          0 :     newpop.I_s3 += Is_from2_to_3;</span></a>
+<a name="229"><span class="lineNum">     229 </span>            :         </a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineNoCov">          0 :     const int Is_from1_to_2 = Flow(rng_, pop.I_s1, newpop.I_s1, (4.0 / T_sym));</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineNoCov">          0 :     newpop.I_s1 -= Is_from1_to_2;</span></a>
+<a name="232"><span class="lineNum">     232 </span><span class="lineNoCov">          0 :     newpop.I_s2 += Is_from1_to_2;</span></a>
+<a name="233"><span class="lineNum">     233 </span>            : </a>
+<a name="234"><span class="lineNum">     234 </span>            :     //pre-clinical</a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineNoCov">          0 :     const int showsymptoms = Flow(rng_, pop.I_p, newpop.I_p, (1.0 / T_inf));</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineNoCov">          0 :     newpop.I_p -= showsymptoms;</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineNoCov">          0 :     newpop.I_s1 += showsymptoms;</span></a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span>            :     // asymptomatic</a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineNoCov">          0 :     const int recoverI = Flow(rng_, pop.I1, newpop.I1, ( 1.0 / T_rec ));</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineNoCov">          0 :     newpop.I1 -= recoverI;</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineNoCov">          0 :     newpop.R += recoverI;</span></a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            :         /*</a>
+<a name="245"><span class="lineNum">     245 </span>            :         const int recoverI = Flow(rng_, pop.I4, newpop.I4, ( 4.0 / T_rec ));</a>
+<a name="246"><span class="lineNum">     246 </span>            :     newpop.I4 -= recoverI;</a>
+<a name="247"><span class="lineNum">     247 </span>            :     newpop.R += recoverI;</a>
+<a name="248"><span class="lineNum">     248 </span>            : </a>
+<a name="249"><span class="lineNum">     249 </span>            :     const int I_from3_to_4 = Flow(rng_, pop.I3, newpop.I3, ( 4.0 / T_rec ));</a>
+<a name="250"><span class="lineNum">     250 </span>            :     newpop.I3 -= I_from3_to_4;</a>
+<a name="251"><span class="lineNum">     251 </span>            :     newpop.I4 += I_from3_to_4;</a>
+<a name="252"><span class="lineNum">     252 </span>            : </a>
+<a name="253"><span class="lineNum">     253 </span>            :     const int I_from2_to_3=Flow(rng_, pop.I2, newpop.I2, ( 4.0 / T_rec ));</a>
+<a name="254"><span class="lineNum">     254 </span>            :     newpop.I2 -= I_from2_to_3;</a>
+<a name="255"><span class="lineNum">     255 </span>            :     newpop.I3 += I_from2_to_3;</a>
+<a name="256"><span class="lineNum">     256 </span>            : </a>
+<a name="257"><span class="lineNum">     257 </span>            :     const int I_from1_to_2 = Flow(rng_, pop.I1, newpop.I1, ( 4.0 / T_rec ));</a>
+<a name="258"><span class="lineNum">     258 </span>            :     newpop.I1 -= I_from1_to_2;</a>
+<a name="259"><span class="lineNum">     259 </span>            :     newpop.I2 += I_from1_to_2;</a>
+<a name="260"><span class="lineNum">     260 </span>            :     */</a>
+<a name="261"><span class="lineNum">     261 </span>            :     // latent</a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineNoCov">          0 :     const int outLatent = Flow(rng_, pop.E, newpop.E, ( 1.0 / T_lat ));</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineNoCov">          0 :         const int newsymptomatic = static_cast&lt;int&gt;(rng_-&gt;Binomial(p_s, outLatent));</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineNoCov">          0 :         const int newasymptomatic = outLatent - newsymptomatic;</span></a>
+<a name="265"><span class="lineNum">     265 </span>            :                         </a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineNoCov">          0 :     newpop.E -= outLatent;</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineNoCov">          0 :     newpop.I_p += newsymptomatic;</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineNoCov">          0 :     newpop.I1 += newasymptomatic;</span></a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineNoCov">          0 :     const int infectious_t = Flow(rng_, pop.E_t, newpop.E_t, ( 1.0 / T_lat ));</span></a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineNoCov">          0 :     newpop.E_t -= infectious_t;</span></a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineNoCov">          0 :     newpop.I_t += infectious_t;</span></a>
+<a name="273"><span class="lineNum">     273 </span>            : </a>
+<a name="274"><span class="lineNum">     274 </span>            :     // susceptible</a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineNoCov">          0 :     const int newinfection = Flow(rng_, pop.S, newpop.S, lambda);</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineNoCov">          0 :     newpop.S -= newinfection;</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineNoCov">          0 :     newpop.E += newinfection;</span></a>
+<a name="278"><span class="lineNum">     278 </span>            : </a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineNoCov">          0 :     pop = newpop;</span></a>
+<a name="280"><span class="lineNum">     280 </span>            : </a>
+<a name="281"><span class="lineNum">     281 </span>            :     // Define infection state for this spread</a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineNoCov">          0 :     InfectionState infection_state;</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineNoCov">          0 :     infection_state.deaths              += (newdeathsH + newdeathsI_s);</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineNoCov">          0 :     infection_state.hospital_deaths     +=  newdeathsH;</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineNoCov">          0 :     infection_state.detected            += (hospitalize + infectious_t);</span></a>
+<a name="286"><span class="lineNum">     286 </span>            : </a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineNoCov">          0 :     return infection_state;</span></a>
+<a name="288"><span class="lineNum">     288 </span>            : }</a>
+<a name="289"><span class="lineNum">     289 </span>            : </a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineNoCov">          0 : std::vector&lt;double&gt; IrishModel::GenerateForcesOfInfection(int&amp; inf_hosp, const std::vector&lt;double&gt;&amp; parameter_set, double u_val, </span></a>
+<a name="291"><span class="lineNum">     291 </span>            :                         const AgeGroupData&amp; age_data, const std::vector&lt;Compartments&gt;&amp; pops, bool shut) </a>
+<a name="292"><span class="lineNum">     292 </span>            : {</a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineNoCov">          0 :         double p_i = parameter_set[ModelParameters::PINF];      </span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineNoCov">          0 :         double p_hcw = parameter_set[ModelParameters::PHCW];    </span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineNoCov">          0 :         double c_hcw = parameter_set[ModelParameters::CHCW];    </span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineNoCov">          0 :         double d_val = parameter_set[ModelParameters::D];                                       </span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineNoCov">          0 :         double q_val = parameter_set[ModelParameters::Q];</span></a>
+<a name="298"><span class="lineNum">     298 </span>            :         </a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineNoCov">          0 :         int n_agegroup = age_data.waifw_norm.size();</span></a>
+<a name="300"><span class="lineNum">     300 </span>            : </a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineNoCov">          0 :         std::vector&lt;double&gt; lambda(n_agegroup);</span></a>
+<a name="302"><span class="lineNum">     302 </span>            : </a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineNoCov">          0 :         double quarantined = 0.0;       // mean proportion reduction in contacts due to quarantine</span></a>
+<a name="304"><span class="lineNum">     304 </span>            : </a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineNoCov">          0 :         std::vector&lt;double&gt; I_mat(n_agegroup); </span></a>
+<a name="306"><span class="lineNum">     306 </span>            : </a>
+<a name="307"><span class="lineNum">     307 </span>            :         //contact matrix</a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineNoCov">          0 :         std::vector&lt;std::vector&lt;double&gt;&gt; waifw = (shut) ? std::vector&lt;std::vector&lt;double&gt;&gt;(n_agegroup, std::vector&lt;double&gt; (n_agegroup)) : age_data.waifw_norm; </span></a>
+<a name="309"><span class="lineNum">     309 </span>            : </a>
+<a name="310"><span class="lineNum">     310 </span>            :         //age-dependent transmission rate</a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :         std::vector&lt;std::vector&lt;double&gt;&gt; beta(n_agegroup, std::vector&lt;double&gt; (n_agegroup));</span></a>
+<a name="312"><span class="lineNum">     312 </span>            : </a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineNoCov">          0 :     if(shut)</span></a>
+<a name="314"><span class="lineNum">     314 </span>            :     {</a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineNoCov">          0 :         for ( int from{0}; from &lt; n_agegroup; ++from) </span></a>
+<a name="316"><span class="lineNum">     316 </span>            :         {</a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineNoCov">          0 :             for ( int to{0}; to &lt; n_agegroup; ++to) </span></a>
+<a name="318"><span class="lineNum">     318 </span>            :             {</a>
+<a name="319"><span class="lineNum">     319 </span>            :                 //contact network during shutdown period, assuming a proportion d will properly do it</a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineNoCov">          0 :                 waifw[from][to] = (1.0-d_val) * age_data.waifw_sdist[from][to] + (d_val) * age_data.waifw_home[from][to];</span></a>
+<a name="321"><span class="lineNum">     321 </span>            :             }</a>
+<a name="322"><span class="lineNum">     322 </span>            :         }</a>
+<a name="323"><span class="lineNum">     323 </span>            :     }</a>
+<a name="324"><span class="lineNum">     324 </span>            :   </a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineNoCov">          0 :     for ( int from{0}; from &lt; n_agegroup; ++from) {</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineNoCov">          0 :         for ( int to{0}; to &lt; n_agegroup; ++to) </span></a>
+<a name="327"><span class="lineNum">     327 </span>            :         {</a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineNoCov">          0 :             if(waifw[from][to]&gt;0)</span></a>
+<a name="329"><span class="lineNum">     329 </span>            :             {</a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineNoCov">          0 :                 quarantined += age_data.waifw_home[from][to]/waifw[from][to];</span></a>
+<a name="331"><span class="lineNum">     331 </span>            :             } </a>
+<a name="332"><span class="lineNum">     332 </span>            :             else</a>
+<a name="333"><span class="lineNum">     333 </span>            :             {</a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineNoCov">          0 :                 quarantined += 0;</span></a>
+<a name="335"><span class="lineNum">     335 </span>            :             }</a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineNoCov">          0 :             beta[from][to] = waifw[from][to] * p_i ;</span></a>
+<a name="337"><span class="lineNum">     337 </span>            :         }</a>
+<a name="338"><span class="lineNum">     338 </span>            :     } </a>
+<a name="339"><span class="lineNum">     339 </span>            :   </a>
+<a name="340"><span class="lineNum">     340 </span>            :     //mean proportion reduction in contacts due to quarantine accounting for compliance</a>
+<a name="341"><span class="lineNum">     341 </span><span class="lineNoCov">          0 :     quarantined = 1 - (quarantined / static_cast&lt;double&gt;(n_agegroup * n_agegroup) ) * (1 - q_val);</span></a>
+<a name="342"><span class="lineNum">     342 </span>            :   </a>
+<a name="343"><span class="lineNum">     343 </span>            :     //compute the pressure from infectious groups, normalizes by group size</a>
+<a name="344"><span class="lineNum">     344 </span>            :     //compute the pressure from hospitalised</a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineNoCov">          0 :     for ( int from{0}; from &lt; n_agegroup; ++from) {</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineNoCov">          0 :         if(from &lt; (n_agegroup-1)) { //n-agegroup-1 to not account for hcw (as different contact)</span></a>
+<a name="347"><span class="lineNum">     347 </span>            :             // are considered those that are infectious pre-clinical, asymp, tested or symptomatic only</a>
+<a name="348"><span class="lineNum">     348 </span>            :             // asym are infectious pre-clinical and asymptomatic</a>
+<a name="349"><span class="lineNum">     349 </span>            :             // sym are infectious plus those that are tested positive</a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineNoCov">          0 :             int tot_asym = static_cast&lt;int&gt;(pops[from].I_p + u_val * (pops[from].I1 + pops[from].I2 + pops[from].I3 + pops[from].I4 ));</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineNoCov">          0 :             int tot_sym = pops[from].I_t + pops[from].I_s1 + pops[from].I_s2 + pops[from].I_s3 + pops[from].I_s4;</span></a>
+<a name="352"><span class="lineNum">     352 </span>            : </a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineNoCov">          0 :             I_mat[from] = static_cast&lt;double&gt;(tot_asym) + (1-quarantined) * static_cast&lt;double&gt;(tot_sym);</span></a>
+<a name="354"><span class="lineNum">     354 </span>            :             //normalisation shouldnt account for dead individuals       </a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineNoCov">          0 :             const int tot_pop = accumulate_compartments(pops[from]);</span></a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineNoCov">          0 :             I_mat[from] = static_cast&lt;double&gt;(I_mat[from]) / static_cast&lt;double&gt;(tot_pop); </span></a>
+<a name="357"><span class="lineNum">     357 </span>            :         }</a>
+<a name="358"><span class="lineNum">     358 </span>            :         //sum up of number of hospitalised cases (frail and non-frail)</a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineNoCov">          0 :         inf_hosp+= pops[from].H ;</span></a>
+<a name="360"><span class="lineNum">     360 </span>            :     }</a>
+<a name="361"><span class="lineNum">     361 </span>            : </a>
+<a name="362"><span class="lineNum">     362 </span>            :     //sum up infectious pressure from each age group</a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineNoCov">          0 :     for ( int to{0}; to &lt; (n_agegroup); ++to) {</span></a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineNoCov">          0 :         for(int from{0}; from &lt; (n_agegroup-1); ++from){ //assume perfect self isolation and regular testing of infected HCW if infected</span></a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineNoCov">          0 :             lambda[to] += ( beta[to][from]*I_mat[from] );</span></a>
+<a name="366"><span class="lineNum">     366 </span>            :         }</a>
+<a name="367"><span class="lineNum">     367 </span>            :     }</a>
+<a name="368"><span class="lineNum">     368 </span>            : </a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineNoCov">          0 :     const int tot_pop = accumulate_compartments(pops[n_agegroup-1]);</span></a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineNoCov">          0 :     lambda[n_agegroup-1] = p_hcw * c_hcw * (static_cast&lt;double&gt;(inf_hosp)/static_cast&lt;double&gt;(tot_pop) );</span></a>
+<a name="371"><span class="lineNum">     371 </span>            : </a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineNoCov">          0 :     return lambda;</span></a>
+<a name="373"><span class="lineNum">     373 </span>            : }</a>
+<a name="374"><span class="lineNum">     374 </span>            : </a>
+<a name="375"><span class="lineNum">     375 </span>            : } // namespace Model</a>
+<a name="376"><span class="lineNum">     376 </span>            : } // namespace EERAModel</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.14</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
