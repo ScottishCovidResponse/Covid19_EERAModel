@@ -1,0 +1,216 @@
+\hypertarget{classEERAModel_1_1Random_1_1RNGInterface}{}\doxysection{E\+E\+R\+A\+Model\+::Random\+::R\+N\+G\+Interface Class Reference}
+\label{classEERAModel_1_1Random_1_1RNGInterface}\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+
+
+Abstract interface to a random number generator.  
+
+
+
+
+{\ttfamily \#include $<$Random.\+h$>$}
+
+
+
+Inheritance diagram for E\+E\+R\+A\+Model\+::Random\+::R\+N\+G\+Interface\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classEERAModel_1_1Random_1_1RNGInterface__inherit__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_a67d4c525bbe656de298daea4742f2ed8}\label{classEERAModel_1_1Random_1_1RNGInterface_a67d4c525bbe656de298daea4742f2ed8}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface}{R\+N\+G\+Interface}} $>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_ae816a001ebdafb8225079b39046b9cec}{Flat}} (double a, double b)=0
+\begin{DoxyCompactList}\small\item\em Flat distribution. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_acc3d3bab5098b4462715bb319ae32ae8}{Multinomial}} (size\+\_\+t K, unsigned int N, const double p\mbox{[}$\,$\mbox{]}, unsigned int n\mbox{[}$\,$\mbox{]})=0
+\begin{DoxyCompactList}\small\item\em Multinomial distribution. \end{DoxyCompactList}\item 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_a59d231654bc02719e118eeee6fc88658}{Poisson}} (double mu)=0
+\begin{DoxyCompactList}\small\item\em Poisson distribution. \end{DoxyCompactList}\item 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_a71953b229de5fa32f84f482ca6801cba}{Gamma}} (double a, double b)=0
+\begin{DoxyCompactList}\small\item\em Gamma distribution. \end{DoxyCompactList}\item 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_a6f83914204725ebafcac1a0a031b0a90}{Beta}} (double a, double b)=0
+\begin{DoxyCompactList}\small\item\em Beta distribution. \end{DoxyCompactList}\item 
+virtual unsigned int \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_a10db9c2845fee05978ffb569d49b1614}{Binomial}} (double p, unsigned int n)=0
+\begin{DoxyCompactList}\small\item\em Binomial distribution. \end{DoxyCompactList}\item 
+virtual std\+::mt19937 \& \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNGInterface_aa6b2ab4b31e4770230fd6e0d37946dec}{M\+T19937}} ()=0
+\begin{DoxyCompactList}\small\item\em M\+T19937 generator. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Abstract interface to a random number generator. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_a6f83914204725ebafcac1a0a031b0a90}\label{classEERAModel_1_1Random_1_1RNGInterface_a6f83914204725ebafcac1a0a031b0a90}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Beta@{Beta}}
+\index{Beta@{Beta}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Beta()}{Beta()}}
+{\footnotesize\ttfamily virtual double E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Beta (\begin{DoxyParamCaption}\item[{double}]{a,  }\item[{double}]{b }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Beta distribution. 
+
+Return a random number from a Beta distribution
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & Beta a parameter \\
+\hline
+{\em b} & Beta b parameter\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_abec9aa2d6d708389b9f845efb14eca68}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_a10db9c2845fee05978ffb569d49b1614}\label{classEERAModel_1_1Random_1_1RNGInterface_a10db9c2845fee05978ffb569d49b1614}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Binomial@{Binomial}}
+\index{Binomial@{Binomial}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Binomial()}{Binomial()}}
+{\footnotesize\ttfamily virtual unsigned int E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Binomial (\begin{DoxyParamCaption}\item[{double}]{p,  }\item[{unsigned int}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Binomial distribution. 
+
+Return a random number from a Binomial distribution
+
+
+\begin{DoxyParams}{Parameters}
+{\em p} & Binomial p parameter\+: probability \\
+\hline
+{\em n} & Binomial n parameter\+: the population to sample\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a16697f7ba1352720b84298009788a4d5}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_ae816a001ebdafb8225079b39046b9cec}\label{classEERAModel_1_1Random_1_1RNGInterface_ae816a001ebdafb8225079b39046b9cec}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Flat@{Flat}}
+\index{Flat@{Flat}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Flat()}{Flat()}}
+{\footnotesize\ttfamily virtual double E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Flat (\begin{DoxyParamCaption}\item[{double}]{a,  }\item[{double}]{b }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Flat distribution. 
+
+Return a random number from a flat distribution
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & Lower limit of distribution interval \\
+\hline
+{\em b} & Upper limit of distribution interval\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a7411f896dc4e3405f27b7ca342738fb7}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_a71953b229de5fa32f84f482ca6801cba}\label{classEERAModel_1_1Random_1_1RNGInterface_a71953b229de5fa32f84f482ca6801cba}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Gamma@{Gamma}}
+\index{Gamma@{Gamma}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Gamma()}{Gamma()}}
+{\footnotesize\ttfamily virtual double E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Gamma (\begin{DoxyParamCaption}\item[{double}]{a,  }\item[{double}]{b }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Gamma distribution. 
+
+Return a random number from a Gamma distribution
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & Gamma a parameter \\
+\hline
+{\em b} & Gamma b parameter\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a3fa40f24a98117405afc5d4a33eaf379}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_aa6b2ab4b31e4770230fd6e0d37946dec}\label{classEERAModel_1_1Random_1_1RNGInterface_aa6b2ab4b31e4770230fd6e0d37946dec}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!MT19937@{MT19937}}
+\index{MT19937@{MT19937}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{MT19937()}{MT19937()}}
+{\footnotesize\ttfamily virtual std\+::mt19937\& E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+M\+T19937 (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+M\+T19937 generator. 
+
+Returns a reference to a std\+::mt19937 object
+
+\begin{DoxyReturn}{Returns}
+mt19937 reference 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_acb0b4c96e6021210783a76a4d09471d9}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_acc3d3bab5098b4462715bb319ae32ae8}\label{classEERAModel_1_1Random_1_1RNGInterface_acc3d3bab5098b4462715bb319ae32ae8}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Multinomial@{Multinomial}}
+\index{Multinomial@{Multinomial}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Multinomial()}{Multinomial()}}
+{\footnotesize\ttfamily virtual void E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Multinomial (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{K,  }\item[{unsigned int}]{N,  }\item[{const double}]{p\mbox{[}$\,$\mbox{]},  }\item[{unsigned int}]{n\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Multinomial distribution. 
+
+Return a random number from a multinomial distribution 
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a44095af93dbd2b766c6512608a664926}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNGInterface_a59d231654bc02719e118eeee6fc88658}\label{classEERAModel_1_1Random_1_1RNGInterface_a59d231654bc02719e118eeee6fc88658}} 
+\index{EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}!Poisson@{Poisson}}
+\index{Poisson@{Poisson}!EERAModel::Random::RNGInterface@{EERAModel::Random::RNGInterface}}
+\doxysubsubsection{\texorpdfstring{Poisson()}{Poisson()}}
+{\footnotesize\ttfamily virtual double E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+Interface\+::\+Poisson (\begin{DoxyParamCaption}\item[{double}]{mu }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Poisson distribution. 
+
+Return a random number from a Poisson distribution
+
+
+\begin{DoxyParams}{Parameters}
+{\em mu} & Mean of the distribution\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a61c5d906bcb7676daedd78ebaa3a8701}{E\+E\+R\+A\+Model\+::\+Random\+::\+R\+NG}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Random.\+h\end{DoxyCompactItemize}

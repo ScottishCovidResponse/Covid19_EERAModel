@@ -1,0 +1,92 @@
+\hypertarget{classEERAModel_1_1Random_1_1RNG}{}\doxysection{E\+E\+R\+A\+Model\+::Random\+::R\+NG Class Reference}
+\label{classEERAModel_1_1Random_1_1RNG}\index{EERAModel::Random::RNG@{EERAModel::Random::RNG}}
+
+
+Wrapper for the G\+NU Scientific Library random number generator.  
+
+
+
+
+{\ttfamily \#include $<$Random.\+h$>$}
+
+
+
+Inheritance diagram for E\+E\+R\+A\+Model\+::Random\+::R\+NG\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classEERAModel_1_1Random_1_1RNG__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for E\+E\+R\+A\+Model\+::Random\+::R\+NG\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classEERAModel_1_1Random_1_1RNG__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_ab7fd82d0adbabefe1f813b36f4a96b10}\label{classEERAModel_1_1Random_1_1RNG_ab7fd82d0adbabefe1f813b36f4a96b10}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG}{R\+NG}} $>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_ace3ca552a68d28a8778aa1cc6770a43d}{R\+NG}} (unsigned long int \mbox{\hyperlink{structEERAModel_1_1seed}{seed}})
+\begin{DoxyCompactList}\small\item\em Contructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_a7411f896dc4e3405f27b7ca342738fb7}\label{classEERAModel_1_1Random_1_1RNG_a7411f896dc4e3405f27b7ca342738fb7}} 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a7411f896dc4e3405f27b7ca342738fb7}{Flat}} (double a, double b) override
+\begin{DoxyCompactList}\small\item\em Flat distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_a44095af93dbd2b766c6512608a664926}\label{classEERAModel_1_1Random_1_1RNG_a44095af93dbd2b766c6512608a664926}} 
+virtual void \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a44095af93dbd2b766c6512608a664926}{Multinomial}} (size\+\_\+t K, unsigned int N, const double p\mbox{[}$\,$\mbox{]}, unsigned int n\mbox{[}$\,$\mbox{]}) override
+\begin{DoxyCompactList}\small\item\em Multinomial distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_a61c5d906bcb7676daedd78ebaa3a8701}\label{classEERAModel_1_1Random_1_1RNG_a61c5d906bcb7676daedd78ebaa3a8701}} 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a61c5d906bcb7676daedd78ebaa3a8701}{Poisson}} (double mu) override
+\begin{DoxyCompactList}\small\item\em Poisson distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_a3fa40f24a98117405afc5d4a33eaf379}\label{classEERAModel_1_1Random_1_1RNG_a3fa40f24a98117405afc5d4a33eaf379}} 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a3fa40f24a98117405afc5d4a33eaf379}{Gamma}} (double a, double b) override
+\begin{DoxyCompactList}\small\item\em Gamma distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_abec9aa2d6d708389b9f845efb14eca68}\label{classEERAModel_1_1Random_1_1RNG_abec9aa2d6d708389b9f845efb14eca68}} 
+virtual double \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_abec9aa2d6d708389b9f845efb14eca68}{Beta}} (double a, double b) override
+\begin{DoxyCompactList}\small\item\em Beta distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_a16697f7ba1352720b84298009788a4d5}\label{classEERAModel_1_1Random_1_1RNG_a16697f7ba1352720b84298009788a4d5}} 
+virtual unsigned int \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_a16697f7ba1352720b84298009788a4d5}{Binomial}} (double p, unsigned int n) override
+\begin{DoxyCompactList}\small\item\em Binomial distribution override. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_acb0b4c96e6021210783a76a4d09471d9}\label{classEERAModel_1_1Random_1_1RNG_acb0b4c96e6021210783a76a4d09471d9}} 
+virtual std\+::mt19937 \& \mbox{\hyperlink{classEERAModel_1_1Random_1_1RNG_acb0b4c96e6021210783a76a4d09471d9}{M\+T19937}} () override
+\begin{DoxyCompactList}\small\item\em M\+T19937 override. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Wrapper for the G\+NU Scientific Library random number generator. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Random_1_1RNG_ace3ca552a68d28a8778aa1cc6770a43d}\label{classEERAModel_1_1Random_1_1RNG_ace3ca552a68d28a8778aa1cc6770a43d}} 
+\index{EERAModel::Random::RNG@{EERAModel::Random::RNG}!RNG@{RNG}}
+\index{RNG@{RNG}!EERAModel::Random::RNG@{EERAModel::Random::RNG}}
+\doxysubsubsection{\texorpdfstring{RNG()}{RNG()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Random\+::\+R\+N\+G\+::\+R\+NG (\begin{DoxyParamCaption}\item[{unsigned long int}]{seed }\end{DoxyParamCaption})}
+
+
+
+Contructor. 
+
+Sets up a handle for the underlying G\+SL and S\+TL random number generator. Seeds the randomiser with the supplied seed
+
+
+\begin{DoxyParams}{Parameters}
+{\em seed} & Seed value \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/Random.\+h\item 
+src/Random.\+cpp\end{DoxyCompactItemize}

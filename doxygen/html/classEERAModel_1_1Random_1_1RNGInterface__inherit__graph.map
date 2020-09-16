@@ -1,0 +1,4 @@
+<map id="EERAModel::Random::RNGInterface" name="EERAModel::Random::RNGInterface">
+<area shape="rect" id="node1" title="Abstract interface to a random number generator." alt="" coords="19,5,186,47"/>
+<area shape="rect" id="node2" href="$classEERAModel_1_1Random_1_1RNG.html" title="Wrapper for the GNU Scientific Library random number generator." alt="" coords="5,95,200,121"/>
+</map>

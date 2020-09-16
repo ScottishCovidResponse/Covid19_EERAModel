@@ -1,0 +1,6 @@
+<map id="EERAModel::InferenceConfig" name="EERAModel::InferenceConfig">
+<area shape="rect" id="node1" title="Configuration for an inference config run." alt="" coords="185,109,392,136"/>
+<area shape="rect" id="node2" href="$structEERAModel_1_1params.html" title="Structure for fixed parameters." alt="" coords="5,13,159,39"/>
+<area shape="rect" id="node3" href="$structEERAModel_1_1ObservationsForInference.html" title="Observations for Inference framework." alt="" coords="183,5,394,47"/>
+<area shape="rect" id="node4" href="$structEERAModel_1_1seed.html" title="Structure for seed settings." alt="" coords="419,13,553,39"/>
+</map>

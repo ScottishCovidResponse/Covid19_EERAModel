@@ -1,0 +1,75 @@
+\hypertarget{namespaceEERAModel_1_1Inference}{}\doxysection{E\+E\+R\+A\+Model\+::Inference Namespace Reference}
+\label{namespaceEERAModel_1_1Inference}\index{EERAModel::Inference@{EERAModel::Inference}}
+
+
+Namespace handling inference paramaters.  
+
+
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceFramework}{Inference\+Framework}}
+\begin{DoxyCompactList}\small\item\em Parameter inference framework. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParameterGenerator}{Inference\+Parameter\+Generator}}
+\begin{DoxyCompactList}\small\item\em Generate inference parameter sets on demand. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator}{Inference\+Particle\+Generator}}
+\begin{DoxyCompactList}\small\item\em Generate inference particles on demand. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1KernelWindow}{Kernel\+Window}} $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Inference_ab8e33f2c10847aea8b19d4e88a80146f}{Compute\+Kernel\+Window}} (int n\+Par, const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ \&particle\+List, double kernel\+Factor)
+\begin{DoxyCompactList}\small\item\em Compute the Kernel Windows for each inference parameter. \end{DoxyCompactList}\item 
+std\+::discrete\+\_\+distribution$<$ int $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Inference_a401f87e364e87066cfc6f721be445a18}{Compute\+Weight\+Distribution}} (const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{E\+E\+R\+A\+Model\+::particle}} $>$ \&particle\+List)
+\begin{DoxyCompactList}\small\item\em Compute weight distribution. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Namespace handling inference paramaters. 
+
+This namespace contains functions to manage and generate inference parameter sets which setup the model behaviour. 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Inference_ab8e33f2c10847aea8b19d4e88a80146f}\label{namespaceEERAModel_1_1Inference_ab8e33f2c10847aea8b19d4e88a80146f}} 
+\index{EERAModel::Inference@{EERAModel::Inference}!ComputeKernelWindow@{ComputeKernelWindow}}
+\index{ComputeKernelWindow@{ComputeKernelWindow}!EERAModel::Inference@{EERAModel::Inference}}
+\doxysubsubsection{\texorpdfstring{ComputeKernelWindow()}{ComputeKernelWindow()}}
+{\footnotesize\ttfamily std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1KernelWindow}{Kernel\+Window}} $>$ E\+E\+R\+A\+Model\+::\+Inference\+::\+Compute\+Kernel\+Window (\begin{DoxyParamCaption}\item[{int}]{n\+Par,  }\item[{const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ \&}]{particle\+List,  }\item[{double}]{kernel\+Factor }\end{DoxyParamCaption})}
+
+
+
+Compute the Kernel Windows for each inference parameter. 
+
+Calculates the kernel window (kernel, max limit and min limit) for each inference parameter, based on a set of previously accepted inference particles.
+
+
+\begin{DoxyParams}{Parameters}
+{\em n\+Par} & Number of parameters to compute kernel for \\
+\hline
+{\em particle\+List} & List of previously accepted particles \\
+\hline
+{\em kernel\+Factor} & Common kernel multiplicative factor\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+List of computed kernel windows for each inference parameter 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Inference_a401f87e364e87066cfc6f721be445a18}\label{namespaceEERAModel_1_1Inference_a401f87e364e87066cfc6f721be445a18}} 
+\index{EERAModel::Inference@{EERAModel::Inference}!ComputeWeightDistribution@{ComputeWeightDistribution}}
+\index{ComputeWeightDistribution@{ComputeWeightDistribution}!EERAModel::Inference@{EERAModel::Inference}}
+\doxysubsubsection{\texorpdfstring{ComputeWeightDistribution()}{ComputeWeightDistribution()}}
+{\footnotesize\ttfamily std\+::discrete\+\_\+distribution$<$ int $>$ E\+E\+R\+A\+Model\+::\+Inference\+::\+Compute\+Weight\+Distribution (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{E\+E\+R\+A\+Model\+::particle}} $>$ \&}]{particle\+List }\end{DoxyParamCaption})}
+
+
+
+Compute weight distribution. 
+
+Create the discrete distribution of the weights for the \char`\"{}importance sampling\char`\"{} process
+
+
+\begin{DoxyParams}{Parameters}
+{\em particle\+List} & List of previously accepted particles\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Weight distribution 
+\end{DoxyReturn}

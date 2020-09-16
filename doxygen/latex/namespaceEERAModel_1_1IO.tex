@@ -1,0 +1,707 @@
+\hypertarget{namespaceEERAModel_1_1IO}{}\doxysection{E\+E\+R\+A\+Model\+::IO Namespace Reference}
+\label{namespaceEERAModel_1_1IO}\index{EERAModel::IO@{EERAModel::IO}}
+
+
+Namespace containing functions related to input/output of data.  
+
+
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classEERAModel_1_1IO_1_1IOException}{I\+O\+Exception}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ae018e292cca3b2e24e2b7c614923da83}\label{namespaceEERAModel_1_1IO_ae018e292cca3b2e24e2b7c614923da83}} 
+void {\bfseries Import\+Consistency\+Check} (const std\+::string \&file\+Path, const unsigned int \&axis\+Length, const unsigned int \&expected\+Value, const std\+::string \&axis\+ID)
+\item 
+\mbox{\hyperlink{structEERAModel_1_1ValidationParameters}{Validation\+Parameters}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a75b675195ced3932a681647243ddcb69}{Import\+Validation\+Parameters}} (const std\+::string \&config\+Dir)
+\begin{DoxyCompactList}\small\item\em Import parameters used for validating observation data. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a8a6b28d9caed094369a609157406614e}{Read\+Seed\+Settings}} (const std\+::string \&Params\+Path, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read seed settings from the parameters file. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1params}{params}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_afc67dc37daf79622e85f9ee64fb61c60}{Read\+Fixed\+Model\+Parameters}} (const std\+::string \&Params\+Path)
+\begin{DoxyCompactList}\small\item\em Read the fixed model parameters from the parameters file. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_aef8009b50fd573620fc72e4cd5143a5d}{Read\+Supplementary\+Parameters}} (const std\+::string \&Params\+Path, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read supplementary parameters used for main.\+cpp. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1CommonModelInputParameters}{Common\+Model\+Input\+Parameters}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a4266c7e777ae86d135596a70ef8aba64}{Read\+Common\+Parameters}} (const std\+::string \&Params\+Path)
+\begin{DoxyCompactList}\small\item\em Read common model input parameters used by all model types. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a44cc433753c8b9b6a716c688dfea7d59}{Read\+Inference\+Config}} (const std\+::string \&config\+Dir, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read parameters for the inference mode. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1PredictionConfig}{Prediction\+Config}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a9877be66488d28582ca79123531ce61d}{Read\+Prediction\+Config}} (const std\+::string \&config\+Dir, int index, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read prediction framework configuration from input files. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1ObservationsForInference}{Observations\+For\+Inference}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a8a812e85992a43d8d476c92f79413ce5}{Read\+Inference\+Observations}} (const std\+::string \&config\+Dir, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read observations needed for \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} framework. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \mbox{\hyperlink{namespaceEERAModel_1_1IO_a1e97d4fb365027bb841676d0b0dde995}{Read\+Model\+Observations}} (const std\+::string \&config\+Dir, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Read observations needed for all models. \end{DoxyCompactList}\item 
+std\+::vector$<$ double $>$ \mbox{\hyperlink{namespaceEERAModel_1_1IO_a547a41c994704e1acf21d3ceb7251469}{Read\+Posterior\+Parameters\+From\+File}} (const std\+::string \&file\+Path, int set\+\_\+selection)
+\begin{DoxyCompactList}\small\item\em Read model posterior parameters from a C\+SV file. \end{DoxyCompactList}\item 
+std\+::vector$<$ double $>$ \mbox{\hyperlink{namespaceEERAModel_1_1IO_af511839e05aa4d4dfb7603be97f055ea}{Read\+Prediction\+Parameters\+From\+File}} (const std\+::string \&file\+Path, int set\+\_\+selection)
+\begin{DoxyCompactList}\small\item\em Read model parameters from a C\+SV file. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a4bcd3657741e0f47c258cefbf9cf2132}\label{namespaceEERAModel_1_1IO_a4bcd3657741e0f47c258cefbf9cf2132}} 
+void {\bfseries Write\+Outputs\+To\+Files} (int smc, int herd\+\_\+id, int Nparticle, int n\+Par, const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ \&particle\+List, const std\+::string \&out\+Dir\+Path, const Utilities\+::logging\+\_\+stream\+::\+Sptr \&log)
+\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_ab1fda82820ff661cbf4ee330f6a0c4f7}{Write\+Predictions\+To\+Files}} (std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1Status}{Status}} $>$ statuses, const std\+::string \&out\+Dir\+Path, const Utilities\+::logging\+\_\+stream\+::\+Sptr \&log)
+\begin{DoxyCompactList}\small\item\em Writes Prediction outputs to files. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a24a7a9d54f0c74f563965f1df42e24e9}{Write\+Prediction\+Full\+Header}} (std\+::ostream \&os)
+\begin{DoxyCompactList}\small\item\em Write header row for prediction full outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a466c844faf6abf45d2790e51456a3bdd}{Write\+Inference\+Ends\+Header}} (std\+::ostream \&os)
+\begin{DoxyCompactList}\small\item\em Write header row for inference end outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a9266e74c366e7bad8832f5d3e6896e83}{Write\+Inference\+Particles\+Header}} (std\+::ostream \&os)
+\begin{DoxyCompactList}\small\item\em Write header row for inference particles outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a77bb135bbb18e625b2e55e17831a7bdd}{Write\+Prediction\+Full\+Row}} (std\+::ostream \&os, int iter, int day, int age\+\_\+group, const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&comp)
+\begin{DoxyCompactList}\small\item\em Write data row for prediction full outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a9083dbb40d92f60c21442e89c62941f5}{Write\+Inference\+Ends\+Row}} (std\+::ostream \&os, int iter, int age\+\_\+group, const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&comp)
+\begin{DoxyCompactList}\small\item\em Write data row for inference ends outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_ab92afa19b193c839ba17dc3f757262f4}{Write\+Inference\+Particles\+Row}} (std\+::ostream \&os, int iter, const \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} \mbox{\hyperlink{structEERAModel_1_1particle}{particle}})
+\begin{DoxyCompactList}\small\item\em Write data row for inference ends outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a87fa588b3f5ff37374eb9c453a7b6d7c}{Write\+Simu\+Header}} (std\+::ostream \&os)
+\begin{DoxyCompactList}\small\item\em Write header row for prediction simulation outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a649d568ef42eb5397905da947c29dbb3}{Write\+Simu\+Row}} (std\+::ostream \&os, int iter, int day, int inc\+\_\+case, int inc\+\_\+death\+\_\+hospital, int inc\+\_\+death)
+\begin{DoxyCompactList}\small\item\em Write header row for prediction simulation outputs. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_ae233cd568a029577f001d02b7738252a}{Log\+Fixed\+Parameters}} (const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&paramlist, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log fixed parameters. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a47100d4a3893be29fb04c225770c8e69}{Log\+Randomiser\+Settings}} (const \mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} \&\mbox{\hyperlink{structEERAModel_1_1params}{params}}, unsigned long randomiser\+\_\+seed, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log randomiser settings. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a28ff3176d2c581e59d653621da404fe2}{Log\+Seed\+Settings}} (const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&\mbox{\hyperlink{structEERAModel_1_1params}{params}}, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log model seed settings. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a62c15716dc717292a19af390aa4b0a5f}{Log\+Prediction\+Config}} (const \mbox{\hyperlink{structEERAModel_1_1PredictionConfig}{Prediction\+Config}} \&config, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log prediction configuration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_acacd53392b08533f0905a4a652113563}{Log\+Git\+Version\+Info}} (Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log Git repository version information. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a1aecf2cca388d8ea02f912a6fbbdbaf7}{Log\+Dependency\+Version\+Info}} (Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log versions of project dependencies. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a9e66ed9b7c72ae3151c11acb07604504}{Output\+Fixed\+Parameters}} (Utilities\+::logging\+\_\+stream\+::\+Sptr \&log, const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&paramlist)
+\begin{DoxyCompactList}\small\item\em Write formatted fixed parameters to an output logging stream. \end{DoxyCompactList}\item 
+std\+::string \mbox{\hyperlink{namespaceEERAModel_1_1IO_ad0a78003010e472a524837e47f31bf73}{Comp\+To\+String}} (const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&comp)
+\begin{DoxyCompactList}\small\item\em Convert a set of disease compartments to a string. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a8e44db31e48cc4dacc066e80385504b5}{Import\+Consistency\+Check}} (const std\+::string \&file\+Path, const unsigned int \&axis\+Length, const unsigned int \&expected\+Value)
+\begin{DoxyCompactList}\small\item\em Perform consistency checks on imported data from file\+Path. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{namespaceEERAModel_1_1IO_a8563ecdc9cdc94e8c0f6a7118e33c0ad}{Write\+Outputs\+To\+Files}} (int smc, int herd\+\_\+id, int Nparticle, int n\+Par, const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{E\+E\+R\+A\+Model\+::particle}} $>$ \&particle\+List, const std\+::string \&out\+Dir\+Path, const Utilities\+::logging\+\_\+stream\+::\+Sptr \&log)
+\begin{DoxyCompactList}\small\item\em Write outputs to files. \end{DoxyCompactList}\item 
+{\footnotesize template$<$typename Parse\+Variable\+Type $>$ }\\Parse\+Variable\+Type \mbox{\hyperlink{namespaceEERAModel_1_1IO_ab54f9471454ad2cd0565fe8b43344422}{Read\+Number\+From\+File}} (std\+::string Setting\+Name, std\+::string Setting\+Category, const std\+::string \&file\+Path)
+\begin{DoxyCompactList}\small\item\em Extract a numeric value from an I\+NI file. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Namespace containing functions related to input/output of data. 
+
+This namespace contains functions which handle the reading of data from various input files. 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ad0a78003010e472a524837e47f31bf73}\label{namespaceEERAModel_1_1IO_ad0a78003010e472a524837e47f31bf73}} 
+\index{EERAModel::IO@{EERAModel::IO}!CompToString@{CompToString}}
+\index{CompToString@{CompToString}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{CompToString()}{CompToString()}}
+{\footnotesize\ttfamily std\+::string E\+E\+R\+A\+Model\+::\+I\+O\+::\+Comp\+To\+String (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&}]{comp }\end{DoxyParamCaption})}
+
+
+
+Convert a set of disease compartments to a string. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em comp} & \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} to convert\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} in the form \char`\"{}\+S, E, ...\char`\"{} 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a8e44db31e48cc4dacc066e80385504b5}\label{namespaceEERAModel_1_1IO_a8e44db31e48cc4dacc066e80385504b5}} 
+\index{EERAModel::IO@{EERAModel::IO}!ImportConsistencyCheck@{ImportConsistencyCheck}}
+\index{ImportConsistencyCheck@{ImportConsistencyCheck}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ImportConsistencyCheck()}{ImportConsistencyCheck()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Import\+Consistency\+Check (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{file\+Path,  }\item[{const unsigned int \&}]{axis\+Length,  }\item[{const unsigned int \&}]{expected\+Value }\end{DoxyParamCaption})}
+
+
+
+Perform consistency checks on imported data from file\+Path. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em file\+Path} & Path to imported data \\
+\hline
+{\em axis\+Length} & Length of axis to be checked \\
+\hline
+{\em expected\+Length} & Expected Length of axis to check against \\
+\hline
+{\em axis\+ID} & String holding axis identifier (\char`\"{}rows\char`\"{} or \char`\"{}columns\char`\"{}) \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a75b675195ced3932a681647243ddcb69}\label{namespaceEERAModel_1_1IO_a75b675195ced3932a681647243ddcb69}} 
+\index{EERAModel::IO@{EERAModel::IO}!ImportValidationParameters@{ImportValidationParameters}}
+\index{ImportValidationParameters@{ImportValidationParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ImportValidationParameters()}{ImportValidationParameters()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1ValidationParameters}{Validation\+Parameters}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Import\+Validation\+Parameters (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{config\+Dir }\end{DoxyParamCaption})}
+
+
+
+Import parameters used for validating observation data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config\+Dir} & Directory containing I\+NI file\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Validation parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a1aecf2cca388d8ea02f912a6fbbdbaf7}\label{namespaceEERAModel_1_1IO_a1aecf2cca388d8ea02f912a6fbbdbaf7}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogDependencyVersionInfo@{LogDependencyVersionInfo}}
+\index{LogDependencyVersionInfo@{LogDependencyVersionInfo}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogDependencyVersionInfo()}{LogDependencyVersionInfo()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Dependency\+Version\+Info (\begin{DoxyParamCaption}\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log versions of project dependencies. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ae233cd568a029577f001d02b7738252a}\label{namespaceEERAModel_1_1IO_ae233cd568a029577f001d02b7738252a}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogFixedParameters@{LogFixedParameters}}
+\index{LogFixedParameters@{LogFixedParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogFixedParameters()}{LogFixedParameters()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Fixed\+Parameters (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&}]{paramlist,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log fixed parameters. 
+
+Log the fixed parameters of a model
+
+
+\begin{DoxyParams}{Parameters}
+{\em paramlist} & \mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} fixed parameters \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_acacd53392b08533f0905a4a652113563}\label{namespaceEERAModel_1_1IO_acacd53392b08533f0905a4a652113563}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogGitVersionInfo@{LogGitVersionInfo}}
+\index{LogGitVersionInfo@{LogGitVersionInfo}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogGitVersionInfo()}{LogGitVersionInfo()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Git\+Version\+Info (\begin{DoxyParamCaption}\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log Git repository version information. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a62c15716dc717292a19af390aa4b0a5f}\label{namespaceEERAModel_1_1IO_a62c15716dc717292a19af390aa4b0a5f}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogPredictionConfig@{LogPredictionConfig}}
+\index{LogPredictionConfig@{LogPredictionConfig}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogPredictionConfig()}{LogPredictionConfig()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Prediction\+Config (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1PredictionConfig}{Prediction\+Config}} \&}]{config,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log prediction configuration. 
+
+Log the settings of a prediction run
+
+
+\begin{DoxyParams}{Parameters}
+{\em params} & \mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} input parameters \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a47100d4a3893be29fb04c225770c8e69}\label{namespaceEERAModel_1_1IO_a47100d4a3893be29fb04c225770c8e69}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogRandomiserSettings@{LogRandomiserSettings}}
+\index{LogRandomiserSettings@{LogRandomiserSettings}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogRandomiserSettings()}{LogRandomiserSettings()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Randomiser\+Settings (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} \&}]{params,  }\item[{unsigned long}]{randomiser\+\_\+seed,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log randomiser settings. 
+
+Log the settings of the configured randomiser
+
+
+\begin{DoxyParams}{Parameters}
+{\em params} & Supplementary input parameters \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a28ff3176d2c581e59d653621da404fe2}\label{namespaceEERAModel_1_1IO_a28ff3176d2c581e59d653621da404fe2}} 
+\index{EERAModel::IO@{EERAModel::IO}!LogSeedSettings@{LogSeedSettings}}
+\index{LogSeedSettings@{LogSeedSettings}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{LogSeedSettings()}{LogSeedSettings()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Log\+Seed\+Settings (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&}]{params,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log model seed settings. 
+
+Log the settings of the model disease seeding
+
+
+\begin{DoxyParams}{Parameters}
+{\em params} & \mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} input parameters \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a9e66ed9b7c72ae3151c11acb07604504}\label{namespaceEERAModel_1_1IO_a9e66ed9b7c72ae3151c11acb07604504}} 
+\index{EERAModel::IO@{EERAModel::IO}!OutputFixedParameters@{OutputFixedParameters}}
+\index{OutputFixedParameters@{OutputFixedParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{OutputFixedParameters()}{OutputFixedParameters()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Output\+Fixed\+Parameters (\begin{DoxyParamCaption}\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr \&}]{log,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&}]{paramlist }\end{DoxyParamCaption})}
+
+
+
+Write formatted fixed parameters to an output logging stream. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em log} & Output logger \\
+\hline
+{\em paramlist} & Fixed parameters\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Output logger 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a4266c7e777ae86d135596a70ef8aba64}\label{namespaceEERAModel_1_1IO_a4266c7e777ae86d135596a70ef8aba64}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadCommonParameters@{ReadCommonParameters}}
+\index{ReadCommonParameters@{ReadCommonParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadCommonParameters()}{ReadCommonParameters()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1CommonModelInputParameters}{Common\+Model\+Input\+Parameters}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Common\+Parameters (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{Params\+Path }\end{DoxyParamCaption})}
+
+
+
+Read common model input parameters used by all model types. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Params\+Path} & Path to I\+NI file\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Common model input parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_afc67dc37daf79622e85f9ee64fb61c60}\label{namespaceEERAModel_1_1IO_afc67dc37daf79622e85f9ee64fb61c60}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadFixedModelParameters@{ReadFixedModelParameters}}
+\index{ReadFixedModelParameters@{ReadFixedModelParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadFixedModelParameters()}{ReadFixedModelParameters()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1params}{params}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Fixed\+Model\+Parameters (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{Params\+Path }\end{DoxyParamCaption})}
+
+
+
+Read the fixed model parameters from the parameters file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Params\+Path} & Path to I\+NI file\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Parameters data structure 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a44cc433753c8b9b6a716c688dfea7d59}\label{namespaceEERAModel_1_1IO_a44cc433753c8b9b6a716c688dfea7d59}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadInferenceConfig@{ReadInferenceConfig}}
+\index{ReadInferenceConfig@{ReadInferenceConfig}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadInferenceConfig()}{ReadInferenceConfig()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Inference\+Config (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{config\+Dir,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read parameters for the inference mode. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config\+Dir} & Directory containing the configuration and data files \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a8a812e85992a43d8d476c92f79413ce5}\label{namespaceEERAModel_1_1IO_a8a812e85992a43d8d476c92f79413ce5}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadInferenceObservations@{ReadInferenceObservations}}
+\index{ReadInferenceObservations@{ReadInferenceObservations}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadInferenceObservations()}{ReadInferenceObservations()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1ObservationsForInference}{Observations\+For\+Inference}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Inference\+Observations (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{config\+Dir,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read observations needed for \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} framework. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config\+Dir} & Directory containing the data files \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Observations}{Observations}} needed for \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} framework 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a1e97d4fb365027bb841676d0b0dde995}\label{namespaceEERAModel_1_1IO_a1e97d4fb365027bb841676d0b0dde995}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadModelObservations@{ReadModelObservations}}
+\index{ReadModelObservations@{ReadModelObservations}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadModelObservations()}{ReadModelObservations()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Model\+Observations (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{config\+Dir,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read observations needed for all models. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config\+Dir} & Directory containing the data files \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Observations}{Observations}} needed for all models 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ab54f9471454ad2cd0565fe8b43344422}\label{namespaceEERAModel_1_1IO_ab54f9471454ad2cd0565fe8b43344422}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadNumberFromFile@{ReadNumberFromFile}}
+\index{ReadNumberFromFile@{ReadNumberFromFile}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadNumberFromFile()}{ReadNumberFromFile()}}
+{\footnotesize\ttfamily template$<$typename Parse\+Variable\+Type $>$ \\
+Parse\+Variable\+Type E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Number\+From\+File (\begin{DoxyParamCaption}\item[{std\+::string}]{Setting\+Name,  }\item[{std\+::string}]{Setting\+Category,  }\item[{const std\+::string \&}]{file\+Path }\end{DoxyParamCaption})}
+
+
+
+Extract a numeric value from an I\+NI file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Setting\+Name} & Name of value to retrieve \\
+\hline
+{\em Setting\+Category} & Name of category in which the value is located in the I\+NI file \\
+\hline
+{\em file\+Path} & Path to the I\+NI file\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Numeric value (supported types are int or double) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a547a41c994704e1acf21d3ceb7251469}\label{namespaceEERAModel_1_1IO_a547a41c994704e1acf21d3ceb7251469}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadPosteriorParametersFromFile@{ReadPosteriorParametersFromFile}}
+\index{ReadPosteriorParametersFromFile@{ReadPosteriorParametersFromFile}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadPosteriorParametersFromFile()}{ReadPosteriorParametersFromFile()}}
+{\footnotesize\ttfamily std\+::vector$<$ double $>$ E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Posterior\+Parameters\+From\+File (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{file\+Path,  }\item[{int}]{set\+\_\+selection }\end{DoxyParamCaption})}
+
+
+
+Read model posterior parameters from a C\+SV file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em file\+Path} & Path to C\+SV file \\
+\hline
+{\em set\+\_\+selection} & Selection of row in C\+SV file for posterior parameters\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} posterior parameters 
+\end{DoxyReturn}
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000001}{Todo}}]Replace with constant from inference parameter description class \end{DoxyRefDesc}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a9877be66488d28582ca79123531ce61d}\label{namespaceEERAModel_1_1IO_a9877be66488d28582ca79123531ce61d}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadPredictionConfig@{ReadPredictionConfig}}
+\index{ReadPredictionConfig@{ReadPredictionConfig}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadPredictionConfig()}{ReadPredictionConfig()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1PredictionConfig}{Prediction\+Config}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Prediction\+Config (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{config\+Dir,  }\item[{int}]{index,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read prediction framework configuration from input files. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config\+Dir} & Directory containing the configuration and data files \\
+\hline
+{\em index} & Index of the parameter set to select from the posterior parameters file \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Prediction configuration 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_af511839e05aa4d4dfb7603be97f055ea}\label{namespaceEERAModel_1_1IO_af511839e05aa4d4dfb7603be97f055ea}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadPredictionParametersFromFile@{ReadPredictionParametersFromFile}}
+\index{ReadPredictionParametersFromFile@{ReadPredictionParametersFromFile}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadPredictionParametersFromFile()}{ReadPredictionParametersFromFile()}}
+{\footnotesize\ttfamily std\+::vector$<$ double $>$ E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Prediction\+Parameters\+From\+File (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{file\+Path,  }\item[{int}]{set\+\_\+selection }\end{DoxyParamCaption})}
+
+
+
+Read model parameters from a C\+SV file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em file\+Path} & Path to C\+SV file \\
+\hline
+{\em set\+\_\+selection} & Selection of row in C\+SV file for parameters\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a8a6b28d9caed094369a609157406614e}\label{namespaceEERAModel_1_1IO_a8a6b28d9caed094369a609157406614e}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadSeedSettings@{ReadSeedSettings}}
+\index{ReadSeedSettings@{ReadSeedSettings}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadSeedSettings()}{ReadSeedSettings()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Seed\+Settings (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{Params\+Path,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read seed settings from the parameters file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Params\+Path} & Path to I\+NI file \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Seed settings data structure 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_aef8009b50fd573620fc72e4cd5143a5d}\label{namespaceEERAModel_1_1IO_aef8009b50fd573620fc72e4cd5143a5d}} 
+\index{EERAModel::IO@{EERAModel::IO}!ReadSupplementaryParameters@{ReadSupplementaryParameters}}
+\index{ReadSupplementaryParameters@{ReadSupplementaryParameters}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{ReadSupplementaryParameters()}{ReadSupplementaryParameters()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} E\+E\+R\+A\+Model\+::\+I\+O\+::\+Read\+Supplementary\+Parameters (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{Params\+Path,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Read supplementary parameters used for main.\+cpp. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Params\+Path} & Path to I\+NI file \\
+\hline
+{\em log} & Logger\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Supplementary parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a466c844faf6abf45d2790e51456a3bdd}\label{namespaceEERAModel_1_1IO_a466c844faf6abf45d2790e51456a3bdd}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteInferenceEndsHeader@{WriteInferenceEndsHeader}}
+\index{WriteInferenceEndsHeader@{WriteInferenceEndsHeader}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteInferenceEndsHeader()}{WriteInferenceEndsHeader()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Inference\+Ends\+Header (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os }\end{DoxyParamCaption})}
+
+
+
+Write header row for inference end outputs. 
+
+Writes inference end state file header, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the header to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a9083dbb40d92f60c21442e89c62941f5}\label{namespaceEERAModel_1_1IO_a9083dbb40d92f60c21442e89c62941f5}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteInferenceEndsRow@{WriteInferenceEndsRow}}
+\index{WriteInferenceEndsRow@{WriteInferenceEndsRow}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteInferenceEndsRow()}{WriteInferenceEndsRow()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Inference\+Ends\+Row (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os,  }\item[{int}]{iter,  }\item[{int}]{age\+\_\+group,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&}]{comp }\end{DoxyParamCaption})}
+
+
+
+Write data row for inference ends outputs. 
+
+Writes {\ttfamily iter}, {\ttfamily age\+\_\+group}, followed by the contents of {\ttfamily comp}, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the row to \\
+\hline
+{\em iter} & Iteration number \\
+\hline
+{\em day} & Day number \\
+\hline
+{\em age\+\_\+group} & Age group number \\
+\hline
+{\em comp} & Epidemiological compartments for {\ttfamily age\+\_\+group} \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a9266e74c366e7bad8832f5d3e6896e83}\label{namespaceEERAModel_1_1IO_a9266e74c366e7bad8832f5d3e6896e83}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteInferenceParticlesHeader@{WriteInferenceParticlesHeader}}
+\index{WriteInferenceParticlesHeader@{WriteInferenceParticlesHeader}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteInferenceParticlesHeader()}{WriteInferenceParticlesHeader()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Inference\+Particles\+Header (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os }\end{DoxyParamCaption})}
+
+
+
+Write header row for inference particles outputs. 
+
+Writes inference particle state file header, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the header to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ab92afa19b193c839ba17dc3f757262f4}\label{namespaceEERAModel_1_1IO_ab92afa19b193c839ba17dc3f757262f4}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteInferenceParticlesRow@{WriteInferenceParticlesRow}}
+\index{WriteInferenceParticlesRow@{WriteInferenceParticlesRow}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteInferenceParticlesRow()}{WriteInferenceParticlesRow()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Inference\+Particles\+Row (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os,  }\item[{int}]{iter,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1particle}{particle}}}]{particle }\end{DoxyParamCaption})}
+
+
+
+Write data row for inference ends outputs. 
+
+Writes {\ttfamily iter}, {\ttfamily age\+\_\+group}, followed by the contents of {\ttfamily comp}, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the row to \\
+\hline
+{\em iter} & Iteration number \\
+\hline
+{\em particle} & A particle representing a set of parameters \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a8563ecdc9cdc94e8c0f6a7118e33c0ad}\label{namespaceEERAModel_1_1IO_a8563ecdc9cdc94e8c0f6a7118e33c0ad}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteOutputsToFiles@{WriteOutputsToFiles}}
+\index{WriteOutputsToFiles@{WriteOutputsToFiles}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteOutputsToFiles()}{WriteOutputsToFiles()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Outputs\+To\+Files (\begin{DoxyParamCaption}\item[{int}]{smc,  }\item[{int}]{herd\+\_\+id,  }\item[{int}]{Nparticle,  }\item[{int}]{n\+Par,  }\item[{const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{E\+E\+R\+A\+Model\+::particle}} $>$ \&}]{particle\+List,  }\item[{const std\+::string \&}]{out\+Dir\+Path,  }\item[{const Utilities\+::logging\+\_\+stream\+::\+Sptr \&}]{log }\end{DoxyParamCaption})}
+
+
+
+Write outputs to files. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em smc} & Iteration number \\
+\hline
+{\em herd\+\_\+id} & Herd Id \\
+\hline
+{\em Nparticle} & Number of particles \\
+\hline
+{\em n\+Par} & Number of parameters \\
+\hline
+{\em particle\+List} & Vector of particles to write out \\
+\hline
+{\em out\+Dir\+Path} & Path to the directory in which the output files should be placed \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a24a7a9d54f0c74f563965f1df42e24e9}\label{namespaceEERAModel_1_1IO_a24a7a9d54f0c74f563965f1df42e24e9}} 
+\index{EERAModel::IO@{EERAModel::IO}!WritePredictionFullHeader@{WritePredictionFullHeader}}
+\index{WritePredictionFullHeader@{WritePredictionFullHeader}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WritePredictionFullHeader()}{WritePredictionFullHeader()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Prediction\+Full\+Header (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os }\end{DoxyParamCaption})}
+
+
+
+Write header row for prediction full outputs. 
+
+Writes prediction full file header, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the header to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a77bb135bbb18e625b2e55e17831a7bdd}\label{namespaceEERAModel_1_1IO_a77bb135bbb18e625b2e55e17831a7bdd}} 
+\index{EERAModel::IO@{EERAModel::IO}!WritePredictionFullRow@{WritePredictionFullRow}}
+\index{WritePredictionFullRow@{WritePredictionFullRow}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WritePredictionFullRow()}{WritePredictionFullRow()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Prediction\+Full\+Row (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os,  }\item[{int}]{iter,  }\item[{int}]{day,  }\item[{int}]{age\+\_\+group,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&}]{comp }\end{DoxyParamCaption})}
+
+
+
+Write data row for prediction full outputs. 
+
+Writes {\ttfamily iter}, {\ttfamily day}, {\ttfamily age\+\_\+group}, followed by the contents of {\ttfamily comp}, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the row to \\
+\hline
+{\em iter} & Iteration number \\
+\hline
+{\em day} & Day number \\
+\hline
+{\em age\+\_\+group} & Age group number \\
+\hline
+{\em comp} & Epidemiological compartments for {\ttfamily age\+\_\+group} \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_ab1fda82820ff661cbf4ee330f6a0c4f7}\label{namespaceEERAModel_1_1IO_ab1fda82820ff661cbf4ee330f6a0c4f7}} 
+\index{EERAModel::IO@{EERAModel::IO}!WritePredictionsToFiles@{WritePredictionsToFiles}}
+\index{WritePredictionsToFiles@{WritePredictionsToFiles}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WritePredictionsToFiles()}{WritePredictionsToFiles()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Predictions\+To\+Files (\begin{DoxyParamCaption}\item[{std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1Status}{Status}} $>$}]{statuses,  }\item[{const std\+::string \&}]{out\+Dir\+Path,  }\item[{const Utilities\+::logging\+\_\+stream\+::\+Sptr \&}]{log }\end{DoxyParamCaption})}
+
+
+
+Writes Prediction outputs to files. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em status} & Results of each model run \\
+\hline
+{\em out\+Dir\+Path} & Path to output directory where output files will be stored \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a87fa588b3f5ff37374eb9c453a7b6d7c}\label{namespaceEERAModel_1_1IO_a87fa588b3f5ff37374eb9c453a7b6d7c}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteSimuHeader@{WriteSimuHeader}}
+\index{WriteSimuHeader@{WriteSimuHeader}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteSimuHeader()}{WriteSimuHeader()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Simu\+Header (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os }\end{DoxyParamCaption})}
+
+
+
+Write header row for prediction simulation outputs. 
+
+Writes prediction simulation file header, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the header to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1IO_a649d568ef42eb5397905da947c29dbb3}\label{namespaceEERAModel_1_1IO_a649d568ef42eb5397905da947c29dbb3}} 
+\index{EERAModel::IO@{EERAModel::IO}!WriteSimuRow@{WriteSimuRow}}
+\index{WriteSimuRow@{WriteSimuRow}!EERAModel::IO@{EERAModel::IO}}
+\doxysubsubsection{\texorpdfstring{WriteSimuRow()}{WriteSimuRow()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+I\+O\+::\+Write\+Simu\+Row (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{os,  }\item[{int}]{iter,  }\item[{int}]{day,  }\item[{int}]{inc\+\_\+case,  }\item[{int}]{inc\+\_\+death\+\_\+hospital,  }\item[{int}]{inc\+\_\+death }\end{DoxyParamCaption})}
+
+
+
+Write header row for prediction simulation outputs. 
+
+Writes {\ttfamily iter}, {\ttfamily day}, {\ttfamily inc\+\_\+case}, {\ttfamily inc\+\_\+death\+\_\+hospital}, {\ttfamily inc\+\_\+death}, followed by a newline
+
+
+\begin{DoxyParams}{Parameters}
+{\em os} & Stream to write the header to \\
+\hline
+{\em iter} & Iteration number \\
+\hline
+{\em day} & Day number \\
+\hline
+{\em inc\+\_\+case} & Number of cases \\
+\hline
+{\em inc\+\_\+death\+\_\+hospital} & Deaths in hospital \\
+\hline
+{\em inc\+\_\+death} & Deaths \\
+\hline
+\end{DoxyParams}

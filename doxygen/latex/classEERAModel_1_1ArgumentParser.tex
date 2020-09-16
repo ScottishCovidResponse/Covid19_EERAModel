@@ -1,0 +1,111 @@
+\hypertarget{classEERAModel_1_1ArgumentParser}{}\doxysection{E\+E\+R\+A\+Model\+::Argument\+Parser Class Reference}
+\label{classEERAModel_1_1ArgumentParser}\index{EERAModel::ArgumentParser@{EERAModel::ArgumentParser}}
+
+
+Class for parsing model command line arguments.  
+
+
+
+
+{\ttfamily \#include $<$Argument\+Parser.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1ArgumentParser_aefb37cbd18cfbe9f34465a60fbb43bd8}{Argument\+Parser}} (int argc, const char $\ast$const $\ast$argv)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classEERAModel_1_1ArgumentParser_a1af3084adc12ff52313a6d54e276a6c4}{log\+Arguments}} (Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Log argument values to output. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classEERAModel_1_1ArgumentParser_a13b04d363edfe1c62c3d0a18e7af8ece}{Append\+Options}} (\mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} \&input\+\_\+params)
+\begin{DoxyCompactList}\small\item\em Append specified options to input parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_ad0e978c3c9e4f1a9b51da47d96bc194b}\label{classEERAModel_1_1ArgumentParser_ad0e978c3c9e4f1a9b51da47d96bc194b}} 
+bool {\bfseries run\+Local} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_a0c00ed4577e7ed20353da494214b79df}\label{classEERAModel_1_1ArgumentParser_a0c00ed4577e7ed20353da494214b79df}} 
+std\+::string {\bfseries local\+Source\+Dir} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_adfdde2340d759d24f78fc03d33c3965e}\label{classEERAModel_1_1ArgumentParser_adfdde2340d759d24f78fc03d33c3965e}} 
+\mbox{\hyperlink{namespaceEERAModel_af893a976c559cf47c1982b868fa21147}{Model\+Mode\+Id}} {\bfseries run\+Mode} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_ae11fc5d80ab37fe660805acf2642a6cf}\label{classEERAModel_1_1ArgumentParser_ae11fc5d80ab37fe660805acf2642a6cf}} 
+\mbox{\hyperlink{namespaceEERAModel_a8eff358b3dda365e9b955f739f3dedab}{Model\+Structure\+Id}} {\bfseries model\+Structure} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_aafc0e9c8a50eecc66247540d2d9ccf71}\label{classEERAModel_1_1ArgumentParser_aafc0e9c8a50eecc66247540d2d9ccf71}} 
+std\+::string {\bfseries output\+Dir} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_aee3a8479e35f2598aab84216f44513c6}\label{classEERAModel_1_1ArgumentParser_aee3a8479e35f2598aab84216f44513c6}} 
+int {\bfseries parameter\+Set\+Index} () const
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_af8d479ac44b04657a0fbbdfe7c7fd1c5}\label{classEERAModel_1_1ArgumentParser_af8d479ac44b04657a0fbbdfe7c7fd1c5}} 
+\mbox{\hyperlink{structEERAModel_1_1Arguments}{Arguments}} {\bfseries get\+Args} () const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Class for parsing model command line arguments. 
+
+This class uses the T\+C\+L\+AP library to process command line arguments relating to model structure, execution mode and input locations 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_aefb37cbd18cfbe9f34465a60fbb43bd8}\label{classEERAModel_1_1ArgumentParser_aefb37cbd18cfbe9f34465a60fbb43bd8}} 
+\index{EERAModel::ArgumentParser@{EERAModel::ArgumentParser}!ArgumentParser@{ArgumentParser}}
+\index{ArgumentParser@{ArgumentParser}!EERAModel::ArgumentParser@{EERAModel::ArgumentParser}}
+\doxysubsubsection{\texorpdfstring{ArgumentParser()}{ArgumentParser()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Argument\+Parser\+::\+Argument\+Parser (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{const char $\ast$const $\ast$}]{argv }\end{DoxyParamCaption})}
+
+
+
+Constructor. 
+
+Terminates the application and prints an error message if parsing of command line arguments fails.
+
+
+\begin{DoxyParams}{Parameters}
+{\em argc} & Count of command line arguments \\
+\hline
+{\em argv} & Command line arguments \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_a13b04d363edfe1c62c3d0a18e7af8ece}\label{classEERAModel_1_1ArgumentParser_a13b04d363edfe1c62c3d0a18e7af8ece}} 
+\index{EERAModel::ArgumentParser@{EERAModel::ArgumentParser}!AppendOptions@{AppendOptions}}
+\index{AppendOptions@{AppendOptions}!EERAModel::ArgumentParser@{EERAModel::ArgumentParser}}
+\doxysubsubsection{\texorpdfstring{AppendOptions()}{AppendOptions()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+Argument\+Parser\+::\+Append\+Options (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structEERAModel_1_1SupplementaryInputParameters}{Supplementary\+Input\+Parameters}} \&}]{input\+\_\+params }\end{DoxyParamCaption})}
+
+
+
+Append specified options to input parameters. 
+
+Specifies options for structure, mode and input location these overwrite values specified within a parameter file.
+
+
+\begin{DoxyParams}{Parameters}
+{\em input\+\_\+params} & model input parameter object to update \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classEERAModel_1_1ArgumentParser_a1af3084adc12ff52313a6d54e276a6c4}\label{classEERAModel_1_1ArgumentParser_a1af3084adc12ff52313a6d54e276a6c4}} 
+\index{EERAModel::ArgumentParser@{EERAModel::ArgumentParser}!logArguments@{logArguments}}
+\index{logArguments@{logArguments}!EERAModel::ArgumentParser@{EERAModel::ArgumentParser}}
+\doxysubsubsection{\texorpdfstring{logArguments()}{logArguments()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+Argument\+Parser\+::log\+Arguments (\begin{DoxyParamCaption}\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Log argument values to output. 
+
+Send printout of all argument values to the specified logging stream
+
+
+\begin{DoxyParams}{Parameters}
+{\em logging\+\_\+stream} & shared pointer to model logging stream \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/Argument\+Parser.\+h\item 
+src/Argument\+Parser.\+cpp\end{DoxyCompactItemize}

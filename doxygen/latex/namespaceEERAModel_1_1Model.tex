@@ -1,0 +1,172 @@
+\hypertarget{namespaceEERAModel_1_1Model}{}\doxysection{E\+E\+R\+A\+Model\+::Model Namespace Reference}
+\label{namespaceEERAModel_1_1Model}\index{EERAModel::Model@{EERAModel::Model}}
+
+
+Namespace containing the model definitions and execution.  
+
+
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classEERAModel_1_1Model_1_1IrishModel}{Irish\+Model}}
+\item 
+class \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface}{Model\+Interface}}
+\begin{DoxyCompactList}\small\item\em Abstract interface to a model. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelParameters}{Model\+Parameters}}
+\begin{DoxyCompactList}\small\item\em Describes the parameters used by the model. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classEERAModel_1_1Model_1_1OriginalModel}{Original\+Model}}
+\item 
+class \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel}{Temp\+Model}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{namespaceEERAModel_1_1Model_aa8d43b5f2be0129f015583f1b7d4bb3d}{Flow}} (Random\+::\+R\+N\+G\+Interface\+::\+Sptr rng, int pops\+\_\+from\+\_\+val, int pops\+\_\+new\+\_\+from\+\_\+val, double rate)
+\begin{DoxyCompactList}\small\item\em Randomly assign movement of individuals between compartments. \end{DoxyCompactList}\item 
+std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1params}{params}} $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Model_a9ac6ed4ab16dfb54053f77b046930526}{Build\+Fixed\+Parameters}} (unsigned int size, \mbox{\hyperlink{structEERAModel_1_1params}{params}} parameters)
+\begin{DoxyCompactList}\small\item\em Build the fixed parameters data structure. \end{DoxyCompactList}\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Model_aac26c5f97b132868aeeb992b4b091e14}{Compute\+Age\+Nums}} (int shb\+\_\+id, int Npop, int N\+\_\+hcw, const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&obs)
+\begin{DoxyCompactList}\small\item\em Compute the agenums. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{namespaceEERAModel_1_1Model_a59fb940835916dcc587bcf0bd45ccfd1}{Get\+Population\+Of\+Region}} (const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&obs, int region\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Get the population of a region. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{namespaceEERAModel_1_1Model_adf3f836c4244c3287a67973f6857d2e3}{Compute\+Number\+Of\+H\+C\+W\+In\+Region}} (int regional\+Population, int total\+H\+CW, const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&obs)
+\begin{DoxyCompactList}\small\item\em Compute number of health care workers (H\+CW) in the region. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{namespaceEERAModel_1_1Model_ae6fc4c86b14194fc70e32d5d8a614dcc}{accumulate\+\_\+compartments}} (const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&comp)
+\begin{DoxyCompactList}\small\item\em Accumulate total across all compartments. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Namespace containing the model definitions and execution. 
+
+This namespace contains functions which run the model using the given setup/parameters. 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_ae6fc4c86b14194fc70e32d5d8a614dcc}\label{namespaceEERAModel_1_1Model_ae6fc4c86b14194fc70e32d5d8a614dcc}} 
+\index{EERAModel::Model@{EERAModel::Model}!accumulate\_compartments@{accumulate\_compartments}}
+\index{accumulate\_compartments@{accumulate\_compartments}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{accumulate\_compartments()}{accumulate\_compartments()}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Model\+::accumulate\+\_\+compartments (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} \&}]{comp }\end{DoxyParamCaption})}
+
+
+
+Accumulate total across all compartments. 
+
+Totals all counters within every compartment in a \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} struct
+
+
+\begin{DoxyParams}{Parameters}
+{\em comp} & \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} object\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Total across all compartments 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_a9ac6ed4ab16dfb54053f77b046930526}\label{namespaceEERAModel_1_1Model_a9ac6ed4ab16dfb54053f77b046930526}} 
+\index{EERAModel::Model@{EERAModel::Model}!BuildFixedParameters@{BuildFixedParameters}}
+\index{BuildFixedParameters@{BuildFixedParameters}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{BuildFixedParameters()}{BuildFixedParameters()}}
+{\footnotesize\ttfamily std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1params}{params}} $>$ E\+E\+R\+A\+Model\+::\+Model\+::\+Build\+Fixed\+Parameters (\begin{DoxyParamCaption}\item[{unsigned int}]{size,  }\item[{\mbox{\hyperlink{structEERAModel_1_1params}{params}}}]{parameters }\end{DoxyParamCaption})}
+
+
+
+Build the fixed parameters data structure. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em size} & Number of instances of the parameters to generate \\
+\hline
+{\em parameters} & Source parameter list\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Vector of {\ttfamily size} copies of {\ttfamily parameters} 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_aac26c5f97b132868aeeb992b4b091e14}\label{namespaceEERAModel_1_1Model_aac26c5f97b132868aeeb992b4b091e14}} 
+\index{EERAModel::Model@{EERAModel::Model}!ComputeAgeNums@{ComputeAgeNums}}
+\index{ComputeAgeNums@{ComputeAgeNums}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{ComputeAgeNums()}{ComputeAgeNums()}}
+{\footnotesize\ttfamily std\+::vector$<$ int $>$ E\+E\+R\+A\+Model\+::\+Model\+::\+Compute\+Age\+Nums (\begin{DoxyParamCaption}\item[{int}]{shb\+\_\+id,  }\item[{int}]{Npop,  }\item[{int}]{N\+\_\+hcw,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&}]{obs }\end{DoxyParamCaption})}
+
+
+
+Compute the agenums. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Npop} & Population \\
+\hline
+{\em Nhcw} & Number of health care workers \\
+\hline
+{\em obs} & \mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} observations\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+agenums 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_adf3f836c4244c3287a67973f6857d2e3}\label{namespaceEERAModel_1_1Model_adf3f836c4244c3287a67973f6857d2e3}} 
+\index{EERAModel::Model@{EERAModel::Model}!ComputeNumberOfHCWInRegion@{ComputeNumberOfHCWInRegion}}
+\index{ComputeNumberOfHCWInRegion@{ComputeNumberOfHCWInRegion}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{ComputeNumberOfHCWInRegion()}{ComputeNumberOfHCWInRegion()}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Model\+::\+Compute\+Number\+Of\+H\+C\+W\+In\+Region (\begin{DoxyParamCaption}\item[{int}]{regional\+Population,  }\item[{int}]{total\+H\+CW,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&}]{obs }\end{DoxyParamCaption})}
+
+
+
+Compute number of health care workers (H\+CW) in the region. 
+
+Calculates the number of H\+CW in the region, assuming that the ratio of the region\textquotesingle{}s population to that of the country is same as that for H\+C\+Ws only
+
+
+\begin{DoxyParams}{Parameters}
+{\em regional\+Population} & Population of the region \\
+\hline
+{\em total\+H\+CW} & Total number of H\+C\+Ws in the country \\
+\hline
+{\em obs} & Input observations \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_aa8d43b5f2be0129f015583f1b7d4bb3d}\label{namespaceEERAModel_1_1Model_aa8d43b5f2be0129f015583f1b7d4bb3d}} 
+\index{EERAModel::Model@{EERAModel::Model}!Flow@{Flow}}
+\index{Flow@{Flow}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{Flow()}{Flow()}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Model\+::\+Flow (\begin{DoxyParamCaption}\item[{Random\+::\+R\+N\+G\+Interface\+::\+Sptr}]{rng,  }\item[{int}]{pops\+\_\+from\+\_\+val,  }\item[{int}]{pops\+\_\+new\+\_\+from\+\_\+val,  }\item[{double}]{rate }\end{DoxyParamCaption})}
+
+
+
+Randomly assign movement of individuals between compartments. 
+
+Uses a Poisson distribution for a given rate to deduce number of individuals passing from one compartment to another. Also compares current value prior to flow with that after to ensure flow is positive.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pops\+\_\+from\+\_\+val} & Number of individuals in starting compartment within prior compartments struct \\
+\hline
+{\em pops\+\_\+new\+\_\+from\+\_\+val} & Number of individuals in starting compartment within the compartments struct currently being modified \\
+\hline
+{\em rate} & The rate of flow\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Number of individuals moving/flowing from one compartment to the other 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Model_a59fb940835916dcc587bcf0bd45ccfd1}\label{namespaceEERAModel_1_1Model_a59fb940835916dcc587bcf0bd45ccfd1}} 
+\index{EERAModel::Model@{EERAModel::Model}!GetPopulationOfRegion@{GetPopulationOfRegion}}
+\index{GetPopulationOfRegion@{GetPopulationOfRegion}!EERAModel::Model@{EERAModel::Model}}
+\doxysubsubsection{\texorpdfstring{GetPopulationOfRegion()}{GetPopulationOfRegion()}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Model\+::\+Get\+Population\+Of\+Region (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&}]{obs,  }\item[{int}]{region\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Get the population of a region. 
+
+Within the input cases data, the total population of the region is located in the first column of the row corresponding to the region
+
+
+\begin{DoxyParams}{Parameters}
+{\em obs} & Input observations \\
+\hline
+{\em region\+\_\+id} & Index of the region within the observation data set\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The population of the region 
+\end{DoxyReturn}

@@ -1,0 +1,60 @@
+\hypertarget{structEERAModel_1_1InfectionState}{}\doxysection{E\+E\+R\+A\+Model\+::Infection\+State Struct Reference}
+\label{structEERAModel_1_1InfectionState}\index{EERAModel::InfectionState@{EERAModel::InfectionState}}
+
+
+Structure containing population counters after infection.  
+
+
+
+
+{\ttfamily \#include $<$Model\+Types.\+h$>$}
+
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{structEERAModel_1_1InfectionState_aa6f869316b988d814ee565c1caeb4c93}{detected}} = 0
+\item 
+int \mbox{\hyperlink{structEERAModel_1_1InfectionState_adb177d1a91be872cd503bb1893788e82}{hospitalised}} = 0
+\item 
+int \mbox{\hyperlink{structEERAModel_1_1InfectionState_a7cef85726490ee0de799f4ed7eda1e14}{deaths}} = 0
+\item 
+int \mbox{\hyperlink{structEERAModel_1_1InfectionState_addcb1f68cd2dde150db251697a5ae08d}{hospital\+\_\+deaths}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Structure containing population counters after infection. 
+
+Contains counters for the number of newly detected (due to testing or hospitalisation) cases, deaths and hospitalisations at each time step. 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{structEERAModel_1_1InfectionState_a7cef85726490ee0de799f4ed7eda1e14}\label{structEERAModel_1_1InfectionState_a7cef85726490ee0de799f4ed7eda1e14}} 
+\index{EERAModel::InfectionState@{EERAModel::InfectionState}!deaths@{deaths}}
+\index{deaths@{deaths}!EERAModel::InfectionState@{EERAModel::InfectionState}}
+\doxysubsubsection{\texorpdfstring{deaths}{deaths}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Infection\+State\+::deaths = 0}
+
+Overall number of incident deaths due to covid at each time step. ~\newline
+ \mbox{\Hypertarget{structEERAModel_1_1InfectionState_aa6f869316b988d814ee565c1caeb4c93}\label{structEERAModel_1_1InfectionState_aa6f869316b988d814ee565c1caeb4c93}} 
+\index{EERAModel::InfectionState@{EERAModel::InfectionState}!detected@{detected}}
+\index{detected@{detected}!EERAModel::InfectionState@{EERAModel::InfectionState}}
+\doxysubsubsection{\texorpdfstring{detected}{detected}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Infection\+State\+::detected = 0}
+
+Number of newly detected (due to testing or hospitalisation) cases at each time step. \mbox{\Hypertarget{structEERAModel_1_1InfectionState_addcb1f68cd2dde150db251697a5ae08d}\label{structEERAModel_1_1InfectionState_addcb1f68cd2dde150db251697a5ae08d}} 
+\index{EERAModel::InfectionState@{EERAModel::InfectionState}!hospital\_deaths@{hospital\_deaths}}
+\index{hospital\_deaths@{hospital\_deaths}!EERAModel::InfectionState@{EERAModel::InfectionState}}
+\doxysubsubsection{\texorpdfstring{hospital\_deaths}{hospital\_deaths}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Infection\+State\+::hospital\+\_\+deaths = 0}
+
+Number of incident deaths reported at hospital due to covid at each time step. \mbox{\Hypertarget{structEERAModel_1_1InfectionState_adb177d1a91be872cd503bb1893788e82}\label{structEERAModel_1_1InfectionState_adb177d1a91be872cd503bb1893788e82}} 
+\index{EERAModel::InfectionState@{EERAModel::InfectionState}!hospitalised@{hospitalised}}
+\index{hospitalised@{hospitalised}!EERAModel::InfectionState@{EERAModel::InfectionState}}
+\doxysubsubsection{\texorpdfstring{hospitalised}{hospitalised}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Infection\+State\+::hospitalised = 0}
+
+Number of newly detected cases due to their hospitalisation at each time step. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Model\+Types.\+h\end{DoxyCompactItemize}

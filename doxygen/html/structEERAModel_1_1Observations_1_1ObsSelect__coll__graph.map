@@ -1,0 +1,4 @@
+<map id="EERAModel::Observations::ObsSelect" name="EERAModel::Observations::ObsSelect">
+<area shape="rect" id="node1" title="Structure to hold observation selections." alt="" coords="5,109,196,151"/>
+<area shape="rect" id="node2" href="$structEERAModel_1_1Observations_1_1SimTime.html" title="Structure to hold deduced simulation time parameters." alt="" coords="5,5,196,47"/>
+</map>

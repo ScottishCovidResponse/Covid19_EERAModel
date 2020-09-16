@@ -1,0 +1,131 @@
+\hypertarget{namespaceEERAModel_1_1Observations}{}\doxysection{E\+E\+R\+A\+Model\+::Observations Namespace Reference}
+\label{namespaceEERAModel_1_1Observations}\index{EERAModel::Observations@{EERAModel::Observations}}
+
+
+Namespace holding objects and functions relating to observations.  
+
+
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structEERAModel_1_1Observations_1_1ObsSelect}{Obs\+Select}}
+\begin{DoxyCompactList}\small\item\em Structure to hold observation selections. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structEERAModel_1_1Observations_1_1SimTime}{Sim\+Time}}
+\begin{DoxyCompactList}\small\item\em Structure to hold deduced simulation time parameters. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{structEERAModel_1_1Observations_1_1SimTime}{Sim\+Time}} \mbox{\hyperlink{namespaceEERAModel_1_1Observations_acca6dce1474539d2d2fc57ba8d85f60d}{Get\+Sim\+Duration}} (int time\+\_\+back, const std\+::vector$<$ int $>$ \&regional\+Cases)
+\begin{DoxyCompactList}\small\item\em Calculates the duration of the current simulation. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1Observations_1_1ObsSelect}{Obs\+Select}} \mbox{\hyperlink{namespaceEERAModel_1_1Observations_a14b88c53e393a8a717efa76cc215c1cc}{Select\+Observations}} (int \&day\+\_\+shut, const std\+::vector$<$ int $>$ \&time\+Stamps, const std\+::vector$<$ int $>$ \&regional\+Cases, const std\+::vector$<$ int $>$ \&regional\+Deaths, int time\+\_\+back, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Select observations to use from the regional input observations. \end{DoxyCompactList}\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Observations_a6a379814c9e577bb2948bc53d190ee01}{Compute\+Incidence}} (const std\+::vector$<$ int $>$ \&timeseries)
+\begin{DoxyCompactList}\small\item\em Transform the timeseries of cumulative cases into incidence. \end{DoxyCompactList}\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{namespaceEERAModel_1_1Observations_a28a61513f67ffc22890cc2173ef5e760}{Correct\+Incidence}} (const std\+::vector$<$ int $>$ \&original\+Incidence, std\+::vector$<$ int $>$ timeseries)
+\begin{DoxyCompactList}\small\item\em Correct the timeseries to avoid negative incidence records. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Namespace holding objects and functions relating to observations. 
+
+This namespace contains structs and functions which handle the data read from data files, adjusting for different input structures. 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Observations_a6a379814c9e577bb2948bc53d190ee01}\label{namespaceEERAModel_1_1Observations_a6a379814c9e577bb2948bc53d190ee01}} 
+\index{EERAModel::Observations@{EERAModel::Observations}!ComputeIncidence@{ComputeIncidence}}
+\index{ComputeIncidence@{ComputeIncidence}!EERAModel::Observations@{EERAModel::Observations}}
+\doxysubsubsection{\texorpdfstring{ComputeIncidence()}{ComputeIncidence()}}
+{\footnotesize\ttfamily std\+::vector$<$ int $>$ E\+E\+R\+A\+Model\+::\+Observations\+::\+Compute\+Incidence (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ int $>$ \&}]{timeseries }\end{DoxyParamCaption})}
+
+
+
+Transform the timeseries of cumulative cases into incidence. 
+
+A timeseries of cumulative cases represents the number of cases reported to exist at any given time in the timeseries. The incidence represents the change in the number of cases between two successive points in the timeseries. The incidence at any given point in the timeseries is computed as the difference between the cumulative number of cases at that point and the cumulative number of cases at the preceding point. The incidence at the first point in the time series is simply the cumulative number of cases at that first point.
+
+
+\begin{DoxyParams}{Parameters}
+{\em timeseries} & Input timeseries of cumulative instances\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Computed incidence timeseries 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Observations_a28a61513f67ffc22890cc2173ef5e760}\label{namespaceEERAModel_1_1Observations_a28a61513f67ffc22890cc2173ef5e760}} 
+\index{EERAModel::Observations@{EERAModel::Observations}!CorrectIncidence@{CorrectIncidence}}
+\index{CorrectIncidence@{CorrectIncidence}!EERAModel::Observations@{EERAModel::Observations}}
+\doxysubsubsection{\texorpdfstring{CorrectIncidence()}{CorrectIncidence()}}
+{\footnotesize\ttfamily std\+::vector$<$ int $>$ E\+E\+R\+A\+Model\+::\+Observations\+::\+Correct\+Incidence (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ int $>$ \&}]{original\+Incidence,  }\item[{std\+::vector$<$ int $>$}]{timeseries }\end{DoxyParamCaption})}
+
+
+
+Correct the timeseries to avoid negative incidence records. 
+
+Negative incidence records occur where the value of a timeseries decreases between two successive points in time
+
+\begin{DoxyRefDesc}{Todo}
+\item[\mbox{\hyperlink{todo__todo000002}{Todo}}]Fill in with a detailed description of the algorithm\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em original\+Incidence} & Original computation of incidence, with potential negative records \\
+\hline
+{\em timeseries} & Timeseries of cases from which the original incidence was computed\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Corrected incidence 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Observations_acca6dce1474539d2d2fc57ba8d85f60d}\label{namespaceEERAModel_1_1Observations_acca6dce1474539d2d2fc57ba8d85f60d}} 
+\index{EERAModel::Observations@{EERAModel::Observations}!GetSimDuration@{GetSimDuration}}
+\index{GetSimDuration@{GetSimDuration}!EERAModel::Observations@{EERAModel::Observations}}
+\doxysubsubsection{\texorpdfstring{GetSimDuration()}{GetSimDuration()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1Observations_1_1SimTime}{Sim\+Time}} E\+E\+R\+A\+Model\+::\+Observations\+::\+Get\+Sim\+Duration (\begin{DoxyParamCaption}\item[{int}]{time\+\_\+back,  }\item[{const std\+::vector$<$ int $>$ \&}]{regional\+Cases }\end{DoxyParamCaption})}
+
+
+
+Calculates the duration of the current simulation. 
+
+Uses the regional cases data to deduce the time structure of the observations. As the time series data may have negative incident events the function first determines the non-\/negative start and end points. Accounting for this is vital in terms of future-\/proofing the inference.
+
+
+\begin{DoxyParams}{Parameters}
+{\em time\+\_\+back} & offset in start time (relative to first non-\/negative event) \\
+\hline
+{\em regional\+\_\+cases} & vector of time series data for a given region\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Struct containing the simulation time parameters 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespaceEERAModel_1_1Observations_a14b88c53e393a8a717efa76cc215c1cc}\label{namespaceEERAModel_1_1Observations_a14b88c53e393a8a717efa76cc215c1cc}} 
+\index{EERAModel::Observations@{EERAModel::Observations}!SelectObservations@{SelectObservations}}
+\index{SelectObservations@{SelectObservations}!EERAModel::Observations@{EERAModel::Observations}}
+\doxysubsubsection{\texorpdfstring{SelectObservations()}{SelectObservations()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1Observations_1_1ObsSelect}{Obs\+Select}} E\+E\+R\+A\+Model\+::\+Observations\+::\+Select\+Observations (\begin{DoxyParamCaption}\item[{int \&}]{day\+\_\+shut,  }\item[{const std\+::vector$<$ int $>$ \&}]{time\+Stamps,  }\item[{const std\+::vector$<$ int $>$ \&}]{regional\+Cases,  }\item[{const std\+::vector$<$ int $>$ \&}]{regional\+Deaths,  }\item[{int}]{time\+\_\+back,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Select observations to use from the regional input observations. 
+
+Bsaed on the regional cases and deaths timeseries, this function computes the incidence of cases and deaths, correcting for negative incidence records.
+
+
+\begin{DoxyParams}{Parameters}
+{\em day\+\_\+shut} & ? \\
+\hline
+{\em time\+Stamps} & Reference times for other time series \\
+\hline
+{\em regional\+Cases} & Observed timeseries of cases in the region \\
+\hline
+{\em regional\+Deaths} & Observed timeseries of deaths in the region \\
+\hline
+{\em time\+\_\+back} & ? \\
+\hline
+{\em log} & Logger handle\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Struct containing deduced observation selections 
+\end{DoxyReturn}

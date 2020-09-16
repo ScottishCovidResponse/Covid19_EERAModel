@@ -1,0 +1,70 @@
+\hypertarget{classEERAModel_1_1Utilities_1_1logging__stream}{}\doxysection{E\+E\+R\+A\+Model\+::Utilities\+::logging\+\_\+stream Class Reference}
+\label{classEERAModel_1_1Utilities_1_1logging__stream}\index{EERAModel::Utilities::logging\_stream@{EERAModel::Utilities::logging\_stream}}
+
+
+Logging Stream Class.  
+
+
+
+
+{\ttfamily \#include $<$Utilities.\+h$>$}
+
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_ab9deafbfe4163f24ce6ab5b3e73f1dbe}\label{classEERAModel_1_1Utilities_1_1logging__stream_ab9deafbfe4163f24ce6ab5b3e73f1dbe}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream}{logging\+\_\+stream}} $>$
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_af8e377576f37cadf4a3edfa742c01483}\label{classEERAModel_1_1Utilities_1_1logging__stream_af8e377576f37cadf4a3edfa742c01483}} 
+typedef std\+::ostream \&($\ast$ {\bfseries stream\+\_\+function}) (std\+::ostream \&)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream_a670212849ea8404cdb35000a57a0d70b}{logging\+\_\+stream}} (const std\+::string \&out\+\_\+dir)
+\item 
+{\footnotesize template$<$typename T $>$ }\\\mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream}{logging\+\_\+stream}} \& \mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream_a830e75b6b6a623ba513e17e038d8ebf0}{operator$<$$<$}} (const T \&output)
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_a298c8c07d7f74af8a7ea5d5a09055658}\label{classEERAModel_1_1Utilities_1_1logging__stream_a298c8c07d7f74af8a7ea5d5a09055658}} 
+\mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream}{logging\+\_\+stream}} \& {\bfseries operator$<$$<$} (stream\+\_\+function func)
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_a316b4519d5a6897f74ad0457d7937082}\label{classEERAModel_1_1Utilities_1_1logging__stream_a316b4519d5a6897f74ad0457d7937082}} 
+std\+::string {\bfseries get\+Logger\+Time} () const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Logging Stream Class. 
+
+Class to send output to both cout and output log file \begin{DoxyDate}{Date}
+last modified 2020-\/05-\/18 
+\end{DoxyDate}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_a670212849ea8404cdb35000a57a0d70b}\label{classEERAModel_1_1Utilities_1_1logging__stream_a670212849ea8404cdb35000a57a0d70b}} 
+\index{EERAModel::Utilities::logging\_stream@{EERAModel::Utilities::logging\_stream}!logging\_stream@{logging\_stream}}
+\index{logging\_stream@{logging\_stream}!EERAModel::Utilities::logging\_stream@{EERAModel::Utilities::logging\_stream}}
+\doxysubsubsection{\texorpdfstring{logging\_stream()}{logging\_stream()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Utilities\+::logging\+\_\+stream\+::logging\+\_\+stream (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{out\+\_\+dir }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Create a new logging stream sending the output as a date named file in within the specified directory. 
+\begin{DoxyParams}{Parameters}
+{\em out\+\_\+dir} & Output directory \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Utilities_1_1logging__stream_a830e75b6b6a623ba513e17e038d8ebf0}\label{classEERAModel_1_1Utilities_1_1logging__stream_a830e75b6b6a623ba513e17e038d8ebf0}} 
+\index{EERAModel::Utilities::logging\_stream@{EERAModel::Utilities::logging\_stream}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!EERAModel::Utilities::logging\_stream@{EERAModel::Utilities::logging\_stream}}
+\doxysubsubsection{\texorpdfstring{operator$<$$<$()}{operator<<()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+\mbox{\hyperlink{classEERAModel_1_1Utilities_1_1logging__stream}{logging\+\_\+stream}}\& E\+E\+R\+A\+Model\+::\+Utilities\+::logging\+\_\+stream\+::operator$<$$<$ (\begin{DoxyParamCaption}\item[{const T \&}]{output }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Send outputs specified by $<$$<$ operator to both cout and the log file 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Utilities.\+h\end{DoxyCompactItemize}

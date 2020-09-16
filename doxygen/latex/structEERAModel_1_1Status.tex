@@ -1,0 +1,67 @@
+\hypertarget{structEERAModel_1_1Status}{}\doxysection{E\+E\+R\+A\+Model\+::Status Struct Reference}
+\label{structEERAModel_1_1Status}\index{EERAModel::Status@{EERAModel::Status}}
+
+
+Structure to hold status objects.  
+
+
+
+
+{\ttfamily \#include $<$Model\+Types.\+h$>$}
+
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{structEERAModel_1_1Status_a4455d7d947e4f1e173e7d9f1fd861a7d}{simulation}}
+\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{structEERAModel_1_1Status_a9c7fd531560ad04b94ab3a7bba4904ef}{deaths}}
+\item 
+std\+::vector$<$ int $>$ \mbox{\hyperlink{structEERAModel_1_1Status_aa01f0e51728db40a5620846eeedabbed}{hospital\+\_\+deaths}}
+\item 
+std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} $>$ \mbox{\hyperlink{structEERAModel_1_1Status_a49ae35444eb75c819a0f4f15f4ec7921}{ends}}
+\item 
+std\+::vector$<$ std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}} $>$ $>$ \mbox{\hyperlink{structEERAModel_1_1Status_a3d6e80428a48566b6aaf4e2c1079d88b}{pop\+\_\+array}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Structure to hold status objects. 
+
+Contains vectors containing information on the trajectories of the predicted disease status for individuals involved in the model (i.\+e. number of incident cases, number of incident deaths for each simulation step). 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{structEERAModel_1_1Status_a9c7fd531560ad04b94ab3a7bba4904ef}\label{structEERAModel_1_1Status_a9c7fd531560ad04b94ab3a7bba4904ef}} 
+\index{EERAModel::Status@{EERAModel::Status}!deaths@{deaths}}
+\index{deaths@{deaths}!EERAModel::Status@{EERAModel::Status}}
+\doxysubsubsection{\texorpdfstring{deaths}{deaths}}
+{\footnotesize\ttfamily std\+::vector$<$int$>$ E\+E\+R\+A\+Model\+::\+Status\+::deaths}
+
+Overall number of incident deaths due to covid in each simulation step. \mbox{\Hypertarget{structEERAModel_1_1Status_a49ae35444eb75c819a0f4f15f4ec7921}\label{structEERAModel_1_1Status_a49ae35444eb75c819a0f4f15f4ec7921}} 
+\index{EERAModel::Status@{EERAModel::Status}!ends@{ends}}
+\index{ends@{ends}!EERAModel::Status@{EERAModel::Status}}
+\doxysubsubsection{\texorpdfstring{ends}{ends}}
+{\footnotesize\ttfamily std\+::vector$<$\mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}}$>$ E\+E\+R\+A\+Model\+::\+Status\+::ends}
+
+Population per epidemiological state and per age group on last day. \mbox{\Hypertarget{structEERAModel_1_1Status_aa01f0e51728db40a5620846eeedabbed}\label{structEERAModel_1_1Status_aa01f0e51728db40a5620846eeedabbed}} 
+\index{EERAModel::Status@{EERAModel::Status}!hospital\_deaths@{hospital\_deaths}}
+\index{hospital\_deaths@{hospital\_deaths}!EERAModel::Status@{EERAModel::Status}}
+\doxysubsubsection{\texorpdfstring{hospital\_deaths}{hospital\_deaths}}
+{\footnotesize\ttfamily std\+::vector$<$int$>$ E\+E\+R\+A\+Model\+::\+Status\+::hospital\+\_\+deaths}
+
+Number of incident deaths reported at hospital due to covid in each simulation step. \mbox{\Hypertarget{structEERAModel_1_1Status_a3d6e80428a48566b6aaf4e2c1079d88b}\label{structEERAModel_1_1Status_a3d6e80428a48566b6aaf4e2c1079d88b}} 
+\index{EERAModel::Status@{EERAModel::Status}!pop\_array@{pop\_array}}
+\index{pop\_array@{pop\_array}!EERAModel::Status@{EERAModel::Status}}
+\doxysubsubsection{\texorpdfstring{pop\_array}{pop\_array}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$\mbox{\hyperlink{structEERAModel_1_1Compartments}{Compartments}}$>$ $>$ E\+E\+R\+A\+Model\+::\+Status\+::pop\+\_\+array}
+
+Population per epidemiological state and per age group on every day. \mbox{\Hypertarget{structEERAModel_1_1Status_a4455d7d947e4f1e173e7d9f1fd861a7d}\label{structEERAModel_1_1Status_a4455d7d947e4f1e173e7d9f1fd861a7d}} 
+\index{EERAModel::Status@{EERAModel::Status}!simulation@{simulation}}
+\index{simulation@{simulation}!EERAModel::Status@{EERAModel::Status}}
+\doxysubsubsection{\texorpdfstring{simulation}{simulation}}
+{\footnotesize\ttfamily std\+::vector$<$int$>$ E\+E\+R\+A\+Model\+::\+Status\+::simulation}
+
+Number of incident (newly detected/reported) cases of covid in each simulation step. 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Model\+Types.\+h\end{DoxyCompactItemize}

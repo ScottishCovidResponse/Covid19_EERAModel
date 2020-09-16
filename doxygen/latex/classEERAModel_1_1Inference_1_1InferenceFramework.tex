@@ -1,0 +1,82 @@
+\hypertarget{classEERAModel_1_1Inference_1_1InferenceFramework}{}\doxysection{E\+E\+R\+A\+Model\+::Inference\+::Inference\+Framework Class Reference}
+\label{classEERAModel_1_1Inference_1_1InferenceFramework}\index{EERAModel::Inference::InferenceFramework@{EERAModel::Inference::InferenceFramework}}
+
+
+Parameter inference framework.  
+
+
+
+
+{\ttfamily \#include $<$Inference\+Framework.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceFramework_ae7faac431ac3064b4439b08f1253444a}{Inference\+Framework}} (Model\+::\+Model\+Interface\+::\+Sptr model, const \mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} \&inference\+Config, Random\+::\+R\+N\+G\+Interface\+::\+Sptr rng, const std\+::string \&out\+Dir, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{classFramework}{Framework}} constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceFramework_a6fbf52eb9a9157a81e84e12877eabcaa}\label{classEERAModel_1_1Inference_1_1InferenceFramework_a6fbf52eb9a9157a81e84e12877eabcaa}} 
+void \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceFramework_a6fbf52eb9a9157a81e84e12877eabcaa}{Run}} ()
+\begin{DoxyCompactList}\small\item\em Run the model within the inference framework. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static int \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceFramework_a2d119bc8dac64a62035a477ef7fff51d}{Get\+Time\+Off\+Set}} (const \mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} \&inference\+Config)
+\begin{DoxyCompactList}\small\item\em Calculate the time offset for the dataset. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Parameter inference framework. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceFramework_ae7faac431ac3064b4439b08f1253444a}\label{classEERAModel_1_1Inference_1_1InferenceFramework_ae7faac431ac3064b4439b08f1253444a}} 
+\index{EERAModel::Inference::InferenceFramework@{EERAModel::Inference::InferenceFramework}!InferenceFramework@{InferenceFramework}}
+\index{InferenceFramework@{InferenceFramework}!EERAModel::Inference::InferenceFramework@{EERAModel::Inference::InferenceFramework}}
+\doxysubsubsection{\texorpdfstring{InferenceFramework()}{InferenceFramework()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Framework\+::\+Inference\+Framework (\begin{DoxyParamCaption}\item[{Model\+::\+Model\+Interface\+::\+Sptr}]{model,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} \&}]{inference\+Config,  }\item[{Random\+::\+R\+N\+G\+Interface\+::\+Sptr}]{rng,  }\item[{const std\+::string \&}]{out\+Dir,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+\mbox{\hyperlink{classFramework}{Framework}} constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model} & \mbox{\hyperlink{namespaceEERAModel_1_1Model}{Model}} interface \\
+\hline
+{\em inference\+Config} & \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} config \\
+\hline
+{\em rng} & Seeded random number generator \\
+\hline
+{\em out\+Dir} & Outputs directory path \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceFramework_a2d119bc8dac64a62035a477ef7fff51d}\label{classEERAModel_1_1Inference_1_1InferenceFramework_a2d119bc8dac64a62035a477ef7fff51d}} 
+\index{EERAModel::Inference::InferenceFramework@{EERAModel::Inference::InferenceFramework}!GetTimeOffSet@{GetTimeOffSet}}
+\index{GetTimeOffSet@{GetTimeOffSet}!EERAModel::Inference::InferenceFramework@{EERAModel::Inference::InferenceFramework}}
+\doxysubsubsection{\texorpdfstring{GetTimeOffSet()}{GetTimeOffSet()}}
+{\footnotesize\ttfamily int E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Framework\+::\+Get\+Time\+Off\+Set (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1InferenceConfig}{Inference\+Config}} \&}]{inference\+Config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Calculate the time offset for the dataset. 
+
+Determines the offset for the start of the dataset based on the given parameters
+
+
+\begin{DoxyParams}{Parameters}
+{\em inference\+Config} & \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} config\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+integer offset value 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/Inference\+Framework.\+h\item 
+src/Inference\+Framework.\+cpp\end{DoxyCompactItemize}

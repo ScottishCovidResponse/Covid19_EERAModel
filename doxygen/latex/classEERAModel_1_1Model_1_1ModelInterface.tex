@@ -1,0 +1,81 @@
+\hypertarget{classEERAModel_1_1Model_1_1ModelInterface}{}\doxysection{E\+E\+R\+A\+Model\+::Model\+::Model\+Interface Class Reference}
+\label{classEERAModel_1_1Model_1_1ModelInterface}\index{EERAModel::Model::ModelInterface@{EERAModel::Model::ModelInterface}}
+
+
+Abstract interface to a model.  
+
+
+
+
+{\ttfamily \#include $<$Model\+Common.\+h$>$}
+
+
+
+Inheritance diagram for E\+E\+R\+A\+Model\+::Model\+::Model\+Interface\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classEERAModel_1_1Model_1_1ModelInterface__inherit__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1ModelInterface_a1cff91c4dc86bcc459cd0b5fdd3c4c46}\label{classEERAModel_1_1Model_1_1ModelInterface_a1cff91c4dc86bcc459cd0b5fdd3c4c46}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface}{Model\+Interface}} $>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual \mbox{\hyperlink{structEERAModel_1_1Status}{Status}} \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface_a9b0488d2a8b735c27014697eb3aaaacd}{Run}} (std\+::vector$<$ double $>$ parameter\+\_\+set, const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&seedlist, int day\+\_\+shut, int n\+\_\+sim\+\_\+steps)=0
+\begin{DoxyCompactList}\small\item\em Run interface. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface_a4eea1cb1e2bf44b502f9d37ba6d659f8}{Set\+Fixed\+Parameters}} (const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&paramlist)=0
+\begin{DoxyCompactList}\small\item\em Set the fixed parameters in the model. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Abstract interface to a model. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1ModelInterface_a9b0488d2a8b735c27014697eb3aaaacd}\label{classEERAModel_1_1Model_1_1ModelInterface_a9b0488d2a8b735c27014697eb3aaaacd}} 
+\index{EERAModel::Model::ModelInterface@{EERAModel::Model::ModelInterface}!Run@{Run}}
+\index{Run@{Run}!EERAModel::Model::ModelInterface@{EERAModel::Model::ModelInterface}}
+\doxysubsubsection{\texorpdfstring{Run()}{Run()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{structEERAModel_1_1Status}{Status}} E\+E\+R\+A\+Model\+::\+Model\+::\+Model\+Interface\+::\+Run (\begin{DoxyParamCaption}\item[{std\+::vector$<$ double $>$}]{parameter\+\_\+set,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&}]{seedlist,  }\item[{int}]{day\+\_\+shut,  }\item[{int}]{n\+\_\+sim\+\_\+steps }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Run interface. 
+
+Interface to model-\/specific implementation 
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Model_1_1IrishModel_a6c92217740895f898f7c55084781e952}{E\+E\+R\+A\+Model\+::\+Model\+::\+Irish\+Model}}, \mbox{\hyperlink{classEERAModel_1_1Model_1_1OriginalModel_a44eb6b7545e4e90e857294f175626700}{E\+E\+R\+A\+Model\+::\+Model\+::\+Original\+Model}}, and \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel_aef162aaad51e0512c586dff004246956}{E\+E\+R\+A\+Model\+::\+Model\+::\+Temp\+Model}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1ModelInterface_a4eea1cb1e2bf44b502f9d37ba6d659f8}\label{classEERAModel_1_1Model_1_1ModelInterface_a4eea1cb1e2bf44b502f9d37ba6d659f8}} 
+\index{EERAModel::Model::ModelInterface@{EERAModel::Model::ModelInterface}!SetFixedParameters@{SetFixedParameters}}
+\index{SetFixedParameters@{SetFixedParameters}!EERAModel::Model::ModelInterface@{EERAModel::Model::ModelInterface}}
+\doxysubsubsection{\texorpdfstring{SetFixedParameters()}{SetFixedParameters()}}
+{\footnotesize\ttfamily virtual void E\+E\+R\+A\+Model\+::\+Model\+::\+Model\+Interface\+::\+Set\+Fixed\+Parameters (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&}]{paramlist }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Set the fixed parameters in the model. 
+
+\begin{DoxyNote}{Note}
+This interface is required by the prediction framework, as when running in prediction mode, the fixed parameters come from a differen source than when running in inference mode. When this function is called, it will overwrite the fixed parameters that were set when the model object was created.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em paramlist} & Fixed model parameters \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \mbox{\hyperlink{classEERAModel_1_1Model_1_1IrishModel_aed41aa400bb271f53bb5f9837669090a}{E\+E\+R\+A\+Model\+::\+Model\+::\+Irish\+Model}}, \mbox{\hyperlink{classEERAModel_1_1Model_1_1OriginalModel_a773abeab6ae053bb8936833949501230}{E\+E\+R\+A\+Model\+::\+Model\+::\+Original\+Model}}, and \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel_a20f4a42cf477ae847e94deaeebb95cf1}{E\+E\+R\+A\+Model\+::\+Model\+::\+Temp\+Model}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Model\+Common.\+h\end{DoxyCompactItemize}

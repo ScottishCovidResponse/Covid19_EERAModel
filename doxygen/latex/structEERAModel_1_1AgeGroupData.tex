@@ -1,0 +1,67 @@
+\hypertarget{structEERAModel_1_1AgeGroupData}{}\doxysection{E\+E\+R\+A\+Model\+::Age\+Group\+Data Struct Reference}
+\label{structEERAModel_1_1AgeGroupData}\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+
+
+Structure to hold per-\/age group data vectors.  
+
+
+
+
+{\ttfamily \#include $<$Model\+Types.\+h$>$}
+
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ std\+::vector$<$ double $>$ $>$ \mbox{\hyperlink{structEERAModel_1_1AgeGroupData_ade7be90d563fa0a9eff48aaeb7f86e2d}{waifw\+\_\+norm}}
+\item 
+std\+::vector$<$ std\+::vector$<$ double $>$ $>$ \mbox{\hyperlink{structEERAModel_1_1AgeGroupData_af8e7cff6ee9bafa45d616cd01ad9d584}{waifw\+\_\+home}}
+\item 
+std\+::vector$<$ std\+::vector$<$ double $>$ $>$ \mbox{\hyperlink{structEERAModel_1_1AgeGroupData_afcae3851d6a5f92550be19c858dce4d3}{waifw\+\_\+sdist}}
+\item 
+std\+::vector$<$ std\+::vector$<$ double $>$ $>$ \mbox{\hyperlink{structEERAModel_1_1AgeGroupData_a0bb5fcc933ea84f98867c280d7e2b7ea}{cfr\+\_\+byage}}
+\item 
+std\+::vector$<$ double $>$ \mbox{\hyperlink{structEERAModel_1_1AgeGroupData_a6de4261d7f902f6d69629f1fa840a857}{pf\+\_\+byage}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Structure to hold per-\/age group data vectors. 
+
+Includes probabilities and mean number of contacts per age group information 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{structEERAModel_1_1AgeGroupData_a0bb5fcc933ea84f98867c280d7e2b7ea}\label{structEERAModel_1_1AgeGroupData_a0bb5fcc933ea84f98867c280d7e2b7ea}} 
+\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}!cfr\_byage@{cfr\_byage}}
+\index{cfr\_byage@{cfr\_byage}!EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+\doxysubsubsection{\texorpdfstring{cfr\_byage}{cfr\_byage}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$double$>$ $>$ E\+E\+R\+A\+Model\+::\+Age\+Group\+Data\+::cfr\+\_\+byage}
+
+Case fatality ratio by age. \mbox{\Hypertarget{structEERAModel_1_1AgeGroupData_a6de4261d7f902f6d69629f1fa840a857}\label{structEERAModel_1_1AgeGroupData_a6de4261d7f902f6d69629f1fa840a857}} 
+\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}!pf\_byage@{pf\_byage}}
+\index{pf\_byage@{pf\_byage}!EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+\doxysubsubsection{\texorpdfstring{pf\_byage}{pf\_byage}}
+{\footnotesize\ttfamily std\+::vector$<$double$>$ E\+E\+R\+A\+Model\+::\+Age\+Group\+Data\+::pf\+\_\+byage}
+
+Frailty Probability by age. \mbox{\Hypertarget{structEERAModel_1_1AgeGroupData_af8e7cff6ee9bafa45d616cd01ad9d584}\label{structEERAModel_1_1AgeGroupData_af8e7cff6ee9bafa45d616cd01ad9d584}} 
+\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}!waifw\_home@{waifw\_home}}
+\index{waifw\_home@{waifw\_home}!EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+\doxysubsubsection{\texorpdfstring{waifw\_home}{waifw\_home}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$double$>$ $>$ E\+E\+R\+A\+Model\+::\+Age\+Group\+Data\+::waifw\+\_\+home}
+
+mean number of daily contacts between age groups (home only). \mbox{\Hypertarget{structEERAModel_1_1AgeGroupData_ade7be90d563fa0a9eff48aaeb7f86e2d}\label{structEERAModel_1_1AgeGroupData_ade7be90d563fa0a9eff48aaeb7f86e2d}} 
+\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}!waifw\_norm@{waifw\_norm}}
+\index{waifw\_norm@{waifw\_norm}!EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+\doxysubsubsection{\texorpdfstring{waifw\_norm}{waifw\_norm}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$double$>$ $>$ E\+E\+R\+A\+Model\+::\+Age\+Group\+Data\+::waifw\+\_\+norm}
+
+mean number of daily contacts between age groups (overall). \mbox{\Hypertarget{structEERAModel_1_1AgeGroupData_afcae3851d6a5f92550be19c858dce4d3}\label{structEERAModel_1_1AgeGroupData_afcae3851d6a5f92550be19c858dce4d3}} 
+\index{EERAModel::AgeGroupData@{EERAModel::AgeGroupData}!waifw\_sdist@{waifw\_sdist}}
+\index{waifw\_sdist@{waifw\_sdist}!EERAModel::AgeGroupData@{EERAModel::AgeGroupData}}
+\doxysubsubsection{\texorpdfstring{waifw\_sdist}{waifw\_sdist}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$double$>$ $>$ E\+E\+R\+A\+Model\+::\+Age\+Group\+Data\+::waifw\+\_\+sdist}
+
+mean number of daily contacts between age groups (not school, not work). 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/Model\+Types.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,117 @@
+\hypertarget{classEERAModel_1_1Model_1_1TempModel}{}\doxysection{E\+E\+R\+A\+Model\+::Model\+::Temp\+Model Class Reference}
+\label{classEERAModel_1_1Model_1_1TempModel}\index{EERAModel::Model::TempModel@{EERAModel::Model::TempModel}}
+
+
+Inheritance diagram for E\+E\+R\+A\+Model\+::Model\+::Temp\+Model\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=268pt]{classEERAModel_1_1Model_1_1TempModel__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for E\+E\+R\+A\+Model\+::Model\+::Temp\+Model\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=268pt]{classEERAModel_1_1Model_1_1TempModel__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1TempModel_a1ea5a90082e833cb614b152bf373091e}\label{classEERAModel_1_1Model_1_1TempModel_a1ea5a90082e833cb614b152bf373091e}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel}{Temp\+Model}} $>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel_aaa25e06b27f5f93a46bf4bacac547937}{Temp\+Model}} (const \mbox{\hyperlink{structEERAModel_1_1CommonModelInputParameters}{Common\+Model\+Input\+Parameters}} \&common\+Parameters, const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&observations, Random\+::\+R\+N\+G\+Interface\+::\+Sptr rng, Utilities\+::logging\+\_\+stream\+::\+Sptr log)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1Status}{Status}} \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel_aef162aaad51e0512c586dff004246956}{Run}} (std\+::vector$<$ double $>$ parameter\+\_\+set, const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&seedlist, int day\+\_\+shut, int n\+\_\+sim\+\_\+steps) override
+\begin{DoxyCompactList}\small\item\em Run the model with the given parameters and configurations. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classEERAModel_1_1Model_1_1TempModel_a20f4a42cf477ae847e94deaeebb95cf1}{Set\+Fixed\+Parameters}} (const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&paramlist) override
+\begin{DoxyCompactList}\small\item\em Set the fixed parameters in the model. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1TempModel_aaa25e06b27f5f93a46bf4bacac547937}\label{classEERAModel_1_1Model_1_1TempModel_aaa25e06b27f5f93a46bf4bacac547937}} 
+\index{EERAModel::Model::TempModel@{EERAModel::Model::TempModel}!TempModel@{TempModel}}
+\index{TempModel@{TempModel}!EERAModel::Model::TempModel@{EERAModel::Model::TempModel}}
+\doxysubsubsection{\texorpdfstring{TempModel()}{TempModel()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Model\+::\+Temp\+Model\+::\+Temp\+Model (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1CommonModelInputParameters}{Common\+Model\+Input\+Parameters}} \&}]{common\+Parameters,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1ObservationsForModels}{Observations\+For\+Models}} \&}]{observations,  }\item[{Random\+::\+R\+N\+G\+Interface\+::\+Sptr}]{rng,  }\item[{Utilities\+::logging\+\_\+stream\+::\+Sptr}]{log }\end{DoxyParamCaption})}
+
+
+
+Constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em common\+Parameters} & Common model input parameters \\
+\hline
+{\em observations} & \mbox{\hyperlink{namespaceEERAModel_1_1Observations}{Observations}} \\
+\hline
+{\em rng} & \mbox{\hyperlink{namespaceEERAModel_1_1Random}{Random}} number generator to be used by the model \\
+\hline
+{\em log} & Logger \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1TempModel_aef162aaad51e0512c586dff004246956}\label{classEERAModel_1_1Model_1_1TempModel_aef162aaad51e0512c586dff004246956}} 
+\index{EERAModel::Model::TempModel@{EERAModel::Model::TempModel}!Run@{Run}}
+\index{Run@{Run}!EERAModel::Model::TempModel@{EERAModel::Model::TempModel}}
+\doxysubsubsection{\texorpdfstring{Run()}{Run()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1Status}{Status}} E\+E\+R\+A\+Model\+::\+Model\+::\+Temp\+Model\+::\+Run (\begin{DoxyParamCaption}\item[{std\+::vector$<$ double $>$}]{parameter\+\_\+set,  }\item[{const \mbox{\hyperlink{structEERAModel_1_1seed}{seed}} \&}]{seedlist,  }\item[{int}]{day\+\_\+shut,  }\item[{int}]{n\+\_\+sim\+\_\+steps }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Run the model with the given parameters and configurations. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameter\+\_\+set} & set of parameters that are being infered (i.\+e. particles) \\
+\hline
+{\em seedlist} & seeding method to initialise infection (\char`\"{}random\char`\"{}\+: randomly allocate n infectious individuaals at the start, or \char`\"{}background\char`\"{}\+: background transmission over a defined pre-\/lockdown period ) \\
+\hline
+{\em day\+\_\+shut} & day of the lock down \\
+\hline
+{\em n\+\_\+sim\+\_\+steps} & Number of steps to simulate\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{structEERAModel_1_1Status}{Status}} of model after run 
+\end{DoxyReturn}
+
+
+Implements \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface_a9b0488d2a8b735c27014697eb3aaaacd}{E\+E\+R\+A\+Model\+::\+Model\+::\+Model\+Interface}}.
+
+\mbox{\Hypertarget{classEERAModel_1_1Model_1_1TempModel_a20f4a42cf477ae847e94deaeebb95cf1}\label{classEERAModel_1_1Model_1_1TempModel_a20f4a42cf477ae847e94deaeebb95cf1}} 
+\index{EERAModel::Model::TempModel@{EERAModel::Model::TempModel}!SetFixedParameters@{SetFixedParameters}}
+\index{SetFixedParameters@{SetFixedParameters}!EERAModel::Model::TempModel@{EERAModel::Model::TempModel}}
+\doxysubsubsection{\texorpdfstring{SetFixedParameters()}{SetFixedParameters()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+Model\+::\+Temp\+Model\+::\+Set\+Fixed\+Parameters (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structEERAModel_1_1params}{params}} \&}]{paramlist }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Set the fixed parameters in the model. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em paramlist} & Fixed model parameters \\
+\hline
+\end{DoxyParams}
+
+
+Implements \mbox{\hyperlink{classEERAModel_1_1Model_1_1ModelInterface_a4eea1cb1e2bf44b502f9d37ba6d659f8}{E\+E\+R\+A\+Model\+::\+Model\+::\+Model\+Interface}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/Temp\+Model.\+h\item 
+src/Temp\+Model.\+cpp\end{DoxyCompactItemize}

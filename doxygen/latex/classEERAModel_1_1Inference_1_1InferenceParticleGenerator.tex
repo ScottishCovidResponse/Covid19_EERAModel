@@ -1,0 +1,113 @@
+\hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator}{}\doxysection{E\+E\+R\+A\+Model\+::Inference\+::Inference\+Particle\+Generator Class Reference}
+\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator}\index{EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}}
+
+
+Generate inference particles on demand.  
+
+
+
+
+{\ttfamily \#include $<$Inference\+Framework.\+h$>$}
+
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_ae955282b2cb54b786c2df601c2b99d69}\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_ae955282b2cb54b786c2df601c2b99d69}} 
+using {\bfseries Sptr} = std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator}{Inference\+Particle\+Generator}} $>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a4a7f4346136f8a770c9acd166adc8aec}{Inference\+Particle\+Generator}} (unsigned int n\+Inference\+Params, double kernel\+Factor, Random\+::\+R\+N\+G\+Interface\+::\+Sptr rng)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a9c1a02c330444f6e8aaa150ad6d7b9b2}{Update}} (std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ particles)
+\begin{DoxyCompactList}\small\item\em Update the generator. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structEERAModel_1_1particle}{particle}} \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a78f197bf9d88b7d6e72181f1a062c553}{Generate\+New}} (int smc, int sim, Inference\+Parameter\+Generator\+::\+Sptr parameter\+Generator, const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ \&previous\+Particles)
+\begin{DoxyCompactList}\small\item\em Generate a new inference particle. \end{DoxyCompactList}\item 
+const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1KernelWindow}{Kernel\+Window}} $>$ \mbox{\hyperlink{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a3ffbd249b731708132f926343c1d6d08}{Kernel\+Windows}} () const
+\begin{DoxyCompactList}\small\item\em Get the current kernel windows. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Generate inference particles on demand. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a4a7f4346136f8a770c9acd166adc8aec}\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a4a7f4346136f8a770c9acd166adc8aec}} 
+\index{EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}!InferenceParticleGenerator@{InferenceParticleGenerator}}
+\index{InferenceParticleGenerator@{InferenceParticleGenerator}!EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}}
+\doxysubsubsection{\texorpdfstring{InferenceParticleGenerator()}{InferenceParticleGenerator()}}
+{\footnotesize\ttfamily E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Particle\+Generator\+::\+Inference\+Particle\+Generator (\begin{DoxyParamCaption}\item[{unsigned int}]{n\+Inference\+Params,  }\item[{double}]{kernel\+Factor,  }\item[{Random\+::\+R\+N\+G\+Interface\+::\+Sptr}]{rng }\end{DoxyParamCaption})}
+
+
+
+Constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em n\+Inference\+Params} & Number of inference parameters in each particle \\
+\hline
+{\em kernel\+Factor} & Configuration factor for the parameter kernels \\
+\hline
+{\em rng} & Seeded random number generator \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a78f197bf9d88b7d6e72181f1a062c553}\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a78f197bf9d88b7d6e72181f1a062c553}} 
+\index{EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}!GenerateNew@{GenerateNew}}
+\index{GenerateNew@{GenerateNew}!EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}}
+\doxysubsubsection{\texorpdfstring{GenerateNew()}{GenerateNew()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Particle\+Generator\+::\+Generate\+New (\begin{DoxyParamCaption}\item[{int}]{smc,  }\item[{int}]{sim,  }\item[{Inference\+Parameter\+Generator\+::\+Sptr}]{parameter\+Generator,  }\item[{const std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$ \&}]{previous\+Particles }\end{DoxyParamCaption})}
+
+
+
+Generate a new inference particle. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em smc} & \mbox{\hyperlink{namespaceEERAModel_1_1Inference}{Inference}} loop number \\
+\hline
+{\em sim} & Simulation loop number \\
+\hline
+{\em inference\+Parameter\+Generator} & Parameter generator for th inference framework \\
+\hline
+{\em previous\+Particles} & Previously accepted inference particles \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a3ffbd249b731708132f926343c1d6d08}\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a3ffbd249b731708132f926343c1d6d08}} 
+\index{EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}!KernelWindows@{KernelWindows}}
+\index{KernelWindows@{KernelWindows}!EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}}
+\doxysubsubsection{\texorpdfstring{KernelWindows()}{KernelWindows()}}
+{\footnotesize\ttfamily const std\+::vector$<$\mbox{\hyperlink{structEERAModel_1_1KernelWindow}{Kernel\+Window}}$>$ E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Particle\+Generator\+::\+Kernel\+Windows (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the current kernel windows. 
+
+\begin{DoxyReturn}{Returns}
+Const reference to the current set of kerenl windows 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a9c1a02c330444f6e8aaa150ad6d7b9b2}\label{classEERAModel_1_1Inference_1_1InferenceParticleGenerator_a9c1a02c330444f6e8aaa150ad6d7b9b2}} 
+\index{EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}!Update@{Update}}
+\index{Update@{Update}!EERAModel::Inference::InferenceParticleGenerator@{EERAModel::Inference::InferenceParticleGenerator}}
+\doxysubsubsection{\texorpdfstring{Update()}{Update()}}
+{\footnotesize\ttfamily void E\+E\+R\+A\+Model\+::\+Inference\+::\+Inference\+Particle\+Generator\+::\+Update (\begin{DoxyParamCaption}\item[{std\+::vector$<$ \mbox{\hyperlink{structEERAModel_1_1particle}{particle}} $>$}]{particles }\end{DoxyParamCaption})}
+
+
+
+Update the generator. 
+
+On each loop of the A\+B\+C-\/smc framework, a new collection of particles is accepted by the framework and recorded. This function should be called with the new set of particles, updating its internal weight distribution and kernel windows for the inference parameters
+
+
+\begin{DoxyParams}{Parameters}
+{\em particles} & List of particles accepted on the last A\+B\+C-\/smc loop \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/Inference\+Framework.\+h\item 
+src/Inference\+Framework.\+cpp\end{DoxyCompactItemize}
