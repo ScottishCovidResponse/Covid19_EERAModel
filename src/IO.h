@@ -186,9 +186,18 @@ void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& ou
 void WritePredictionFullHeader(std::ostream& os);
 
 /**
+ * @brief Write header row for inference end outputs
+ * 
+ * Writes inference end state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceEndsHeader(std::ostream& os);
+
+/**
  * @brief Write data row for prediction full outputs
  * 
- * Writes @p iter, @p daya, @p age_group, followed by the contents of @p comp, followed by a newline
+ * Writes @p iter, @p day, @p age_group, followed by the contents of @p comp, followed by a newline
  * 
  * @param os Stream to write the row to
  * @param iter Iteration number
@@ -199,13 +208,46 @@ void WritePredictionFullHeader(std::ostream& os);
 void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp);
 
 /**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param day Day number
+ * @param age_group Age group number
+ * @param comp Epidemiological compartments for @p age_group
+ */
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp);
+
+/**
+ * @brief Write data row for inference ends outputs
+ * 
+ * Writes @p iter, @p age_group, followed by the contents of @p comp, followed by a newline
+ * 
+ * @param os Stream to write the row to
+ * @param iter Iteration number
+ * @param particle A particle representing a set of parameters
+ */
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle);
+
+/**
+ * @brief Write header row for inference particles outputs
+ * 
+ * Writes inference particle state file header, followed by a newline
+ * 
+ * @param os Stream to write the header to
+ */
+void WriteInferenceParticlesHeader(std::ostream& os);
+
+/**
  * @brief Write header row for prediction simulation outputs
  * 
  * Writes prediction simulation file header, followed by a newline
  * 
  * @param os Stream to write the header to
  */
-void WritePredictionSimuHeader(std::ostream& os);
+void WriteSimuHeader(std::ostream& os);
 
 /**
  * @brief Write header row for prediction simulation outputs
@@ -219,7 +261,7 @@ void WritePredictionSimuHeader(std::ostream& os);
  * @param inc_death_hospital Deaths in hospital
  * @param inc_death Deaths 
  */
-void WritePredictionSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
     int inc_death);
 
 /**
@@ -324,6 +366,15 @@ void LogDependencyVersionInfo(Utilities::logging_stream::Sptr log);
  * @return Output logger
  */
 void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& paramlist);
+
+/**
+ * @brief Convert a set of disease compartments to a string
+ * 
+ * @param comp Compartments to convert
+ * 
+ * @return Compartments in the form "S, E, ..."
+ */
+std::string CompToString(const Compartments& comp);
 
 } // namespace IO
 } // namespace EERAModel

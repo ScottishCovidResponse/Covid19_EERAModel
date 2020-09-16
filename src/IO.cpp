@@ -424,32 +424,25 @@ void WriteOutputsToFiles(int smc, int herd_id, int Nparticle, int nPar,
     std::ofstream output_ends (namefile_ends.str().c_str());
     
     //add the column names for each output list of particles
-    output_step << "iterID,nsse_cases,nsse_deaths,p_inf,p_hcw,c_hcw,d,q,p_s,rrd,lambda,weight" << std::endl;
+    WriteInferenceParticlesHeader(output_step);
 
     //add the column names for each output list of chosen simulations
-    output_simu << "iterID" << "," << "day" << "," << "inc_case" << "," << "inc_death_hospital" << "," << "inc_death" << std::endl;
+    WriteSimuHeader(output_simu);
     
     //add the column names for each output list of the compartment values of the last day of the chosen simulations
-    output_ends << "iterID" << "," << "age_group" << "," << "comparts" << "," << "value" << std::endl;		
+    WriteInferenceEndsHeader(output_ends);	
 
     // outputs the list of particles (and corresponding predictions) that were accepted at each steps of ABC-smc
     for (int kk = 0; kk < Nparticle; ++kk) {
-        output_step << particleList[kk].iter << ", " << particleList[kk].nsse_cases <<  ", " << particleList[kk].nsse_deaths <<  ", " ;
-
-        for (int var = 0; var < nPar; ++var) {
-            output_step << particleList[kk].parameter_set[var] << ", ";
-        }
-        output_step	<< particleList[kk].weight<< '\n';
+        WriteInferenceParticlesRow(output_step, kk, particleList[kk]);
         
         for (unsigned int var = 0; var < particleList[kk].simu_outs.size(); ++var) {
-            output_simu << particleList[kk].iter << ", " << var << ", " <<  particleList[kk].simu_outs[var] << ", " \
-                        <<  particleList[kk].hospital_death_outs[var] << ", " << particleList[kk].death_outs[var] << '\n';
+            WriteSimuRow(output_simu, particleList[kk].iter, var , particleList[kk].simu_outs[var],
+                        particleList[kk].hospital_death_outs[var], particleList[kk].death_outs[var]);
         }
         
         for (unsigned int age = 0; age < particleList[kk].end_comps.size(); ++age) {
-            for (unsigned int var = 0; var < particleList[kk].end_comps[0].size(); ++var) {
-                output_ends << particleList[kk].iter << ", " << age << ", " << var << ", " <<  particleList[kk].end_comps[age][var] << '\n';
-            }
+            WriteInferenceEndsRow(output_ends, particleList[kk].iter, age, particleList[kk].end_comps[age]);
         }
     }
     
@@ -467,12 +460,12 @@ void WritePredictionsToFiles(std::vector<Status> statuses, const std::string& ou
     std::ofstream output_simu(namefile_simu.str());
     std::ofstream output_full(namefile_full.str());
 
-    WritePredictionSimuHeader(output_simu);
+    WriteSimuHeader(output_simu);
     for (unsigned int iter = 0; iter < statuses.size(); ++iter) {
         const Status& status = statuses[iter];
         
         for (unsigned int day = 0; day < status.simulation.size(); ++day) {
-            WritePredictionSimuRow(output_simu, iter, day, status.simulation[day],
+            WriteSimuRow(output_simu, iter, day, status.simulation[day],
                 status.hospital_deaths[day], status.deaths[day]);
         }
     }
@@ -499,35 +492,55 @@ void WritePredictionFullHeader(std::ostream& os)
         " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
 }
 
+void WriteInferenceEndsHeader(std::ostream& os)
+{
+    os << "iter, age_group, S, E, E_t, I_p, I_t,"
+        " I1, I2, I3, I4, I_s1, I_s2, I_s3, I_s4, H, R, D" << std::endl;
+}
+
+void WriteInferenceParticlesHeader(std::ostream& os)
+{
+    os << "iter, nsse_cases, nsse_deaths, p_inf, "
+        "p_hcw, c_hcw, d, q, p_s, rrd, lambda, weight" << std::endl;
+}
+
 void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, const Compartments& comp)
 {
     os << iter          << ", ";
     os << day           << ", ";
     os << age_group     << ", ";
-    os << comp.S        << ", ";
-    os << comp.E        << ", ";
-    os << comp.E_t      << ", ";
-    os << comp.I_p      << ", ";
-    os << comp.I_t      << ", ";
-    os << comp.I1       << ", ";
-    os << comp.I2       << ", ";
-    os << comp.I3       << ", ";
-    os << comp.I4       << ", ";
-    os << comp.I_s1     << ", ";
-    os << comp.I_s2     << ", ";
-    os << comp.I_s3     << ", ";
-    os << comp.I_s4     << ", ";
-    os << comp.H        << ", ";
-    os << comp.R        << ", ";
-    os << comp.D        << std::endl;
+    os << CompToString(comp) << std::endl;
 }
 
-void WritePredictionSimuHeader(std::ostream& os)
+void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
+{
+    os << iter          << ", ";
+    os << age_group     << ", ";
+    os << CompToString(comp) << std::endl;
+}
+
+void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
+{
+    os << iter                                                     << ", ";
+    os << particle.nsse_cases                                      << ", ";
+    os << particle.nsse_deaths                                     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PINF]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::CHCW]     << ", ";
+    os << particle.parameter_set[Model::ModelParameters::D]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::Q]        << ", ";
+    os << particle.parameter_set[Model::ModelParameters::PS]       << ", ";
+    os << particle.parameter_set[Model::ModelParameters::RRD]      << ", ";
+    os << particle.parameter_set[Model::ModelParameters::LAMBDA]   << ", ";
+    os << particle.weight                                          << std::endl;
+}
+
+void WriteSimuHeader(std::ostream& os)
 {
     os << "iter, day, " << "inc_case, " << "inc_death_hospital, " << "inc_death" << std::endl;
 }
 
-void WritePredictionSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
+void WriteSimuRow(std::ostream& os, int iter, int day, int inc_case, int inc_death_hospital,
     int inc_death) 
 {
     os << iter  << ", ";
@@ -608,6 +621,30 @@ void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& p
     (*log) << "    hospitalisation stay (theta_h): " << paramlist.T_hos <<std::endl;
     (*log) << "    bed capacity at hospital (K): " << paramlist.K <<std::endl;
     (*log) << "    relative infectiousness of asymptomatic (u): " << paramlist.inf_asym <<std::endl;
+}
+
+std::string CompToString(const Compartments& comp)
+{
+    std::stringstream ss;
+
+    ss << comp.S        << ", ";
+    ss << comp.E        << ", ";
+    ss << comp.E_t      << ", ";
+    ss << comp.I_p      << ", ";
+    ss << comp.I_t      << ", ";
+    ss << comp.I1       << ", ";
+    ss << comp.I2       << ", ";
+    ss << comp.I3       << ", ";
+    ss << comp.I4       << ", ";
+    ss << comp.I_s1     << ", ";
+    ss << comp.I_s2     << ", ";
+    ss << comp.I_s3     << ", ";
+    ss << comp.I_s4     << ", ";
+    ss << comp.H        << ", ";
+    ss << comp.R        << ", ";
+    ss << comp.D;
+
+    return ss.str();
 }
 
 } // namespace IO
