@@ -509,44 +509,14 @@ void WritePredictionFullRow(std::ostream& os, int iter, int day, int age_group, 
     os << iter          << ", ";
     os << day           << ", ";
     os << age_group     << ", ";
-    os << comp.S        << ", ";
-    os << comp.E        << ", ";
-    os << comp.E_t      << ", ";
-    os << comp.I_p      << ", ";
-    os << comp.I_t      << ", ";
-    os << comp.I1       << ", ";
-    os << comp.I2       << ", ";
-    os << comp.I3       << ", ";
-    os << comp.I4       << ", ";
-    os << comp.I_s1     << ", ";
-    os << comp.I_s2     << ", ";
-    os << comp.I_s3     << ", ";
-    os << comp.I_s4     << ", ";
-    os << comp.H        << ", ";
-    os << comp.R        << ", ";
-    os << comp.D        << std::endl;
+    os << CompToString(comp) << std::endl;
 }
 
 void WriteInferenceEndsRow(std::ostream& os, int iter, int age_group, const Compartments& comp)
 {
     os << iter          << ", ";
     os << age_group     << ", ";
-    os << comp.S        << ", ";
-    os << comp.E        << ", ";
-    os << comp.E_t      << ", ";
-    os << comp.I_p      << ", ";
-    os << comp.I_t      << ", ";
-    os << comp.I1       << ", ";
-    os << comp.I2       << ", ";
-    os << comp.I3       << ", ";
-    os << comp.I4       << ", ";
-    os << comp.I_s1     << ", ";
-    os << comp.I_s2     << ", ";
-    os << comp.I_s3     << ", ";
-    os << comp.I_s4     << ", ";
-    os << comp.H        << ", ";
-    os << comp.R        << ", ";
-    os << comp.D        << std::endl;
+    os << CompToString(comp) << std::endl;
 }
 
 void WriteInferenceParticlesRow(std::ostream& os, int iter, const particle particle)
@@ -651,6 +621,30 @@ void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& p
     (*log) << "    hospitalisation stay (theta_h): " << paramlist.T_hos <<std::endl;
     (*log) << "    bed capacity at hospital (K): " << paramlist.K <<std::endl;
     (*log) << "    relative infectiousness of asymptomatic (u): " << paramlist.inf_asym <<std::endl;
+}
+
+std::string CompToString(const Compartments& comp)
+{
+    std::stringstream ss;
+
+    ss << comp.S        << ", ";
+    ss << comp.E        << ", ";
+    ss << comp.E_t      << ", ";
+    ss << comp.I_p      << ", ";
+    ss << comp.I_t      << ", ";
+    ss << comp.I1       << ", ";
+    ss << comp.I2       << ", ";
+    ss << comp.I3       << ", ";
+    ss << comp.I4       << ", ";
+    ss << comp.I_s1     << ", ";
+    ss << comp.I_s2     << ", ";
+    ss << comp.I_s3     << ", ";
+    ss << comp.I_s4     << ", ";
+    ss << comp.H        << ", ";
+    ss << comp.R        << ", ";
+    ss << comp.D;
+
+    return ss.str();
 }
 
 } // namespace IO

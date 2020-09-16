@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ModelTypes.h"
-#include "ModelCommon.h"
 #include "IniFile.h"
 #include "Utilities.h"
 #include <sstream>
@@ -367,6 +366,15 @@ void LogDependencyVersionInfo(Utilities::logging_stream::Sptr log);
  * @return Output logger
  */
 void OutputFixedParameters(Utilities::logging_stream::Sptr& log, const params& paramlist);
+
+/**
+ * @brief Convert a set of disease compartments to a string
+ * 
+ * @param comp Compartments to convert
+ * 
+ * @return Compartments in the form "S, E, ..."
+ */
+std::string CompToString(const Compartments& comp);
 
 } // namespace IO
 } // namespace EERAModel
