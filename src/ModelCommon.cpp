@@ -21,6 +21,7 @@ std::vector<int> ComputeAgeNums(int shb_id, int Npop, int N_hcw, const Observati
 	
 	// define age structure of the shb of interest. the -1 is to account for difference in number of
 	// rows between two datasets (age_pop does not have a row with column name)
+	Utilities::checkAndGetSize(obs.age_pop);
 	const auto& agedist = obs.age_pop[shb_id - 1];
 	
 	for (const auto& var : agedist) {
@@ -41,7 +42,10 @@ int GetPopulationOfRegion(const ObservationsForModels& obs, int region_id)
 int ComputeNumberOfHCWInRegion(int regionalPopulation, int totalHCW, const ObservationsForModels& obs)
 {
     int scotlandPopulation = 0;
+	Utilities::checkAndGetSize(obs.cases, "obs.cases");
+	
 	for (unsigned int region = 0; region < obs.cases.size() - 1; ++region) {
+		Utilities::checkAndGetSize(obs.cases[region], "obs.cases["+std::to_string(region)+"]");
 		scotlandPopulation += obs.cases[region][0];
 	}
 	double regionalProportion = static_cast<double>(regionalPopulation) / scotlandPopulation;
